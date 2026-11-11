@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../auth/auth_controller.dart';
+import '../settings/settings_screen.dart';
 
 class DashboardScreen extends ConsumerStatefulWidget {
   const DashboardScreen({super.key});
@@ -111,9 +112,11 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                 ),
                 const Divider(height: 1),
                 Expanded(
-                  child: _selected == 0
-                      ? _HomeOverview(username: user?.displayName ?? '')
-                      : _ModulePlaceholder(title: module.$2),
+                  child: switch (_selected) {
+                    0 => _HomeOverview(username: user?.displayName ?? ''),
+                    9 => const SettingsScreen(),
+                    _ => _ModulePlaceholder(title: module.$2),
+                  },
                 ),
               ],
             ),
