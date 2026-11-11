@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import '../../core/database/app_database.dart';
 import '../academics/academics_structure_screen.dart';
 import '../admin/admin_screen.dart';
+import 'backup_tab.dart';
 import 'settings_providers.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
@@ -21,7 +22,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 4, vsync: this);
+    _tabController = TabController(length: 5, vsync: this);
   }
 
   @override
@@ -44,6 +45,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
               Tab(text: 'Années scolaires & Périodes'),
               Tab(text: 'Structure pédagogique'),
               Tab(text: 'Sécurité & Administration'),
+              Tab(text: 'Sauvegarde & Restauration'),
             ],
           ),
         ),
@@ -55,6 +57,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
               _AcademicYearsTab(),
               AcademicsStructureTab(),
               AdminSecurityTab(),
+              BackupRestoreTab(),
             ],
           ),
         ),
