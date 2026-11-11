@@ -206,6 +206,75 @@ class FinanceRepository {
         .watch();
   }
 
+  // --- Financial adjustments (remises / avoirs / bourses) ---
+  Stream<List<FinancialAdjustment>> watchAdjustments({String? studentId}) {
+    final q = db.select(db.financialAdjustments)..where((t) => t.isDeleted.equals(false));
+    if (studentId != null && studentId.isNotEmpty) q.where((t) => t.studentId.equals(studentId));
+    q.orderBy([(t) => OrderingTerm.desc(t.date), (t) => OrderingTerm.desc(t.createdAt)]);
+    return q.watch();
+  }
+
+  Future<void> upsertAdjustment({
+    String? id,
+    required String studentId,
+    String? enrollmentId,
+    String? feeTypeId,
+    required String type,
+    required double amount,
+    String? reason,
+    DateTime? date,
+    String status = 'active',
+    String? note,
+  }) async {
+    final now = DateTime.now();
+    if (id == null) {
+      await db.into(db.financialAdjustments).insert(FinancialAdjustmentsCompanion.insert(
+            id: _uuid.v4(),
+            studentId: studentId,
+            enrollmentId: Value(enrollmentId),
+            feeTypeId: Value(feeTypeId),
+            type: type,
+            amount: amount,
+            reason: Value(reason),
+            date: date ?? now,
+            status: Value(status),
+            note: Value(note),
+          ));
+    } else {
+      await (db.update(db.financialAdjustments)..where((t) => t.id.equals(id))).write(FinancialAdjustmentsCompanion(
+            enrollmentId: Value(enrollmentId),
+            feeTypeId: Value(feeTypeId),
+            type: Value(type),
+            amount: Value(amount),
+            reason: Value(reason),
+            date: Value(date ?? now),
+            status: Value(status),
+            note: Value(note),
+            updatedAt: Value(now),
+          ));
+    }
+  }
+
+  Future<void> deleteAdjustment(String id) async {
+    await (db.update(db.financialAdjustments)..where((t) => t.id.equals(id))).write(
+      FinancialAdjustmentsCompanion(isDeleted: const Value(true), deletedAt: Value(DateTime.now())),
+    );
+  }
+
+  Stream<double> watchTotalAdjustmentsForStudent(String studentId) {
+    final q = db.selectOnly(db.financialAdjustments)..addColumns([db.financialAdjustments.amount.sum()]);
+    q.where(db.financialAdjustments.isDeleted.equals(false) &
+        db.financialAdjustments.status.equals('active') &
+        db.financialAdjustments.studentId.equals(studentId));
+    return q.watchSingle().map((row) => row.read(db.financialAdjustments.amount.sum()) ?? 0.0);
+  }
+
+  Stream<double> watchTotalPaidForStudent(String studentId) {
+    final q = db.selectOnly(db.payments)..addColumns([db.payments.amount.sum()]);
+    q.where(db.payments.isDeleted.equals(false) & db.payments.status.equals('valid') & db.payments.studentId.equals(studentId));
+    return q.watchSingle().map((row) => row.read(db.payments.amount.sum()) ?? 0.0);
+  }
+
   Future<double> expectedTotalForDate(DateTime date, {String? cashierUserId}) async {
     final start = DateTime(date.year, date.month, date.day);
     final end = start.add(const Duration(days: 1));

@@ -4,6 +4,7 @@ import '../../core/database/app_database.dart';
 import '../../core/database/database_provider.dart';
 import '../../core/security/authorization_service.dart';
 import '../auth/auth_controller.dart';
+import '../students/students_providers.dart';
 import 'finance_repository.dart';
 
 final financeRepositoryProvider = Provider<FinanceRepository>((ref) {
@@ -62,4 +63,40 @@ final cashClosuresProvider = StreamProvider<List<CashClosure>>((ref) {
     return all.map((list) => list.where((c) => c.cashierUserId == user.id).toList());
   }
   return all;
+});
+
+final adjustmentsProvider = StreamProvider<List<FinancialAdjustment>>((ref) {
+  return ref.watch(financeRepositoryProvider).watchAdjustments();
+});
+
+final adjustmentsForStudentProvider = StreamProvider.family<List<FinancialAdjustment>, String>((ref, studentId) {
+  return ref.watch(financeRepositoryProvider).watchAdjustments(studentId: studentId);
+});
+
+final studentFinanceSummaryProvider = FutureProvider<List<({Student student, double planned, double paid, double adjustments, double balance, int overdueCount})>>((ref) async {
+  final students = ref.watch(studentsProvider).valueOrNull ?? [];
+  final plans = await ref.watch(financeRepositoryProvider).db.select(ref.watch(financeRepositoryProvider).db.paymentPlans).get();
+  final inst = await ref.watch(financeRepositoryProvider).db.select(ref.watch(financeRepositoryProvider).db.paymentInstallments).get();
+  final pays = await ref.watch(financeRepositoryProvider).db.select(ref.watch(financeRepositoryProvider).db.payments).get();
+  final adjs = await ref.watch(financeRepositoryProvider).db.select(ref.watch(financeRepositoryProvider).db.financialAdjustments).get();
+  final activePlans = plans.where((p)=>!p.isDeleted && p.status!='cancelled').toList();
+  final activeInst = inst.where((i)=>!i.isDeleted).toList();
+  final activePays = pays.where((p)=>!p.isDeleted && p.status=='valid').toList();
+  final activeAdjs = adjs.where((a)=>!a.isDeleted && a.status=='active').toList();
+  final out = <({Student student, double planned, double paid, double adjustments, double balance, int overdueCount})>[];
+  for (final s in students) {
+    final planned = activePlans.where((p)=>p.studentId==s.id).fold<double>(0,(a,p)=>a+p.totalAmount);
+    final paid = activePays.where((p)=>p.studentId==s.id).fold<double>(0,(a,p)=>a+p.amount);
+    final adjustments = activeAdjs.where((a)=>a.studentId==s.id).fold<double>(0,(a,x)=>a+x.amount);
+    final overdueCount = activeInst.where((i){
+      final plan = activePlans.where((p)=>p.id==i.planId && p.studentId==s.id).toList();
+      return plan.isNotEmpty && i.status=='overdue';
+    }).length;
+    final balance = (planned - adjustments) - paid;
+    if (planned > 0 || paid > 0 || adjustments > 0 || overdueCount > 0) {
+      out.add((student: s, planned: planned, paid: paid, adjustments: adjustments, balance: balance, overdueCount: overdueCount));
+    }
+  }
+  out.sort((a,b){ final bo = b.balance.compareTo(a.balance); return bo != 0 ? bo : b.overdueCount.compareTo(a.overdueCount); });
+  return out;
 });

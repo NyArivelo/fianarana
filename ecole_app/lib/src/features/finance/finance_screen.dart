@@ -15,13 +15,15 @@ class FinanceScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return DefaultTabController(
-      length: 5,
+      length: 7,
       child: Column(
         children: [
           const TabBar(isScrollable: true, tabs: [
             Tab(text: 'Encaissements / Journal'),
             Tab(text: 'Nouveau paiement'),
             Tab(text: 'Échéanciers'),
+            Tab(text: 'Remises / Avoirs / Bourses'),
+            Tab(text: 'Impayés & soldes'),
             Tab(text: 'Clôture de caisse'),
             Tab(text: 'Types de frais'),
           ]),
@@ -30,6 +32,8 @@ class FinanceScreen extends ConsumerWidget {
               _PaymentsJournalTab(),
               _NewPaymentTab(),
               _InstallmentsTab(),
+              _AdjustmentsTab(),
+              _ArrearsTab(),
               _CashClosureTab(),
               _FeeTypesTab(),
             ]),
@@ -423,5 +427,148 @@ class _FeeTypesTab extends ConsumerWidget {
         }, child: const Text('Enregistrer')),
       ],
     ));
+  }
+}
+
+
+class _AdjustmentsTab extends ConsumerWidget {
+  const _AdjustmentsTab();
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final adjustments = ref.watch(adjustmentsProvider);
+    final students = {for (final s in (ref.watch(studentsProvider).valueOrNull ?? <Student>[])) s.id: s};
+    final fees = {for (final f in (ref.watch(feeTypesProvider).valueOrNull ?? <FeeType>[])) f.id: f};
+    final money = NumberFormat('#,##0.00', 'fr');
+    final fmt = DateFormat('dd/MM/yyyy');
+    return Padding(padding: const EdgeInsets.all(16), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Row(children: [
+        Text('Remises, avoirs et bourses', style: Theme.of(context).textTheme.titleMedium),
+        const Spacer(),
+        FilledButton.icon(onPressed: () => _edit(context, ref), icon: const Icon(Icons.add), label: const Text('Ajouter')),
+      ]),
+      const SizedBox(height: 8),
+      const Text('Les ajustements actifs réduisent le solde dû (total planifié - ajustements - paiements).'),
+      const SizedBox(height: 12),
+      Expanded(child: adjustments.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (e, _) => Center(child: Text('Erreur: $e')),
+        data: (list) {
+          if (list.isEmpty) return const Center(child: Text('Aucun ajustement enregistré.'));
+          return ListView.builder(itemCount: list.length, itemBuilder: (context, i) {
+            final a = list[i];
+            final st = students[a.studentId];
+            return Card(child: ListTile(
+              leading: Icon(a.type == 'bourse' ? Icons.school : a.type == 'avoir' ? Icons.account_balance_wallet : Icons.discount, color: a.status == 'active' ? Colors.green : Colors.grey),
+              title: Text('${a.type.toUpperCase()} — ${money.format(a.amount)} • ${st != null ? '${st.lastName} ${st.firstName}' : a.studentId}'),
+              subtitle: Text('${fmt.format(a.date)} • ${a.status}${a.reason != null && a.reason!.isNotEmpty ? ' • ${a.reason}' : ''}${a.feeTypeId != null && fees[a.feeTypeId] != null ? ' • ${fees[a.feeTypeId]!.name}' : ''}'),
+              isThreeLine: true,
+              trailing: Wrap(spacing: 4, children: [
+                IconButton(icon: const Icon(Icons.edit_outlined), onPressed: () => _edit(context, ref, a)),
+                IconButton(icon: const Icon(Icons.delete_outline), onPressed: () => ref.read(financeRepositoryProvider).deleteAdjustment(a.id)),
+              ]),
+            ));
+          });
+        },
+      )),
+    ]));
+  }
+
+  static Future<void> _edit(BuildContext context, WidgetRef ref, [FinancialAdjustment? a]) async {
+    final students = ref.read(studentsProvider).valueOrNull ?? [];
+    if (students.isEmpty) { ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Aucun élève disponible.'))); return; }
+    final fees = ref.read(feeTypesProvider).valueOrNull ?? [];
+    String studentId = a?.studentId ?? students.first.id;
+    String type = a?.type ?? 'remise';
+    String status = a?.status ?? 'active';
+    String? feeTypeId = a?.feeTypeId;
+    final amount = TextEditingController(text: a != null ? a.amount.toStringAsFixed(0) : '');
+    final reason = TextEditingController(text: a?.reason ?? '');
+    final note = TextEditingController(text: a?.note ?? '');
+    DateTime date = a?.date ?? DateTime.now();
+    final fmt = DateFormat('dd/MM/yyyy');
+    await showDialog(context: context, builder: (ctx) => StatefulBuilder(builder: (ctx, setState) => AlertDialog(
+      title: Text(a == null ? 'Nouvel ajustement' : 'Modifier l\'ajustement'),
+      content: SizedBox(width: 520, child: SingleChildScrollView(child: Column(mainAxisSize: MainAxisSize.min, children: [
+        DropdownButtonFormField<String>(initialValue: studentId, decoration: const InputDecoration(labelText: 'Élève'), items: [for (final s in students) DropdownMenuItem(value: s.id, child: Text('${s.lastName} ${s.firstName} (${s.matricule})'))], onChanged: a==null ? (v)=>setState(()=>studentId=v??studentId) : null),
+        const SizedBox(height: 8),
+        DropdownButtonFormField<String>(initialValue: type, decoration: const InputDecoration(labelText: 'Type'), items: const [
+          DropdownMenuItem(value: 'remise', child: Text('Remise')),
+          DropdownMenuItem(value: 'avoir', child: Text('Avoir')),
+          DropdownMenuItem(value: 'bourse', child: Text('Bourse')),
+          DropdownMenuItem(value: 'reduction', child: Text('Réduction')),
+        ], onChanged: (v)=>setState(()=>type=v??'remise')),
+        const SizedBox(height: 8),
+        TextField(controller: amount, decoration: const InputDecoration(labelText: 'Montant *'), keyboardType: TextInputType.number),
+        const SizedBox(height: 8),
+        OutlinedButton(onPressed: () async { final d = await showDatePicker(context: ctx, initialDate: date, firstDate: DateTime(2020), lastDate: DateTime(2100)); if (d!=null) setState(()=>date=d); }, child: Text('Date: ${fmt.format(date)}')),
+        const SizedBox(height: 8),
+        DropdownButtonFormField<String?>(initialValue: feeTypeId, decoration: const InputDecoration(labelText: 'Frais concerné (optionnel)'), items: [const DropdownMenuItem(value: null, child: Text('(Aucun)')), for (final f in fees) DropdownMenuItem(value: f.id, child: Text(f.name))], onChanged: (v)=>setState(()=>feeTypeId=v)),
+        const SizedBox(height: 8),
+        TextField(controller: reason, decoration: const InputDecoration(labelText: 'Motif')),
+        TextField(controller: note, decoration: const InputDecoration(labelText: 'Note')),
+        DropdownButtonFormField<String>(initialValue: status, decoration: const InputDecoration(labelText: 'Statut'), items: const [DropdownMenuItem(value: 'active', child: Text('Actif')), DropdownMenuItem(value: 'cancelled', child: Text('Annulé'))], onChanged: (v)=>setState(()=>status=v??'active')),
+      ]))),
+      actions: [
+        TextButton(onPressed: ()=>Navigator.pop(ctx), child: const Text('Annuler')),
+        FilledButton(onPressed: () async {
+          final amt = double.tryParse(amount.text.replaceAll(',', '.'));
+          if (amt == null || amt <= 0) return;
+          await ref.read(financeRepositoryProvider).upsertAdjustment(id: a?.id, studentId: studentId, feeTypeId: feeTypeId, type: type, amount: amt, reason: reason.text.trim().isEmpty?null:reason.text.trim(), date: date, status: status, note: note.text.trim().isEmpty?null:note.text.trim());
+          if (ctx.mounted) Navigator.pop(ctx);
+        }, child: const Text('Enregistrer')),
+      ],
+    )));
+  }
+}
+
+class _ArrearsTab extends ConsumerWidget {
+  const _ArrearsTab();
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final summary = ref.watch(studentFinanceSummaryProvider);
+    final allInst = ref.watch(allInstallmentsProvider).valueOrNull ?? [];
+    final money = NumberFormat('#,##0.00', 'fr');
+    final fmt = DateFormat('dd/MM/yyyy');
+    final overdueInst = allInst.where((i)=>i.status=='overdue').toList();
+    return Padding(padding: const EdgeInsets.all(16), child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Expanded(flex: 3, child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text('Impayés & soldes par élève', style: Theme.of(context).textTheme.titleMedium),
+        const SizedBox(height: 8),
+        const Text('Solde = (total planifié - remises/avoirs/bourses actifs) - paiements validés. Un solde positif indique un reste à payer.'),
+        const SizedBox(height: 12),
+        Expanded(child: summary.when(
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (e, _) => Center(child: Text('Erreur: $e')),
+          data: (rows) {
+            final withDue = rows.where((r)=>r.balance > 0.01 || r.overdueCount > 0).toList();
+            if (withDue.isEmpty) return const Center(child: Text('Aucun impayé détecté (selon plans/ajustements/paiements).'));
+            return SingleChildScrollView(child: DataTable(columns: const [
+              DataColumn(label: Text('Élève')), DataColumn(label: Text('Planifié')), DataColumn(label: Text('Ajustements')), DataColumn(label: Text('Payé')), DataColumn(label: Text('Solde')), DataColumn(label: Text('Échéances en retard')),
+            ], rows: [for (final r in withDue) DataRow(cells: [
+              DataCell(Text('${r.student.lastName} ${r.student.firstName} (${r.student.matricule})')),
+              DataCell(Text(money.format(r.planned))),
+              DataCell(Text(money.format(r.adjustments))),
+              DataCell(Text(money.format(r.paid))),
+              DataCell(Text(money.format(r.balance), style: TextStyle(color: r.balance > 0.01 ? Colors.red : Colors.green, fontWeight: FontWeight.w600))),
+              DataCell(Text(r.overdueCount.toString())),
+            ])]));
+          },
+        )),
+      ])),
+      const VerticalDivider(width: 24),
+      Expanded(flex: 2, child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text('Alertes échéances en retard', style: Theme.of(context).textTheme.titleMedium),
+        const SizedBox(height: 8),
+        Expanded(child: overdueInst.isEmpty ? const Text('Aucune échéance en retard.') : ListView.builder(itemCount: overdueInst.length, itemBuilder: (context,i){
+          final e = overdueInst[i];
+          final reste = (e.amount - e.paidAmount);
+          return Card(color: Colors.red.withValues(alpha: 0.05), child: ListTile(
+            leading: const Icon(Icons.warning, color: Colors.red),
+            title: Text('Échéance ${e.sequence} • ${fmt.format(e.dueDate)}'),
+            subtitle: Text('Reste: ${money.format(reste)} / ${money.format(e.amount)} • Plan: ${e.planId.substring(0,8)}'),
+          ));
+        })),
+      ])),
+    ]));
   }
 }
