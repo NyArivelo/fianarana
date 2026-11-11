@@ -163,4 +163,46 @@ class StudentsRepository {
     await (db.update(db.enrollments)..where((t) => t.id.equals(id))).write(
       EnrollmentsCompanion(status: Value(status), updatedAt: Value(DateTime.now())));
   }
+
+  Future<List<Student>> allStudents() async {
+    return (db.select(db.students)..where((t) => t.isDeleted.equals(false))..orderBy([(t)=>OrderingTerm.asc(t.lastName),(t)=>OrderingTerm.asc(t.firstName)])).get();
+  }
+
+  Future<Set<String>> existingMatricules() async {
+    final rows = await db.select(db.students).get();
+    return rows.map((s) => s.matricule.trim().toLowerCase()).toSet();
+  }
+
+  Future<int> importStudents(List<Map<String, String>> rows) async {
+    int count = 0;
+    for (final r in rows) {
+      final matricule = (r['matricule'] ?? '').trim();
+      final first = (r['firstName'] ?? r['prenom'] ?? '').trim();
+      final last = (r['lastName'] ?? r['nom'] ?? '').trim();
+      if (matricule.isEmpty || first.isEmpty || last.isEmpty) continue;
+      DateTime? birthDate;
+      final bd = (r['birthDate'] ?? r['date_naissance'] ?? '').trim();
+      if (bd.isNotEmpty) {
+        birthDate = DateTime.tryParse(bd);
+        if (birthDate == null && bd.contains('/')) {
+          final parts = bd.split('/');
+          if (parts.length == 3) {
+            birthDate = DateTime.tryParse('${parts[2]}-${parts[1].padLeft(2,'0')}-${parts[0].padLeft(2,'0')}');
+          }
+        }
+      }
+      await upsertStudent(
+        matricule: matricule,
+        firstName: first,
+        lastName: last,
+        gender: (r['gender'] ?? r['genre'] ?? '').trim().isEmpty ? null : (r['gender'] ?? r['genre'])!.trim(),
+        birthDate: birthDate,
+        birthPlace: (r['birthPlace'] ?? r['lieu_naissance'] ?? '').trim().isEmpty ? null : (r['birthPlace'] ?? r['lieu_naissance'])!.trim(),
+        status: (r['status'] ?? r['statut'] ?? 'active').trim(),
+        notes: (r['notes'] ?? '').trim().isEmpty ? null : r['notes']!.trim(),
+      );
+      count++;
+    }
+    return count;
+  }
 }

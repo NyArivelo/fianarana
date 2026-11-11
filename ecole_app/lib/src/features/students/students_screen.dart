@@ -1,3 +1,6 @@
+import 'dart:io';
+
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -5,6 +8,7 @@ import 'package:intl/intl.dart';
 import '../../core/database/app_database.dart';
 import '../academics/academics_providers.dart';
 import '../settings/settings_providers.dart';
+import 'students_io.dart';
 import 'students_providers.dart';
 
 class StudentsScreen extends ConsumerStatefulWidget {
@@ -41,7 +45,11 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
                             ref.read(studentsSearchProvider.notifier).state = v,
                       ),
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: 8),
+                    OutlinedButton.icon(onPressed: () => _exportStudents(context, ref), icon: const Icon(Icons.download), label: const Text('Exporter')),
+                    const SizedBox(width: 8),
+                    OutlinedButton.icon(onPressed: () => _importStudents(context, ref), icon: const Icon(Icons.upload), label: const Text('Importer')),
+                    const SizedBox(width: 8),
                     FilledButton.icon(
                       onPressed: () => _showStudentDialog(context, ref),
                       icon: const Icon(Icons.add),
@@ -98,6 +106,54 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
         ),
       ],
     );
+  }
+
+  static Future<void> _exportStudents(BuildContext context, WidgetRef ref) async {
+    final format = await showDialog<String>(context: context, builder: (ctx) => SimpleDialog(title: const Text('Exporter les élèves'), children: [
+      SimpleDialogOption(onPressed: ()=>Navigator.pop(ctx,'csv'), child: const Text('CSV (.csv)')),
+      SimpleDialogOption(onPressed: ()=>Navigator.pop(ctx,'xlsx'), child: const Text('Excel (.xlsx)')),
+    ]));
+    if (format == null) return;
+    final students = await ref.read(studentsRepositoryProvider).allStudents();
+    final path = await FilePicker.platform.saveFile(dialogTitle: 'Enregistrer', fileName: 'eleves.$format', type: FileType.custom, allowedExtensions: [format]);
+    if (path == null) return;
+    if (format == 'csv') {
+      await File(path).writeAsString(StudentsIO.toCsv(students));
+    } else {
+      await File(path).writeAsBytes(StudentsIO.toXlsx(students));
+    }
+    if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Exporté: $path')));
+  }
+
+  static Future<void> _importStudents(BuildContext context, WidgetRef ref) async {
+    final result = await FilePicker.platform.pickFiles(type: FileType.custom, allowedExtensions: ['csv','xlsx']);
+    if (result == null || result.files.single.path == null) return;
+    final path = result.files.single.path!;
+    try {
+      final rows = await StudentsIO.parseFile(path);
+      final existing = await ref.read(studentsRepositoryProvider).existingMatricules();
+      final seen = <String>{};
+      final preview = <ImportPreviewRow>[];
+      for (final r in rows) {
+        final mat = (r['matricule'] ?? '').trim().toLowerCase();
+        final first = (r['firstName'] ?? r['prenom'] ?? '').trim();
+        final last = (r['lastName'] ?? r['nom'] ?? '').trim();
+        if (mat.isEmpty || first.isEmpty || last.isEmpty) {
+          preview.add(ImportPreviewRow(r, 'invalid', 'Matricule/nom/prénom manquant'));
+        } else if (existing.contains(mat)) {
+          preview.add(ImportPreviewRow(r, 'duplicate_db', 'Doublon (matricule existant en base)'));
+        } else if (seen.contains(mat)) {
+          preview.add(ImportPreviewRow(r, 'duplicate_file', 'Doublon dans le fichier'));
+        } else {
+          seen.add(mat);
+          preview.add(ImportPreviewRow(r, 'new', 'Prêt à importer'));
+        }
+      }
+      if (!context.mounted) return;
+      await showDialog(context: context, builder: (ctx) => _ImportPreviewDialog(preview: preview));
+    } catch (e) {
+      if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erreur import: $e')));
+    }
   }
 
   static Future<void> _showStudentDialog(BuildContext context, WidgetRef ref, [Student? s]) async {
@@ -311,5 +367,42 @@ class _StudentDetail extends ConsumerWidget {
         ],
       );
     }));
+  }
+}
+
+class _ImportPreviewDialog extends ConsumerStatefulWidget {
+  final List<ImportPreviewRow> preview;
+  const _ImportPreviewDialog({required this.preview});
+  @override
+  ConsumerState<_ImportPreviewDialog> createState() => _ImportPreviewDialogState();
+}
+
+class _ImportPreviewDialogState extends ConsumerState<_ImportPreviewDialog> {
+  late List<bool> _selected;
+  @override
+  void initState() { super.initState(); _selected = widget.preview.map((r)=>r.status=='new').toList(); }
+
+  @override
+  Widget build(BuildContext context) {
+    final news = widget.preview.where((r)=>r.status=='new').length;
+    final dups = widget.preview.where((r)=>r.status.startsWith('duplicate')).length;
+    final invalid = widget.preview.where((r)=>r.status=='invalid').length;
+    return AlertDialog(
+      title: const Text('Prévisualisation import élèves'),
+      content: SizedBox(width: 800, height: 500, child: Column(crossAxisAlignment: CrossAxisAlignment.start, children:[
+        Text('Total: ${widget.preview.length} • Nouveaux: $news • Doublons: $dups • Invalides: $invalid'),
+        const SizedBox(height: 8),
+        Expanded(child: ListView.builder(itemCount: widget.preview.length, itemBuilder: (context,i){ final r = widget.preview[i]; final canImport = r.status=='new'; return CheckboxListTile(value: _selected[i], onChanged: canImport ? (v)=>setState(()=>_selected[i]=v??false) : null, title: Text('${r.data['matricule'] ?? ''} - ${r.data['lastName'] ?? r.data['nom'] ?? ''} ${r.data['firstName'] ?? r.data['prenom'] ?? ''}'), subtitle: Text('${r.status}: ${r.message}'), dense: true, controlAffinity: ListTileControlAffinity.leading); })),
+      ])),
+      actions: [
+        TextButton(onPressed: ()=>Navigator.pop(context), child: const Text('Annuler')),
+        FilledButton(onPressed: () async {
+          final rows = <Map<String,String>>[];
+          for (int i=0;i<widget.preview.length;i++){ if (_selected[i] && widget.preview[i].status=='new') rows.add(widget.preview[i].data); }
+          final count = await ref.read(studentsRepositoryProvider).importStudents(rows);
+          if (context.mounted) { Navigator.pop(context); ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$count élève(s) importé(s).'))); }
+        }, child: const Text('Importer la sélection')),
+      ],
+    );
   }
 }
