@@ -1,67 +1,53 @@
-# Architecture & État d'avancement (Phase 0 / début Phase 1)
+# Architecture & état d'avancement
 
-## Stack mise en place
-- **Flutter Desktop** (Windows, Linux, macOS) — Dart 3.10 / Flutter 3.38
-- **Base de données** : SQLite via **Drift** (`lib/src/core/database/`)
-- **Clés primaires** : **UUID v4** (texte) pour toutes les entités principales (`UuidPrimaryKey`)
+Application de gestion scolaire **Desktop mono-établissement** (Windows/Linux/macOS), développée de façon incrémentale.
+
+## Stack
+- **Flutter Desktop** (Dart 3.10 / Flutter 3.38)
+- **Base de données** : SQLite via **Drift** (`lib/src/core/database/`), fichier local `ecole.sqlite` (app support `ecole_app/`), `PRAGMA foreign_keys = ON`
+- **Clés primaires** : **UUID v4** (texte) + colonnes d'audit/suppression logique (`AuditColumns` / `isDeleted`, `deletedAt`)
 - **Gestion d'état / DI** : **Riverpod**
-- **Routage** : **go_router** (garde d'authentification / première installation)
-- **Sécurité** : hachage des mots de passe **bcrypt** (`PasswordHasher`), journal d'audit (`AuditLogs`)
+- **Routage** : **go_router** (garde auth / première installation)
+- **Sécurité** : hachage **bcrypt** (mots de passe), PIN de session hashé, audit (`AuditLogs`)
+- **PDF/impression** : `pdf` / `printing` ; **import/export** : `csv`, `excel`, `file_picker` ; **sauvegarde** : `archive` + manifeste SHA-256
 
-## Structure des dossiers
-- `lib/src/core/` : base de données (tables Drift, provider), sécurité, utilitaires, (à venir: routing/theme/services transverses)
-- `lib/src/features/` : modules fonctionnels (`auth`, `setup`, `dashboard`, `students`, `staff`, `academics`, `finance`, `documents`…)
-- `lib/src/shared/` : widgets et services partagés
+## Structure
+- `lib/src/core/` : base Drift (tables, migrations, provider), sécurité/RBAC (`authorization_service`, `current_user_scope`), services transverses (préférences, sauvegarde/restauration auto & manuelle).
+- `lib/src/features/` : modules (`auth`, `setup`, `dashboard`, `settings`, `academics`, `students`, `staff`, `schedule`, `attendance`, `grades`, `finance`, `documents`, `discipline`, `library`, `admin`).
+- `lib/src/shared/` : composants partagés.
 
-## Schéma Drift (fondations)
-Tables créées (UUID, colonnes d'audit/suppression logique) : `Users`, `Roles`, `Permissions`, `RolePermissions`, `UserRoles`, `AuditLogs`, `SchoolSettings`, `AcademicYears`, `Periods`, `EducationTypes`, `Levels`, `Classes`, `Subjects`, `Students`, `Guardians`, `StudentGuardians`, `Enrollments`, `FeeTypes`, `Payments`, `CashClosures`.
-> Le schéma doit être enrichi progressivement pour couvrir l'ensemble du cahier des charges (emplois du temps/séances, notes/évaluations/conseils, discipline, bibliothèque, locaux, plans de paiement, corbeille avancée, etc.).
+## Schéma Drift (version **10**, migrations incrémentales `onUpgrade`)
+- **Sécurité/RH** : `Users` (dont `pinHash`), `Roles`, `Permissions`, `RolePermissions`, `UserRoles`, `AuditLogs`, `StaffMembers`, `TeacherAssignments`.
+- **Établissement/pédagogie** : `SchoolSettings`, `AcademicYears`, `Periods`, `EducationTypes`, `Levels`, `Classes`, `Subjects`, `Rooms`.
+- **Élèves** : `Students`, `Guardians`, `StudentGuardians`, `Enrollments` (statuts + quitus financier/bibliothèque + transfert).
+- **Cours/présences** : `CourseSessions` (récurrences/conflits), `AttendanceRecords`.
+- **Évaluations** : `Evaluations`, `Grades`, `CouncilDecisions` (verrouillage de période).
+- **Finances** : `FeeTypes`, `Payments` (reçus numérotés), `CashClosures`, `PaymentPlans`, `PaymentInstallments`.
+- **Discipline** : `DisciplinaryIncidents`, `DisciplinaryActions`.
+- **Bibliothèque** : `LibraryItems`, `LibraryCopies`, `LibraryLoans`.
 
-## Fonctionnalités implémentées (par étapes)
+## Fonctionnalités implémentées
+- **Auth & session** : bootstrap admin, connexion bcrypt, verrouillage après tentatives, audit ; espace **MDI** à onglets de modules (état conservé), verrouillage rapide `Ctrl+L`, fermeture onglet `Ctrl+W`, `Échap` (fermeture modale best-effort), auto-verrouillage après inactivité configurable, écran de verrouillage (mot de passe/PIN, changement rapide par identifiant+PIN).
+- **Établissement & structure** : fiche établissement, années scolaires & périodes (clôture/réouverture), types/niveaux/matières/classes/salles.
+- **Élèves & inscriptions** : CRUD élèves/responsables/inscriptions, recherche & filtres avancés (statut/genre/année/classe, respect de la portée), import/export **CSV/XLSX** complet (élève+inscription+responsable) avec modèle, prévisualisation/dédoublonnage et option de mise à jour, **transfert/quitus** (financier/bibliothèque, date/motif) avec génération de **certificat de radiation/sortie** PDF et conservation de l'historique.
+- **Personnel** : fiches RH (`StaffMembers`), liaison compte utilisateur, gestion des **affectations pédagogiques** (`TeacherAssignments`).
+- **Emploi du temps & présences** : séances (récurrences), détection de conflits, vues jour/semaine, appel/présences-absences-retards.
+- **Notes & bulletins** : évaluations/notes, verrouillage/déverrouillage de période (audité), décisions de conseil, bulletin/rang enrichis (PDF).
+- **Finances** : types de frais, encaissements/reçus `REC-YYYYMMDD-XXXX`, total journalier, plans/échéances, **clôture de caisse (Z)** avec blocage d'écriture du jour clôturé.
+- **Documents** : génération/aperçu/impression PDF (reçus, certificats de scolarité, certificats de transfert/radiation, bulletins).
+- **Discipline** (base, portée globale) : incidents (confidentiel, statut ouvert/clôturé) et actions/sanctions (convocation, avertissement, retenue, exclusion temporaire, blâme…) avec suivi d'exécution ; recherche, filtres statut/élève.
+- **Bibliothèque** (base, portée globale) : catalogue, exemplaires, prêts/retours, marquage automatique des retards, recherche/filtres (élève/statut actif-en retard-retourné, recherche élève/ouvrage/exemplaire) ; **quitus bibliothèque bloqué** en cas de prêts actifs/en retard.
+- **Administration & sûreté** : RBAC/portées (`global|restricted|caisse`) et affectations enseignants, filtrage des données/écrans selon portée+classes autorisées, utilisateurs/rôles, export d'audit JSON signé (SHA-256), **corbeille** (liste/restauration/purge, purge par rétention, auditée) pour les principales entités dont discipline/bibliothèque, **sauvegarde/restauration** ZIP (DB+WAL/SHM+`attachments/`, manifeste SHA-256, contrôle d'intégrité) avec sauvegarde auto au démarrage et en cycle de vie.
+- **Préférences** : échelle UI/texte et paramètres de verrouillage/sauvegarde auto persistés.
 
-### Socle (Phase 0 / initial)
-- **Assistant de première installation** : création du compte Administrateur initial si aucun utilisateur n'existe.
-- **Authentification** : connexion identifiant/mot de passe, vérification bcrypt, désactivation/compte inactif, verrouillage temporaire après tentatives répétées, mise à jour `lastLoginAt`, audit des connexions (succès/échec).
-- **Application shell Desktop** : navigation latérale (NavigationRail), tableau de bord, déconnexion, thème clair/sombre (Material 3).
-
-### Étape 1 — Paramétrage établissement
-- Fiche établissement (nom, adresse, contacts, devise, fuseau horaire, formats date/heure, mentions légales) avec persistance en base.
-- Gestion des **années scolaires** (création/modification, année en cours) et des **périodes** (ajout, clôture/réouverture, suppression logique).
-
-### Étape 2 — Structure pédagogique
-- CRUD de base : **types d'enseignement**, **niveaux**, **matières** (code/coefficient), **classes** rattachées à l'année scolaire (et niveau/capacité).
-
-### Étape 3 — CRUD élèves, responsables, inscriptions
-- Liste/recherche des élèves, création/modification/archivage (suppression logique), fiche détail.
-- **Responsables légaux** : création et liaison à l'élève (gestion de base des liens).
-- **Inscriptions** : création par année scolaire/classe avec statut (préinscription, validée, etc.).
-
-### Étape 4 — Finances (base)
-- **Types de frais** (catalogue/montant par défaut).
-- **Paiements/encaissements** : sélection élève/frais/mode, génération d'un **numéro de reçu** (`REC-YYYYMMDD-XXXX`), enregistrement du caissier, journal des paiements et total encaissé du jour.
-
-### Étape 5 — Documents (Document Studio de base)
-- Génération/aperçu/impression PDF natif (`pdf`/`printing`) : **reçu de paiement** (à partir d'un encaissement) et **certificat de scolarité** (à partir d'un élève), avec informations établissement.
-
-## Décisions & limites actuelles (important)
-- **RBAC granulaire & portée** : tables et amorce présentes ; l'application fine des permissions (ressource/action/scope) dans tous les services/écrans reste à généraliser.
-- **Élèves/inscriptions** : CRUD de base opérationnel ; restent à faire (cahier des charges) la procédure complète de transfert/quitus (financier + bibliothèque) avec certificat de radiation, recherche/filtres avancés, import/export CSV/XLSX avec prévisualisation/dédoublonnage, historique complet et pièces jointes (fichiers locaux + hash, sans BLOB).
-- **Structure pédagogique** : entités de base gérées ; restent affectations détaillées/historiques, programmes, etc.
-- **Finances** : catalogue, encaissements, reçus et journal de base ; restent échéanciers/plans de paiement, alertes d'impayés, avoirs/remises/bourses avancés, journal/clôture de caisse (Z) complète par caissier/mode, numérotation paramétrable.
-- **Document Studio** : génération PDF native de reçus/certificats ; reste le studio complet de modèles configurables, moteur de formules sécurisé (sans `eval`), bulletins/factures/cartes, etc.
-- **Non implémentés à ce stade** : emploi du temps/séances & conflits, présences, notes/conseils/bulletins complets, discipline, bibliothèque, locaux/équipements, sauvegarde/restauration, MDI multi-onglets, raccourcis globaux, verrouillage rapide/PIN, corbeille UI & rétention, export d'audit signé, auto-update/migrations incrémentales avancées, mode bac à sable, etc.
-- **Migrations** : `schemaVersion = 1` avec `onCreate` ; stratégie de migration incrémentale à compléter à chaque évolution de schéma. `flutter analyze` : sans erreur.
+## Limites actuelles (périmètre partiel)
+- **RBAC** : contrôle de permissions granulaire (ressource/action/scope) non appliqué exhaustivement dans tous les services/actions ; visibilité Discipline/Bibliothèque limitée à la portée globale.
+- **Modules de base (non exhaustifs)** : Personnel/Discipline/Bibliothèque fonctionnels mais à compléter (ex. rattachement contexte classe/année, reporting, prêts visibles enrichis côté historique, gestion avancée des dossiers).
+- **Cahier des charges restant** : studio documentaire/modèles & moteur de formules sécurisé complets, pièces jointes locales hashées, numérotation/avoirs/remises/bourses/impayés avancés, locaux/équipements, archivage de fin d'année, mise à jour automatique/sandbox, liens profonds MDI et raccourcis/navigation clavier étendus.
+- **Tests** : pas de couverture automatisée complète ; validation principalement manuelle. `flutter analyze` sans erreur (infos/dépréciations mineures préexistantes possibles).
 
 ## Commandes utiles
-- Dépendances : `flutter pub get`
-- Génération Drift : `dart run build_runner build`
-- Analyse statique : `flutter analyze`
-- Lancement (Windows) : `flutter run -d windows`
-
-## Prochaines étapes recommandées (Phase 1)
-1. Paramétrage établissement & années scolaires/périodes (UI + services).
-2. CRUD Élèves, responsables, inscriptions (avec statuts) et recherche/filtres.
-3. Structure pédagogique (types, niveaux, classes, matières) et affectations.
-4. Emplois du temps/séances, présences (saisie rapide), notes et bulletins PDF de base.
-5. Encaissements/frais/journal de caisse, reçus numérotés et clôture.
-6. Sauvegarde/restauration locale (.zip) et durcissement permissions/audit.
+- `flutter pub get` — dépendances
+- `dart run build_runner build` — génération Drift
+- `flutter analyze` — analyse statique
+- `flutter run -d windows` — lancement Desktop Windows

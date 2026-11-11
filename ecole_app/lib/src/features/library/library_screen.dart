@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../core/database/app_database.dart';
+import '../../core/security/current_user_scope.dart';
 import '../students/students_providers.dart';
 import 'library_providers.dart';
 
@@ -15,6 +16,10 @@ class LibraryScreen extends ConsumerStatefulWidget {
 class _LibraryScreenState extends ConsumerState<LibraryScreen> {
   @override
   Widget build(BuildContext context) {
+    final scope = ref.watch(currentUserScopeProvider).valueOrNull?.scope ?? 'global';
+    if (scope != 'global') {
+      return const Center(child: Padding(padding: EdgeInsets.all(24), child: Text('Accès restreint : le module Bibliothèque est réservé aux utilisateurs de portée globale.')));
+    }
     return DefaultTabController(length: 2, child: Column(children: const [
       TabBar(tabs: [Tab(text: 'Catalogue & Exemplaires'), Tab(text: 'Prêts / Retours')]),
       Expanded(child: TabBarView(children: [_CatalogTab(), _LoansTab()])),
@@ -146,13 +151,33 @@ class _LoansTab extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final loans = ref.watch(loanDetailsProvider);
-    final students = {for (final s in (ref.watch(studentsProvider).valueOrNull ?? <Student>[])) s.id: s};
+    final studentsList = ref.watch(studentsProvider).valueOrNull ?? <Student>[];
+    final students = {for (final s in studentsList) s.id: s};
     final fmt = DateFormat('dd/MM/yyyy');
+    final q = ref.watch(loanSearchProvider).trim().toLowerCase();
+    final status = ref.watch(loanStatusFilterProvider);
+    final studentFilter = ref.watch(loanStudentFilterProvider);
     return Padding(padding: const EdgeInsets.all(16), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Row(children: [
         Text('Prêts, retours et retards', style: Theme.of(context).textTheme.titleMedium),
         const Spacer(),
         FilledButton.icon(onPressed: ()=>_borrowDialog(context, ref), icon: const Icon(Icons.add), label: const Text('Nouveau prêt')),
+      ]),
+      const SizedBox(height: 8),
+      Wrap(spacing: 8, runSpacing: 8, crossAxisAlignment: WrapCrossAlignment.center, children: [
+        SizedBox(width: 260, child: TextField(decoration: const InputDecoration(prefixIcon: Icon(Icons.search), hintText: 'Rechercher (élève, ouvrage, exemplaire)...', isDense: true), onChanged: (v)=>ref.read(loanSearchProvider.notifier).state=v)),
+        SizedBox(width: 180, child: DropdownButtonFormField<String?>(initialValue: status, isDense: true, decoration: const InputDecoration(labelText: 'Statut'), items: const [
+          DropdownMenuItem(value: null, child: Text('Tous')),
+          DropdownMenuItem(value: 'active', child: Text('Actif')),
+          DropdownMenuItem(value: 'overdue', child: Text('En retard')),
+          DropdownMenuItem(value: 'returned', child: Text('Retourné')),
+        ], onChanged: (v)=>ref.read(loanStatusFilterProvider.notifier).state=v)),
+        SizedBox(width: 260, child: DropdownButtonFormField<String?>(initialValue: studentFilter, isDense: true, decoration: const InputDecoration(labelText: 'Élève'), items: [
+          const DropdownMenuItem(value: null, child: Text('Tous les élèves')),
+          for (final s in studentsList) DropdownMenuItem(value: s.id, child: Text('${s.lastName} ${s.firstName} (${s.matricule})')),
+        ], onChanged: (v)=>ref.read(loanStudentFilterProvider.notifier).state=v)),
+        if (q.isNotEmpty || status != null || studentFilter != null)
+          TextButton.icon(onPressed: () { ref.read(loanSearchProvider.notifier).state=''; ref.read(loanStatusFilterProvider.notifier).state=null; ref.read(loanStudentFilterProvider.notifier).state=null; }, icon: const Icon(Icons.clear), label: const Text('Réinitialiser')),
       ]),
       const SizedBox(height: 8),
       const Text('Les prêts en retard sont marqués automatiquement. Le quitus bibliothèque d\'un élève est bloqué tant qu\'un prêt est actif/en retard.'),
@@ -161,9 +186,14 @@ class _LoansTab extends ConsumerWidget {
         loading: ()=>const Center(child:CircularProgressIndicator()),
         error: (e,_)=>Center(child:Text('Erreur: $e')),
         data: (list){
-          if (list.isEmpty) return const Center(child: Text('Aucun prêt enregistré.'));
-          return ListView.builder(itemCount: list.length, itemBuilder: (context,i){
-            final d = list[i];
+          final filtered = q.isEmpty ? list : list.where((d){
+            final st = students[d.loan.studentId];
+            final name = st != null ? '${st.lastName} ${st.firstName} ${st.matricule}'.toLowerCase() : '';
+            return name.contains(q) || d.itemTitle.toLowerCase().contains(q) || d.copyCode.toLowerCase().contains(q);
+          }).toList();
+          if (filtered.isEmpty) return const Center(child: Text('Aucun prêt correspondant aux filtres.'));
+          return ListView.builder(itemCount: filtered.length, itemBuilder: (context,i){
+            final d = filtered[i];
             final l = d.loan;
             final st = students[l.studentId];
             final isActive = l.status == 'active' || l.status == 'overdue';

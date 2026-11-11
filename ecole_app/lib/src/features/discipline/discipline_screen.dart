@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../core/database/app_database.dart';
+import '../../core/security/current_user_scope.dart';
 import '../students/students_providers.dart';
 import 'discipline_providers.dart';
 
@@ -17,16 +18,28 @@ class _DisciplineScreenState extends ConsumerState<DisciplineScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final scope = ref.watch(currentUserScopeProvider).valueOrNull?.scope ?? 'global';
+    if (scope != 'global') {
+      return const Center(child: Padding(padding: EdgeInsets.all(24), child: Text('Accès restreint : le module Discipline est réservé aux utilisateurs de portée globale.')));
+    }
     final incidents = ref.watch(incidentsProvider);
-    final students = {for (final s in (ref.watch(studentsProvider).valueOrNull ?? <Student>[])) s.id: s};
+    final studentsList = ref.watch(studentsProvider).valueOrNull ?? <Student>[];
+    final students = {for (final s in studentsList) s.id: s};
+    final visibleIds = students.keys.toSet();
     final fmt = DateFormat('dd/MM/yyyy');
+    final statusFilter = ref.watch(disciplineStatusFilterProvider);
+    final studentFilter = ref.watch(disciplineStudentFilterProvider);
     return Row(children: [
       Expanded(flex: 3, child: Padding(padding: const EdgeInsets.all(16), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Row(children: [
-          Expanded(child: TextField(decoration: const InputDecoration(prefixIcon: Icon(Icons.search), hintText: 'Rechercher (type, description, lieu)...'), onChanged: (v)=>ref.read(disciplineSearchProvider.notifier).state=v)),
-          const SizedBox(width: 8),
-          SizedBox(width: 180, child: DropdownButtonFormField<String?>(initialValue: ref.watch(disciplineStatusFilterProvider), isDense: true, decoration: const InputDecoration(labelText: 'Statut'), items: const [DropdownMenuItem(value: null, child: Text('Tous')), DropdownMenuItem(value: 'open', child: Text('Ouvert')), DropdownMenuItem(value: 'closed', child: Text('Clôturé'))], onChanged: (v)=>ref.read(disciplineStatusFilterProvider.notifier).state=v)),
-          const SizedBox(width: 8),
+        Wrap(spacing: 8, runSpacing: 8, crossAxisAlignment: WrapCrossAlignment.center, children: [
+          SizedBox(width: 320, child: TextField(decoration: const InputDecoration(prefixIcon: Icon(Icons.search), hintText: 'Rechercher (type, description, lieu)...', isDense: true), onChanged: (v)=>ref.read(disciplineSearchProvider.notifier).state=v)),
+          SizedBox(width: 170, child: DropdownButtonFormField<String?>(initialValue: statusFilter, isDense: true, decoration: const InputDecoration(labelText: 'Statut'), items: const [DropdownMenuItem(value: null, child: Text('Tous')), DropdownMenuItem(value: 'open', child: Text('Ouvert')), DropdownMenuItem(value: 'closed', child: Text('Clôturé'))], onChanged: (v)=>ref.read(disciplineStatusFilterProvider.notifier).state=v)),
+          SizedBox(width: 260, child: DropdownButtonFormField<String?>(initialValue: studentFilter, isDense: true, decoration: const InputDecoration(labelText: 'Élève'), items: [
+            const DropdownMenuItem(value: null, child: Text('Tous les élèves')),
+            for (final s in studentsList) DropdownMenuItem(value: s.id, child: Text('${s.lastName} ${s.firstName} (${s.matricule})')),
+          ], onChanged: (v)=>ref.read(disciplineStudentFilterProvider.notifier).state=v)),
+          if (statusFilter != null || studentFilter != null || ref.watch(disciplineSearchProvider).trim().isNotEmpty)
+            TextButton.icon(onPressed: () { ref.read(disciplineSearchProvider.notifier).state=''; ref.read(disciplineStatusFilterProvider.notifier).state=null; ref.read(disciplineStudentFilterProvider.notifier).state=null; }, icon: const Icon(Icons.clear), label: const Text('Réinitialiser')),
           FilledButton.icon(onPressed: ()=>_editIncident(context, ref), icon: const Icon(Icons.add), label: const Text('Nouvel incident')),
         ]),
         const SizedBox(height: 12),
@@ -34,9 +47,10 @@ class _DisciplineScreenState extends ConsumerState<DisciplineScreen> {
           loading: ()=>const Center(child:CircularProgressIndicator()),
           error: (e,_)=>Center(child:Text('Erreur: $e')),
           data: (list){
-            if (list.isEmpty) return const Center(child: Text('Aucun incident disciplinaire.'));
-            return Card(child: ListView.separated(itemCount: list.length, separatorBuilder: (_, __)=>const Divider(height:1), itemBuilder: (context,i){
-              final inc = list[i];
+            final visibleList = list.where((inc) => visibleIds.isEmpty || visibleIds.contains(inc.studentId)).toList();
+            if (visibleList.isEmpty) return const Center(child: Text('Aucun incident disciplinaire (ou hors portée/filtres).'));
+            return Card(child: ListView.separated(itemCount: visibleList.length, separatorBuilder: (_, __)=>const Divider(height:1), itemBuilder: (context,i){
+              final inc = visibleList[i];
               final st = students[inc.studentId];
               return ListTile(
                 selected: inc.id == _selectedIncidentId,

@@ -7,7 +7,9 @@ import 'library_repository.dart';
 final libraryRepositoryProvider = Provider<LibraryRepository>((ref) => LibraryRepository(ref.watch(appDatabaseProvider)));
 
 final librarySearchProvider = StateProvider<String>((ref) => '');
-
+final loanSearchProvider = StateProvider<String>((ref) => '');
+final loanStatusFilterProvider = StateProvider<String?>((ref) => null);
+final loanStudentFilterProvider = StateProvider<String?>((ref) => null);
 final libraryItemsProvider = StreamProvider<List<LibraryItem>>((ref) {
   return ref.watch(libraryRepositoryProvider).watchItems(query: ref.watch(librarySearchProvider));
 });
@@ -23,7 +25,10 @@ final loansProvider = StreamProvider<List<LibraryLoan>>((ref) {
 
 final loanDetailsProvider = StreamProvider<List<LoanDetail>>((ref) {
   ref.watch(libraryRepositoryProvider).refreshOverdue();
-  return ref.watch(libraryRepositoryProvider).watchLoanDetails();
+  return ref.watch(libraryRepositoryProvider).watchLoanDetails(
+    studentId: ref.watch(loanStudentFilterProvider),
+    status: ref.watch(loanStatusFilterProvider),
+  );
 });
 
 final activeLoansForStudentProvider = StreamProvider.family<List<LibraryLoan>, String>((ref, studentId) {
