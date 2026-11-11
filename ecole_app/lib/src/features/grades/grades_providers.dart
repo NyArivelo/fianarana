@@ -13,3 +13,7 @@ final evaluationsProvider = StreamProvider.family<List<Evaluation>, ({String? cl
 final gradesForEvaluationProvider = StreamProvider.family<List<Grade>, String>((ref, evalId) {
   return ref.watch(gradesRepositoryProvider).watchGradesForEvaluation(evalId);
 });
+
+final councilDecisionsProvider = StreamProvider.family<List<CouncilDecision>, ({String periodId, String classId})>((ref, arg) {
+  return ref.watch(gradesRepositoryProvider).watchCouncilDecisions(periodId: arg.periodId, classId: arg.classId);
+});

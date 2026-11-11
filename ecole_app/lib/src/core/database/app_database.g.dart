@@ -18640,6 +18640,726 @@ class GradesCompanion extends UpdateCompanion<Grade> {
   }
 }
 
+class $CouncilDecisionsTable extends CouncilDecisions
+    with TableInfo<$CouncilDecisionsTable, CouncilDecision> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $CouncilDecisionsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _createdByMeta = const VerificationMeta(
+    'createdBy',
+  );
+  @override
+  late final GeneratedColumn<String> createdBy = GeneratedColumn<String>(
+    'created_by',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _updatedByMeta = const VerificationMeta(
+    'updatedBy',
+  );
+  @override
+  late final GeneratedColumn<String> updatedBy = GeneratedColumn<String>(
+    'updated_by',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _isDeletedMeta = const VerificationMeta(
+    'isDeleted',
+  );
+  @override
+  late final GeneratedColumn<bool> isDeleted = GeneratedColumn<bool>(
+    'is_deleted',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_deleted" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _deletedAtMeta = const VerificationMeta(
+    'deletedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
+    'deleted_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _periodIdMeta = const VerificationMeta(
+    'periodId',
+  );
+  @override
+  late final GeneratedColumn<String> periodId = GeneratedColumn<String>(
+    'period_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES periods (id)',
+    ),
+  );
+  static const VerificationMeta _classIdMeta = const VerificationMeta(
+    'classId',
+  );
+  @override
+  late final GeneratedColumn<String> classId = GeneratedColumn<String>(
+    'class_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES classes (id)',
+    ),
+  );
+  static const VerificationMeta _studentIdMeta = const VerificationMeta(
+    'studentId',
+  );
+  @override
+  late final GeneratedColumn<String> studentId = GeneratedColumn<String>(
+    'student_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES students (id)',
+    ),
+  );
+  static const VerificationMeta _appreciationMeta = const VerificationMeta(
+    'appreciation',
+  );
+  @override
+  late final GeneratedColumn<String> appreciation = GeneratedColumn<String>(
+    'appreciation',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _decisionMeta = const VerificationMeta(
+    'decision',
+  );
+  @override
+  late final GeneratedColumn<String> decision = GeneratedColumn<String>(
+    'decision',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    createdAt,
+    updatedAt,
+    createdBy,
+    updatedBy,
+    isDeleted,
+    deletedAt,
+    periodId,
+    classId,
+    studentId,
+    appreciation,
+    decision,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'council_decisions';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<CouncilDecision> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    if (data.containsKey('created_by')) {
+      context.handle(
+        _createdByMeta,
+        createdBy.isAcceptableOrUnknown(data['created_by']!, _createdByMeta),
+      );
+    }
+    if (data.containsKey('updated_by')) {
+      context.handle(
+        _updatedByMeta,
+        updatedBy.isAcceptableOrUnknown(data['updated_by']!, _updatedByMeta),
+      );
+    }
+    if (data.containsKey('is_deleted')) {
+      context.handle(
+        _isDeletedMeta,
+        isDeleted.isAcceptableOrUnknown(data['is_deleted']!, _isDeletedMeta),
+      );
+    }
+    if (data.containsKey('deleted_at')) {
+      context.handle(
+        _deletedAtMeta,
+        deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta),
+      );
+    }
+    if (data.containsKey('period_id')) {
+      context.handle(
+        _periodIdMeta,
+        periodId.isAcceptableOrUnknown(data['period_id']!, _periodIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_periodIdMeta);
+    }
+    if (data.containsKey('class_id')) {
+      context.handle(
+        _classIdMeta,
+        classId.isAcceptableOrUnknown(data['class_id']!, _classIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_classIdMeta);
+    }
+    if (data.containsKey('student_id')) {
+      context.handle(
+        _studentIdMeta,
+        studentId.isAcceptableOrUnknown(data['student_id']!, _studentIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_studentIdMeta);
+    }
+    if (data.containsKey('appreciation')) {
+      context.handle(
+        _appreciationMeta,
+        appreciation.isAcceptableOrUnknown(
+          data['appreciation']!,
+          _appreciationMeta,
+        ),
+      );
+    }
+    if (data.containsKey('decision')) {
+      context.handle(
+        _decisionMeta,
+        decision.isAcceptableOrUnknown(data['decision']!, _decisionMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  CouncilDecision map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return CouncilDecision(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+      createdBy: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}created_by'],
+      ),
+      updatedBy: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}updated_by'],
+      ),
+      isDeleted: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_deleted'],
+      )!,
+      deletedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}deleted_at'],
+      ),
+      periodId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}period_id'],
+      )!,
+      classId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}class_id'],
+      )!,
+      studentId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}student_id'],
+      )!,
+      appreciation: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}appreciation'],
+      ),
+      decision: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}decision'],
+      ),
+    );
+  }
+
+  @override
+  $CouncilDecisionsTable createAlias(String alias) {
+    return $CouncilDecisionsTable(attachedDatabase, alias);
+  }
+}
+
+class CouncilDecision extends DataClass implements Insertable<CouncilDecision> {
+  final String id;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  final String? createdBy;
+  final String? updatedBy;
+  final bool isDeleted;
+  final DateTime? deletedAt;
+  final String periodId;
+  final String classId;
+  final String studentId;
+  final String? appreciation;
+  final String? decision;
+  const CouncilDecision({
+    required this.id,
+    required this.createdAt,
+    required this.updatedAt,
+    this.createdBy,
+    this.updatedBy,
+    required this.isDeleted,
+    this.deletedAt,
+    required this.periodId,
+    required this.classId,
+    required this.studentId,
+    this.appreciation,
+    this.decision,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    if (!nullToAbsent || createdBy != null) {
+      map['created_by'] = Variable<String>(createdBy);
+    }
+    if (!nullToAbsent || updatedBy != null) {
+      map['updated_by'] = Variable<String>(updatedBy);
+    }
+    map['is_deleted'] = Variable<bool>(isDeleted);
+    if (!nullToAbsent || deletedAt != null) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt);
+    }
+    map['period_id'] = Variable<String>(periodId);
+    map['class_id'] = Variable<String>(classId);
+    map['student_id'] = Variable<String>(studentId);
+    if (!nullToAbsent || appreciation != null) {
+      map['appreciation'] = Variable<String>(appreciation);
+    }
+    if (!nullToAbsent || decision != null) {
+      map['decision'] = Variable<String>(decision);
+    }
+    return map;
+  }
+
+  CouncilDecisionsCompanion toCompanion(bool nullToAbsent) {
+    return CouncilDecisionsCompanion(
+      id: Value(id),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+      createdBy: createdBy == null && nullToAbsent
+          ? const Value.absent()
+          : Value(createdBy),
+      updatedBy: updatedBy == null && nullToAbsent
+          ? const Value.absent()
+          : Value(updatedBy),
+      isDeleted: Value(isDeleted),
+      deletedAt: deletedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deletedAt),
+      periodId: Value(periodId),
+      classId: Value(classId),
+      studentId: Value(studentId),
+      appreciation: appreciation == null && nullToAbsent
+          ? const Value.absent()
+          : Value(appreciation),
+      decision: decision == null && nullToAbsent
+          ? const Value.absent()
+          : Value(decision),
+    );
+  }
+
+  factory CouncilDecision.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return CouncilDecision(
+      id: serializer.fromJson<String>(json['id']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      createdBy: serializer.fromJson<String?>(json['createdBy']),
+      updatedBy: serializer.fromJson<String?>(json['updatedBy']),
+      isDeleted: serializer.fromJson<bool>(json['isDeleted']),
+      deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
+      periodId: serializer.fromJson<String>(json['periodId']),
+      classId: serializer.fromJson<String>(json['classId']),
+      studentId: serializer.fromJson<String>(json['studentId']),
+      appreciation: serializer.fromJson<String?>(json['appreciation']),
+      decision: serializer.fromJson<String?>(json['decision']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'createdBy': serializer.toJson<String?>(createdBy),
+      'updatedBy': serializer.toJson<String?>(updatedBy),
+      'isDeleted': serializer.toJson<bool>(isDeleted),
+      'deletedAt': serializer.toJson<DateTime?>(deletedAt),
+      'periodId': serializer.toJson<String>(periodId),
+      'classId': serializer.toJson<String>(classId),
+      'studentId': serializer.toJson<String>(studentId),
+      'appreciation': serializer.toJson<String?>(appreciation),
+      'decision': serializer.toJson<String?>(decision),
+    };
+  }
+
+  CouncilDecision copyWith({
+    String? id,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    Value<String?> createdBy = const Value.absent(),
+    Value<String?> updatedBy = const Value.absent(),
+    bool? isDeleted,
+    Value<DateTime?> deletedAt = const Value.absent(),
+    String? periodId,
+    String? classId,
+    String? studentId,
+    Value<String?> appreciation = const Value.absent(),
+    Value<String?> decision = const Value.absent(),
+  }) => CouncilDecision(
+    id: id ?? this.id,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+    createdBy: createdBy.present ? createdBy.value : this.createdBy,
+    updatedBy: updatedBy.present ? updatedBy.value : this.updatedBy,
+    isDeleted: isDeleted ?? this.isDeleted,
+    deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+    periodId: periodId ?? this.periodId,
+    classId: classId ?? this.classId,
+    studentId: studentId ?? this.studentId,
+    appreciation: appreciation.present ? appreciation.value : this.appreciation,
+    decision: decision.present ? decision.value : this.decision,
+  );
+  CouncilDecision copyWithCompanion(CouncilDecisionsCompanion data) {
+    return CouncilDecision(
+      id: data.id.present ? data.id.value : this.id,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      createdBy: data.createdBy.present ? data.createdBy.value : this.createdBy,
+      updatedBy: data.updatedBy.present ? data.updatedBy.value : this.updatedBy,
+      isDeleted: data.isDeleted.present ? data.isDeleted.value : this.isDeleted,
+      deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
+      periodId: data.periodId.present ? data.periodId.value : this.periodId,
+      classId: data.classId.present ? data.classId.value : this.classId,
+      studentId: data.studentId.present ? data.studentId.value : this.studentId,
+      appreciation: data.appreciation.present
+          ? data.appreciation.value
+          : this.appreciation,
+      decision: data.decision.present ? data.decision.value : this.decision,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CouncilDecision(')
+          ..write('id: $id, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('createdBy: $createdBy, ')
+          ..write('updatedBy: $updatedBy, ')
+          ..write('isDeleted: $isDeleted, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('periodId: $periodId, ')
+          ..write('classId: $classId, ')
+          ..write('studentId: $studentId, ')
+          ..write('appreciation: $appreciation, ')
+          ..write('decision: $decision')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    createdAt,
+    updatedAt,
+    createdBy,
+    updatedBy,
+    isDeleted,
+    deletedAt,
+    periodId,
+    classId,
+    studentId,
+    appreciation,
+    decision,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is CouncilDecision &&
+          other.id == this.id &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt &&
+          other.createdBy == this.createdBy &&
+          other.updatedBy == this.updatedBy &&
+          other.isDeleted == this.isDeleted &&
+          other.deletedAt == this.deletedAt &&
+          other.periodId == this.periodId &&
+          other.classId == this.classId &&
+          other.studentId == this.studentId &&
+          other.appreciation == this.appreciation &&
+          other.decision == this.decision);
+}
+
+class CouncilDecisionsCompanion extends UpdateCompanion<CouncilDecision> {
+  final Value<String> id;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<String?> createdBy;
+  final Value<String?> updatedBy;
+  final Value<bool> isDeleted;
+  final Value<DateTime?> deletedAt;
+  final Value<String> periodId;
+  final Value<String> classId;
+  final Value<String> studentId;
+  final Value<String?> appreciation;
+  final Value<String?> decision;
+  final Value<int> rowid;
+  const CouncilDecisionsCompanion({
+    this.id = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.createdBy = const Value.absent(),
+    this.updatedBy = const Value.absent(),
+    this.isDeleted = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.periodId = const Value.absent(),
+    this.classId = const Value.absent(),
+    this.studentId = const Value.absent(),
+    this.appreciation = const Value.absent(),
+    this.decision = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  CouncilDecisionsCompanion.insert({
+    required String id,
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.createdBy = const Value.absent(),
+    this.updatedBy = const Value.absent(),
+    this.isDeleted = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    required String periodId,
+    required String classId,
+    required String studentId,
+    this.appreciation = const Value.absent(),
+    this.decision = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       periodId = Value(periodId),
+       classId = Value(classId),
+       studentId = Value(studentId);
+  static Insertable<CouncilDecision> custom({
+    Expression<String>? id,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<String>? createdBy,
+    Expression<String>? updatedBy,
+    Expression<bool>? isDeleted,
+    Expression<DateTime>? deletedAt,
+    Expression<String>? periodId,
+    Expression<String>? classId,
+    Expression<String>? studentId,
+    Expression<String>? appreciation,
+    Expression<String>? decision,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (createdBy != null) 'created_by': createdBy,
+      if (updatedBy != null) 'updated_by': updatedBy,
+      if (isDeleted != null) 'is_deleted': isDeleted,
+      if (deletedAt != null) 'deleted_at': deletedAt,
+      if (periodId != null) 'period_id': periodId,
+      if (classId != null) 'class_id': classId,
+      if (studentId != null) 'student_id': studentId,
+      if (appreciation != null) 'appreciation': appreciation,
+      if (decision != null) 'decision': decision,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  CouncilDecisionsCompanion copyWith({
+    Value<String>? id,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+    Value<String?>? createdBy,
+    Value<String?>? updatedBy,
+    Value<bool>? isDeleted,
+    Value<DateTime?>? deletedAt,
+    Value<String>? periodId,
+    Value<String>? classId,
+    Value<String>? studentId,
+    Value<String?>? appreciation,
+    Value<String?>? decision,
+    Value<int>? rowid,
+  }) {
+    return CouncilDecisionsCompanion(
+      id: id ?? this.id,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      createdBy: createdBy ?? this.createdBy,
+      updatedBy: updatedBy ?? this.updatedBy,
+      isDeleted: isDeleted ?? this.isDeleted,
+      deletedAt: deletedAt ?? this.deletedAt,
+      periodId: periodId ?? this.periodId,
+      classId: classId ?? this.classId,
+      studentId: studentId ?? this.studentId,
+      appreciation: appreciation ?? this.appreciation,
+      decision: decision ?? this.decision,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (createdBy.present) {
+      map['created_by'] = Variable<String>(createdBy.value);
+    }
+    if (updatedBy.present) {
+      map['updated_by'] = Variable<String>(updatedBy.value);
+    }
+    if (isDeleted.present) {
+      map['is_deleted'] = Variable<bool>(isDeleted.value);
+    }
+    if (deletedAt.present) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt.value);
+    }
+    if (periodId.present) {
+      map['period_id'] = Variable<String>(periodId.value);
+    }
+    if (classId.present) {
+      map['class_id'] = Variable<String>(classId.value);
+    }
+    if (studentId.present) {
+      map['student_id'] = Variable<String>(studentId.value);
+    }
+    if (appreciation.present) {
+      map['appreciation'] = Variable<String>(appreciation.value);
+    }
+    if (decision.present) {
+      map['decision'] = Variable<String>(decision.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CouncilDecisionsCompanion(')
+          ..write('id: $id, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('createdBy: $createdBy, ')
+          ..write('updatedBy: $updatedBy, ')
+          ..write('isDeleted: $isDeleted, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('periodId: $periodId, ')
+          ..write('classId: $classId, ')
+          ..write('studentId: $studentId, ')
+          ..write('appreciation: $appreciation, ')
+          ..write('decision: $decision, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -18676,6 +19396,9 @@ abstract class _$AppDatabase extends GeneratedDatabase {
       $AttendanceRecordsTable(this);
   late final $EvaluationsTable evaluations = $EvaluationsTable(this);
   late final $GradesTable grades = $GradesTable(this);
+  late final $CouncilDecisionsTable councilDecisions = $CouncilDecisionsTable(
+    this,
+  );
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -18708,6 +19431,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     attendanceRecords,
     evaluations,
     grades,
+    councilDecisions,
   ];
 }
 
@@ -22595,6 +23319,29 @@ final class $$PeriodsTableReferences
       manager.$state.copyWith(prefetchedData: cache),
     );
   }
+
+  static MultiTypedResultKey<$CouncilDecisionsTable, List<CouncilDecision>>
+  _councilDecisionsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.councilDecisions,
+    aliasName: $_aliasNameGenerator(
+      db.periods.id,
+      db.councilDecisions.periodId,
+    ),
+  );
+
+  $$CouncilDecisionsTableProcessedTableManager get councilDecisionsRefs {
+    final manager = $$CouncilDecisionsTableTableManager(
+      $_db,
+      $_db.councilDecisions,
+    ).filter((f) => f.periodId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _councilDecisionsRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
 }
 
 class $$PeriodsTableFilterComposer
@@ -22715,6 +23462,31 @@ class $$PeriodsTableFilterComposer
           }) => $$EvaluationsTableFilterComposer(
             $db: $db,
             $table: $db.evaluations,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> councilDecisionsRefs(
+    Expression<bool> Function($$CouncilDecisionsTableFilterComposer f) f,
+  ) {
+    final $$CouncilDecisionsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.councilDecisions,
+      getReferencedColumn: (t) => t.periodId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CouncilDecisionsTableFilterComposer(
+            $db: $db,
+            $table: $db.councilDecisions,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -22928,6 +23700,31 @@ class $$PeriodsTableAnnotationComposer
     );
     return f(composer);
   }
+
+  Expression<T> councilDecisionsRefs<T extends Object>(
+    Expression<T> Function($$CouncilDecisionsTableAnnotationComposer a) f,
+  ) {
+    final $$CouncilDecisionsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.councilDecisions,
+      getReferencedColumn: (t) => t.periodId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CouncilDecisionsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.councilDecisions,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$PeriodsTableTableManager
@@ -22943,7 +23740,11 @@ class $$PeriodsTableTableManager
           $$PeriodsTableUpdateCompanionBuilder,
           (Period, $$PeriodsTableReferences),
           Period,
-          PrefetchHooks Function({bool academicYearId, bool evaluationsRefs})
+          PrefetchHooks Function({
+            bool academicYearId,
+            bool evaluationsRefs,
+            bool councilDecisionsRefs,
+          })
         > {
   $$PeriodsTableTableManager(_$AppDatabase db, $PeriodsTable table)
     : super(
@@ -23037,11 +23838,16 @@ class $$PeriodsTableTableManager
               )
               .toList(),
           prefetchHooksCallback:
-              ({academicYearId = false, evaluationsRefs = false}) {
+              ({
+                academicYearId = false,
+                evaluationsRefs = false,
+                councilDecisionsRefs = false,
+              }) {
                 return PrefetchHooks(
                   db: db,
                   explicitlyWatchedTables: [
                     if (evaluationsRefs) db.evaluations,
+                    if (councilDecisionsRefs) db.councilDecisions,
                   ],
                   addJoins:
                       <
@@ -23098,6 +23904,27 @@ class $$PeriodsTableTableManager
                               ),
                           typedResults: items,
                         ),
+                      if (councilDecisionsRefs)
+                        await $_getPrefetchedData<
+                          Period,
+                          $PeriodsTable,
+                          CouncilDecision
+                        >(
+                          currentTable: table,
+                          referencedTable: $$PeriodsTableReferences
+                              ._councilDecisionsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$PeriodsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).councilDecisionsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.periodId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
                     ];
                   },
                 );
@@ -23118,7 +23945,11 @@ typedef $$PeriodsTableProcessedTableManager =
       $$PeriodsTableUpdateCompanionBuilder,
       (Period, $$PeriodsTableReferences),
       Period,
-      PrefetchHooks Function({bool academicYearId, bool evaluationsRefs})
+      PrefetchHooks Function({
+        bool academicYearId,
+        bool evaluationsRefs,
+        bool councilDecisionsRefs,
+      })
     >;
 typedef $$EducationTypesTableCreateCompanionBuilder =
     EducationTypesCompanion Function({
@@ -24140,6 +24971,26 @@ final class $$ClassesTableReferences
       manager.$state.copyWith(prefetchedData: cache),
     );
   }
+
+  static MultiTypedResultKey<$CouncilDecisionsTable, List<CouncilDecision>>
+  _councilDecisionsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.councilDecisions,
+    aliasName: $_aliasNameGenerator(db.classes.id, db.councilDecisions.classId),
+  );
+
+  $$CouncilDecisionsTableProcessedTableManager get councilDecisionsRefs {
+    final manager = $$CouncilDecisionsTableTableManager(
+      $_db,
+      $_db.councilDecisions,
+    ).filter((f) => f.classId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _councilDecisionsRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
 }
 
 class $$ClassesTableFilterComposer
@@ -24308,6 +25159,31 @@ class $$ClassesTableFilterComposer
           }) => $$EvaluationsTableFilterComposer(
             $db: $db,
             $table: $db.evaluations,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> councilDecisionsRefs(
+    Expression<bool> Function($$CouncilDecisionsTableFilterComposer f) f,
+  ) {
+    final $$CouncilDecisionsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.councilDecisions,
+      getReferencedColumn: (t) => t.classId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CouncilDecisionsTableFilterComposer(
+            $db: $db,
+            $table: $db.councilDecisions,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -24575,6 +25451,31 @@ class $$ClassesTableAnnotationComposer
     );
     return f(composer);
   }
+
+  Expression<T> councilDecisionsRefs<T extends Object>(
+    Expression<T> Function($$CouncilDecisionsTableAnnotationComposer a) f,
+  ) {
+    final $$CouncilDecisionsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.councilDecisions,
+      getReferencedColumn: (t) => t.classId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CouncilDecisionsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.councilDecisions,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$ClassesTableTableManager
@@ -24596,6 +25497,7 @@ class $$ClassesTableTableManager
             bool enrollmentsRefs,
             bool courseSessionsRefs,
             bool evaluationsRefs,
+            bool councilDecisionsRefs,
           })
         > {
   $$ClassesTableTableManager(_$AppDatabase db, $ClassesTable table)
@@ -24680,6 +25582,7 @@ class $$ClassesTableTableManager
                 enrollmentsRefs = false,
                 courseSessionsRefs = false,
                 evaluationsRefs = false,
+                councilDecisionsRefs = false,
               }) {
                 return PrefetchHooks(
                   db: db,
@@ -24687,6 +25590,7 @@ class $$ClassesTableTableManager
                     if (enrollmentsRefs) db.enrollments,
                     if (courseSessionsRefs) db.courseSessions,
                     if (evaluationsRefs) db.evaluations,
+                    if (councilDecisionsRefs) db.councilDecisions,
                   ],
                   addJoins:
                       <
@@ -24798,6 +25702,27 @@ class $$ClassesTableTableManager
                               ),
                           typedResults: items,
                         ),
+                      if (councilDecisionsRefs)
+                        await $_getPrefetchedData<
+                          ClassesData,
+                          $ClassesTable,
+                          CouncilDecision
+                        >(
+                          currentTable: table,
+                          referencedTable: $$ClassesTableReferences
+                              ._councilDecisionsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$ClassesTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).councilDecisionsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.classId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
                     ];
                   },
                 );
@@ -24824,6 +25749,7 @@ typedef $$ClassesTableProcessedTableManager =
         bool enrollmentsRefs,
         bool courseSessionsRefs,
         bool evaluationsRefs,
+        bool councilDecisionsRefs,
       })
     >;
 typedef $$SubjectsTableCreateCompanionBuilder =
@@ -25490,6 +26416,29 @@ final class $$StudentsTableReferences
       manager.$state.copyWith(prefetchedData: cache),
     );
   }
+
+  static MultiTypedResultKey<$CouncilDecisionsTable, List<CouncilDecision>>
+  _councilDecisionsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.councilDecisions,
+    aliasName: $_aliasNameGenerator(
+      db.students.id,
+      db.councilDecisions.studentId,
+    ),
+  );
+
+  $$CouncilDecisionsTableProcessedTableManager get councilDecisionsRefs {
+    final manager = $$CouncilDecisionsTableTableManager(
+      $_db,
+      $_db.councilDecisions,
+    ).filter((f) => f.studentId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _councilDecisionsRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
 }
 
 class $$StudentsTableFilterComposer
@@ -25722,6 +26671,31 @@ class $$StudentsTableFilterComposer
           }) => $$GradesTableFilterComposer(
             $db: $db,
             $table: $db.grades,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> councilDecisionsRefs(
+    Expression<bool> Function($$CouncilDecisionsTableFilterComposer f) f,
+  ) {
+    final $$CouncilDecisionsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.councilDecisions,
+      getReferencedColumn: (t) => t.studentId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CouncilDecisionsTableFilterComposer(
+            $db: $db,
+            $table: $db.councilDecisions,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -26031,6 +27005,31 @@ class $$StudentsTableAnnotationComposer
     );
     return f(composer);
   }
+
+  Expression<T> councilDecisionsRefs<T extends Object>(
+    Expression<T> Function($$CouncilDecisionsTableAnnotationComposer a) f,
+  ) {
+    final $$CouncilDecisionsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.councilDecisions,
+      getReferencedColumn: (t) => t.studentId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CouncilDecisionsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.councilDecisions,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$StudentsTableTableManager
@@ -26053,6 +27052,7 @@ class $$StudentsTableTableManager
             bool paymentsRefs,
             bool attendanceRecordsRefs,
             bool gradesRefs,
+            bool councilDecisionsRefs,
           })
         > {
   $$StudentsTableTableManager(_$AppDatabase db, $StudentsTable table)
@@ -26158,6 +27158,7 @@ class $$StudentsTableTableManager
                 paymentsRefs = false,
                 attendanceRecordsRefs = false,
                 gradesRefs = false,
+                councilDecisionsRefs = false,
               }) {
                 return PrefetchHooks(
                   db: db,
@@ -26168,6 +27169,7 @@ class $$StudentsTableTableManager
                     if (paymentsRefs) db.payments,
                     if (attendanceRecordsRefs) db.attendanceRecords,
                     if (gradesRefs) db.grades,
+                    if (councilDecisionsRefs) db.councilDecisions,
                   ],
                   addJoins: null,
                   getPrefetchedDataCallback: (items) async {
@@ -26298,6 +27300,27 @@ class $$StudentsTableTableManager
                               ),
                           typedResults: items,
                         ),
+                      if (councilDecisionsRefs)
+                        await $_getPrefetchedData<
+                          Student,
+                          $StudentsTable,
+                          CouncilDecision
+                        >(
+                          currentTable: table,
+                          referencedTable: $$StudentsTableReferences
+                              ._councilDecisionsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$StudentsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).councilDecisionsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.studentId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
                     ];
                   },
                 );
@@ -26325,6 +27348,7 @@ typedef $$StudentsTableProcessedTableManager =
         bool paymentsRefs,
         bool attendanceRecordsRefs,
         bool gradesRefs,
+        bool councilDecisionsRefs,
       })
     >;
 typedef $$GuardiansTableCreateCompanionBuilder =
@@ -34719,6 +35743,650 @@ typedef $$GradesTableProcessedTableManager =
       Grade,
       PrefetchHooks Function({bool evaluationId, bool studentId})
     >;
+typedef $$CouncilDecisionsTableCreateCompanionBuilder =
+    CouncilDecisionsCompanion Function({
+      required String id,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<String?> createdBy,
+      Value<String?> updatedBy,
+      Value<bool> isDeleted,
+      Value<DateTime?> deletedAt,
+      required String periodId,
+      required String classId,
+      required String studentId,
+      Value<String?> appreciation,
+      Value<String?> decision,
+      Value<int> rowid,
+    });
+typedef $$CouncilDecisionsTableUpdateCompanionBuilder =
+    CouncilDecisionsCompanion Function({
+      Value<String> id,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<String?> createdBy,
+      Value<String?> updatedBy,
+      Value<bool> isDeleted,
+      Value<DateTime?> deletedAt,
+      Value<String> periodId,
+      Value<String> classId,
+      Value<String> studentId,
+      Value<String?> appreciation,
+      Value<String?> decision,
+      Value<int> rowid,
+    });
+
+final class $$CouncilDecisionsTableReferences
+    extends
+        BaseReferences<_$AppDatabase, $CouncilDecisionsTable, CouncilDecision> {
+  $$CouncilDecisionsTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $PeriodsTable _periodIdTable(_$AppDatabase db) =>
+      db.periods.createAlias(
+        $_aliasNameGenerator(db.councilDecisions.periodId, db.periods.id),
+      );
+
+  $$PeriodsTableProcessedTableManager get periodId {
+    final $_column = $_itemColumn<String>('period_id')!;
+
+    final manager = $$PeriodsTableTableManager(
+      $_db,
+      $_db.periods,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_periodIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static $ClassesTable _classIdTable(_$AppDatabase db) =>
+      db.classes.createAlias(
+        $_aliasNameGenerator(db.councilDecisions.classId, db.classes.id),
+      );
+
+  $$ClassesTableProcessedTableManager get classId {
+    final $_column = $_itemColumn<String>('class_id')!;
+
+    final manager = $$ClassesTableTableManager(
+      $_db,
+      $_db.classes,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_classIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static $StudentsTable _studentIdTable(_$AppDatabase db) =>
+      db.students.createAlias(
+        $_aliasNameGenerator(db.councilDecisions.studentId, db.students.id),
+      );
+
+  $$StudentsTableProcessedTableManager get studentId {
+    final $_column = $_itemColumn<String>('student_id')!;
+
+    final manager = $$StudentsTableTableManager(
+      $_db,
+      $_db.students,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_studentIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$CouncilDecisionsTableFilterComposer
+    extends Composer<_$AppDatabase, $CouncilDecisionsTable> {
+  $$CouncilDecisionsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get createdBy => $composableBuilder(
+    column: $table.createdBy,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get updatedBy => $composableBuilder(
+    column: $table.updatedBy,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isDeleted => $composableBuilder(
+    column: $table.isDeleted,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get appreciation => $composableBuilder(
+    column: $table.appreciation,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get decision => $composableBuilder(
+    column: $table.decision,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$PeriodsTableFilterComposer get periodId {
+    final $$PeriodsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.periodId,
+      referencedTable: $db.periods,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$PeriodsTableFilterComposer(
+            $db: $db,
+            $table: $db.periods,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$ClassesTableFilterComposer get classId {
+    final $$ClassesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.classId,
+      referencedTable: $db.classes,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ClassesTableFilterComposer(
+            $db: $db,
+            $table: $db.classes,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$StudentsTableFilterComposer get studentId {
+    final $$StudentsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.studentId,
+      referencedTable: $db.students,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$StudentsTableFilterComposer(
+            $db: $db,
+            $table: $db.students,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$CouncilDecisionsTableOrderingComposer
+    extends Composer<_$AppDatabase, $CouncilDecisionsTable> {
+  $$CouncilDecisionsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get createdBy => $composableBuilder(
+    column: $table.createdBy,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get updatedBy => $composableBuilder(
+    column: $table.updatedBy,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isDeleted => $composableBuilder(
+    column: $table.isDeleted,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get appreciation => $composableBuilder(
+    column: $table.appreciation,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get decision => $composableBuilder(
+    column: $table.decision,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$PeriodsTableOrderingComposer get periodId {
+    final $$PeriodsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.periodId,
+      referencedTable: $db.periods,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$PeriodsTableOrderingComposer(
+            $db: $db,
+            $table: $db.periods,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$ClassesTableOrderingComposer get classId {
+    final $$ClassesTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.classId,
+      referencedTable: $db.classes,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ClassesTableOrderingComposer(
+            $db: $db,
+            $table: $db.classes,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$StudentsTableOrderingComposer get studentId {
+    final $$StudentsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.studentId,
+      referencedTable: $db.students,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$StudentsTableOrderingComposer(
+            $db: $db,
+            $table: $db.students,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$CouncilDecisionsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $CouncilDecisionsTable> {
+  $$CouncilDecisionsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<String> get createdBy =>
+      $composableBuilder(column: $table.createdBy, builder: (column) => column);
+
+  GeneratedColumn<String> get updatedBy =>
+      $composableBuilder(column: $table.updatedBy, builder: (column) => column);
+
+  GeneratedColumn<bool> get isDeleted =>
+      $composableBuilder(column: $table.isDeleted, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get deletedAt =>
+      $composableBuilder(column: $table.deletedAt, builder: (column) => column);
+
+  GeneratedColumn<String> get appreciation => $composableBuilder(
+    column: $table.appreciation,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get decision =>
+      $composableBuilder(column: $table.decision, builder: (column) => column);
+
+  $$PeriodsTableAnnotationComposer get periodId {
+    final $$PeriodsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.periodId,
+      referencedTable: $db.periods,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$PeriodsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.periods,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$ClassesTableAnnotationComposer get classId {
+    final $$ClassesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.classId,
+      referencedTable: $db.classes,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ClassesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.classes,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$StudentsTableAnnotationComposer get studentId {
+    final $$StudentsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.studentId,
+      referencedTable: $db.students,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$StudentsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.students,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$CouncilDecisionsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $CouncilDecisionsTable,
+          CouncilDecision,
+          $$CouncilDecisionsTableFilterComposer,
+          $$CouncilDecisionsTableOrderingComposer,
+          $$CouncilDecisionsTableAnnotationComposer,
+          $$CouncilDecisionsTableCreateCompanionBuilder,
+          $$CouncilDecisionsTableUpdateCompanionBuilder,
+          (CouncilDecision, $$CouncilDecisionsTableReferences),
+          CouncilDecision,
+          PrefetchHooks Function({bool periodId, bool classId, bool studentId})
+        > {
+  $$CouncilDecisionsTableTableManager(
+    _$AppDatabase db,
+    $CouncilDecisionsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$CouncilDecisionsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$CouncilDecisionsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$CouncilDecisionsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<String?> createdBy = const Value.absent(),
+                Value<String?> updatedBy = const Value.absent(),
+                Value<bool> isDeleted = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<String> periodId = const Value.absent(),
+                Value<String> classId = const Value.absent(),
+                Value<String> studentId = const Value.absent(),
+                Value<String?> appreciation = const Value.absent(),
+                Value<String?> decision = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => CouncilDecisionsCompanion(
+                id: id,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                createdBy: createdBy,
+                updatedBy: updatedBy,
+                isDeleted: isDeleted,
+                deletedAt: deletedAt,
+                periodId: periodId,
+                classId: classId,
+                studentId: studentId,
+                appreciation: appreciation,
+                decision: decision,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<String?> createdBy = const Value.absent(),
+                Value<String?> updatedBy = const Value.absent(),
+                Value<bool> isDeleted = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                required String periodId,
+                required String classId,
+                required String studentId,
+                Value<String?> appreciation = const Value.absent(),
+                Value<String?> decision = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => CouncilDecisionsCompanion.insert(
+                id: id,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                createdBy: createdBy,
+                updatedBy: updatedBy,
+                isDeleted: isDeleted,
+                deletedAt: deletedAt,
+                periodId: periodId,
+                classId: classId,
+                studentId: studentId,
+                appreciation: appreciation,
+                decision: decision,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$CouncilDecisionsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback:
+              ({periodId = false, classId = false, studentId = false}) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [],
+                  addJoins:
+                      <
+                        T extends TableManagerState<
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic
+                        >
+                      >(state) {
+                        if (periodId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.periodId,
+                                    referencedTable:
+                                        $$CouncilDecisionsTableReferences
+                                            ._periodIdTable(db),
+                                    referencedColumn:
+                                        $$CouncilDecisionsTableReferences
+                                            ._periodIdTable(db)
+                                            .id,
+                                  )
+                                  as T;
+                        }
+                        if (classId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.classId,
+                                    referencedTable:
+                                        $$CouncilDecisionsTableReferences
+                                            ._classIdTable(db),
+                                    referencedColumn:
+                                        $$CouncilDecisionsTableReferences
+                                            ._classIdTable(db)
+                                            .id,
+                                  )
+                                  as T;
+                        }
+                        if (studentId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.studentId,
+                                    referencedTable:
+                                        $$CouncilDecisionsTableReferences
+                                            ._studentIdTable(db),
+                                    referencedColumn:
+                                        $$CouncilDecisionsTableReferences
+                                            ._studentIdTable(db)
+                                            .id,
+                                  )
+                                  as T;
+                        }
+
+                        return state;
+                      },
+                  getPrefetchedDataCallback: (items) async {
+                    return [];
+                  },
+                );
+              },
+        ),
+      );
+}
+
+typedef $$CouncilDecisionsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $CouncilDecisionsTable,
+      CouncilDecision,
+      $$CouncilDecisionsTableFilterComposer,
+      $$CouncilDecisionsTableOrderingComposer,
+      $$CouncilDecisionsTableAnnotationComposer,
+      $$CouncilDecisionsTableCreateCompanionBuilder,
+      $$CouncilDecisionsTableUpdateCompanionBuilder,
+      (CouncilDecision, $$CouncilDecisionsTableReferences),
+      CouncilDecision,
+      PrefetchHooks Function({bool periodId, bool classId, bool studentId})
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -34777,4 +36445,6 @@ class $AppDatabaseManager {
       $$EvaluationsTableTableManager(_db, _db.evaluations);
   $$GradesTableTableManager get grades =>
       $$GradesTableTableManager(_db, _db.grades);
+  $$CouncilDecisionsTableTableManager get councilDecisions =>
+      $$CouncilDecisionsTableTableManager(_db, _db.councilDecisions);
 }

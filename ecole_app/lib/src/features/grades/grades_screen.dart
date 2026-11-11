@@ -5,9 +5,11 @@ import 'package:printing/printing.dart';
 
 import '../../core/database/app_database.dart';
 import '../academics/academics_providers.dart';
+import '../auth/auth_controller.dart';
 import '../documents/document_service.dart';
 import '../settings/settings_providers.dart';
 import 'grades_providers.dart';
+import 'grades_repository.dart';
 
 class GradesScreen extends ConsumerStatefulWidget {
   const GradesScreen({super.key});
@@ -32,8 +34,33 @@ class _GradesScreenState extends ConsumerState<GradesScreen> {
     final evals = ref.watch(evaluationsProvider((classId: _classId, periodId: _periodId))).valueOrNull ?? [];
     final selected = evals.firstWhereOrNull((e) => e.id == _selectedEvalId);
 
-    return DefaultTabController(length: 2, child: Column(children: [
-      const TabBar(tabs: [Tab(text: 'Évaluations & Saisie des notes'), Tab(text: 'Bulletins (base)')]),
+    final selectedPeriod = periods.firstWhereOrNull((p) => p.id == _periodId);
+    final user = ref.watch(authControllerProvider).currentUser;
+
+    return DefaultTabController(length: 3, child: Column(children: [
+      Padding(padding: const EdgeInsets.fromLTRB(12, 8, 12, 0), child: Row(children: [
+        if (selectedPeriod != null) Chip(label: Text(selectedPeriod.isClosed ? 'Période clôturée (verrouillée)' : 'Période ouverte'), avatar: Icon(selectedPeriod.isClosed ? Icons.lock : Icons.lock_open, size: 16)),
+        const Spacer(),
+        if (selectedPeriod != null)
+          FilledButton.tonalIcon(
+            onPressed: () async {
+              try {
+                if (selectedPeriod.isClosed) {
+                  await ref.read(gradesRepositoryProvider).unlockPeriod(selectedPeriod.id, userId: user?.id, username: user?.displayName, reason: 'Déverrouillage manuel (direction)');
+                  if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Période déverrouillée (action auditée).')));
+                } else {
+                  await ref.read(gradesRepositoryProvider).lockPeriod(selectedPeriod.id, userId: user?.id, username: user?.displayName);
+                  if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Période clôturée/verrouillée.')));
+                }
+              } catch (e) {
+                if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erreur: $e')));
+              }
+            },
+            icon: Icon(selectedPeriod.isClosed ? Icons.lock_open : Icons.lock),
+            label: Text(selectedPeriod.isClosed ? 'Déverrouiller la période' : 'Clôturer/verrouiller la période'),
+          ),
+      ])),
+      const TabBar(tabs: [Tab(text: 'Évaluations & Saisie des notes'), Tab(text: 'Conseil de classe'), Tab(text: 'Bulletins (base)')]),
       Expanded(child: TabBarView(children: [
         Row(children: [
           SizedBox(width: 420, child: Padding(padding: const EdgeInsets.all(12), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -48,6 +75,7 @@ class _GradesScreenState extends ConsumerState<GradesScreen> {
           const VerticalDivider(width: 1),
           Expanded(child: selected == null || _classId == null ? const Center(child: Text('Sélectionnez une évaluation pour saisir les notes.')) : _GradeEntry(evaluation: selected, classId: _classId!, academicYearId: year?.id)),
         ]),
+        _CouncilTab(classId: _classId, periodId: _periodId, academicYearId: year?.id),
         _BulletinTab(classId: _classId, periodId: _periodId, academicYearId: year?.id),
       ])),
     ]));
@@ -114,17 +142,80 @@ class _GradeEntryState extends ConsumerState<_GradeEntry> {
                 onFieldSubmitted: (v) async {
                   final val = double.tryParse(v.replaceAll(',', '.'));
                   final g = byStudent[s.id];
-                  await ref.read(gradesRepositoryProvider).setGrade(evaluationId: widget.evaluation.id, studentId: s.id, score: val, isAbsent: g?.isAbsent ?? false, isExempt: g?.isExempt ?? false);
+                  try {
+                    await ref.read(gradesRepositoryProvider).setGrade(evaluationId: widget.evaluation.id, studentId: s.id, score: val, isAbsent: g?.isAbsent ?? false, isExempt: g?.isExempt ?? false);
+                  } on PeriodLockedException catch (e) {
+                    if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message)));
+                  }
                 },
                 decoration: const InputDecoration(isDense: true),
               ))),
-              DataCell(Checkbox(value: byStudent[s.id]?.isAbsent ?? false, onChanged: (v) async { final g = byStudent[s.id]; await ref.read(gradesRepositoryProvider).setGrade(evaluationId: widget.evaluation.id, studentId: s.id, score: g?.score, isAbsent: v ?? false, isExempt: g?.isExempt ?? false); })),
-              DataCell(Checkbox(value: byStudent[s.id]?.isExempt ?? false, onChanged: (v) async { final g = byStudent[s.id]; await ref.read(gradesRepositoryProvider).setGrade(evaluationId: widget.evaluation.id, studentId: s.id, score: g?.score, isAbsent: g?.isAbsent ?? false, isExempt: v ?? false); })),
+              DataCell(Checkbox(value: byStudent[s.id]?.isAbsent ?? false, onChanged: (v) async { final g = byStudent[s.id]; try { await ref.read(gradesRepositoryProvider).setGrade(evaluationId: widget.evaluation.id, studentId: s.id, score: g?.score, isAbsent: v ?? false, isExempt: g?.isExempt ?? false); } on PeriodLockedException catch (e) { if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message))); } })),
+              DataCell(Checkbox(value: byStudent[s.id]?.isExempt ?? false, onChanged: (v) async { final g = byStudent[s.id]; try { await ref.read(gradesRepositoryProvider).setGrade(evaluationId: widget.evaluation.id, studentId: s.id, score: g?.score, isAbsent: g?.isAbsent ?? false, isExempt: v ?? false); } on PeriodLockedException catch (e) { if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message))); } })),
             ]),
         ]),
         const Padding(padding: EdgeInsets.all(12), child: Text('Astuce: saisissez la note puis appuyez Entrée pour enregistrer. "Dispensé" neutralise la matière pour l\'élève.')),
       ]);
     });
+  }
+}
+
+class _CouncilTab extends ConsumerStatefulWidget {
+  final String? classId; final String? periodId; final String? academicYearId;
+  const _CouncilTab({this.classId, this.periodId, this.academicYearId});
+  @override
+  ConsumerState<_CouncilTab> createState() => _CouncilTabState();
+}
+
+class _CouncilTabState extends ConsumerState<_CouncilTab> {
+  @override
+  Widget build(BuildContext context) {
+    if (widget.classId == null || widget.periodId == null) {
+      return const Center(child: Text('Sélectionnez une classe et une période pour accéder au conseil de classe.'));
+    }
+    final studentsF = ref.watch(gradesRepositoryProvider).studentsForClass(widget.classId!, academicYearId: widget.academicYearId);
+    final decisions = ref.watch(councilDecisionsProvider((periodId: widget.periodId!, classId: widget.classId!))).valueOrNull ?? [];
+    final byStudent = {for (final d in decisions) d.studentId: d};
+    return FutureBuilder<List<Student>>(future: studentsF, builder: (context, snap){
+      if (!snap.hasData) return const Center(child: CircularProgressIndicator());
+      final students = snap.data!;
+      if (students.isEmpty) return const Center(child: Text('Aucun élève inscrit dans cette classe.'));
+      return ListView(padding: const EdgeInsets.all(16), children: [
+        Text('Conseil de classe / Délibérations', style: Theme.of(context).textTheme.titleMedium),
+        const SizedBox(height: 8),
+        const Text('Saisissez l\'appréciation globale et la décision d\'orientation par élève pour la période sélectionnée.'),
+        const SizedBox(height: 12),
+        for (final s in students)
+          Card(child: ListTile(
+            title: Text('${s.lastName} ${s.firstName}'),
+            subtitle: Text('Appréciation: ${byStudent[s.id]?.appreciation ?? '-'}\nDécision: ${byStudent[s.id]?.decision ?? '-'}'),
+            isThreeLine: true,
+            trailing: IconButton(icon: const Icon(Icons.edit_outlined), onPressed: () => _editDecision(context, s, byStudent[s.id])),
+          )),
+      ]);
+    });
+  }
+
+  Future<void> _editDecision(BuildContext context, Student s, CouncilDecision? d) async {
+    final app = TextEditingController(text: d?.appreciation ?? '');
+    String? decision = d?.decision;
+    final decisions = <String?>[null, 'passage', 'redoublement', 'avertissement_travail', 'avertissement_conduite', 'felicitations', 'encouragements', 'tableau_honneur'];
+    await showDialog(context: context, builder: (ctx)=>StatefulBuilder(builder:(ctx,setState)=>AlertDialog(
+      title: Text('Délibération - ${s.lastName} ${s.firstName}'),
+      content: SizedBox(width:480, child: Column(mainAxisSize:MainAxisSize.min, children:[
+        TextField(controller: app, decoration: const InputDecoration(labelText: 'Appréciation globale du conseil'), maxLines: 3),
+        const SizedBox(height: 8),
+        DropdownButtonFormField<String?>(initialValue: decision, decoration: const InputDecoration(labelText: 'Décision / orientation'), items: [for (final x in decisions) DropdownMenuItem(value: x, child: Text(x ?? '(Aucune)'))], onChanged: (v)=>setState(()=>decision=v)),
+      ])),
+      actions:[TextButton(onPressed:()=>Navigator.pop(ctx), child: const Text('Annuler')), FilledButton(onPressed:() async {
+        try {
+          await ref.read(gradesRepositoryProvider).setCouncilDecision(periodId: widget.periodId!, classId: widget.classId!, studentId: s.id, appreciation: app.text.trim().isEmpty?null:app.text.trim(), decision: decision);
+          if (ctx.mounted) Navigator.pop(ctx);
+        } on PeriodLockedException catch (e) {
+          if (ctx.mounted) ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(content: Text(e.message)));
+        }
+      }, child: const Text('Enregistrer'))],
+    )));
   }
 }
 

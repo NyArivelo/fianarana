@@ -3,10 +3,32 @@ import 'package:uuid/uuid.dart';
 
 import '../../core/database/app_database.dart';
 
+class PeriodLockedException implements Exception {
+  final String message;
+  PeriodLockedException(this.message);
+  @override
+  String toString() => message;
+}
+
 class GradesRepository {
   final AppDatabase db;
   final _uuid = const Uuid();
   GradesRepository(this.db);
+
+  Future<void> _ensurePeriodUnlocked(String? periodId) async {
+    if (periodId == null) return;
+    final p = await (db.select(db.periods)..where((t) => t.id.equals(periodId))).getSingleOrNull();
+    if (p != null && p.isClosed) {
+      throw PeriodLockedException('Période "${p.name}" clôturée: modification des notes interdite sans déverrouillage.');
+    }
+  }
+
+  Future<void> _audit({String? userId, String? username, required String action, String? targetId, String? details}) async {
+    await db.into(db.auditLogs).insert(AuditLogsCompanion.insert(
+      id: _uuid.v4(), timestamp: DateTime.now().toUtc(), module: 'grades', action: action,
+      userId: Value(userId), username: Value(username), targetType: const Value('period'), targetId: Value(targetId), details: Value(details),
+    ));
+  }
 
   Stream<List<Evaluation>> watchEvaluations({String? classId, String? periodId}) {
     final q = db.select(db.evaluations)..where((t) => t.isDeleted.equals(false));
@@ -17,6 +39,11 @@ class GradesRepository {
   }
 
   Future<String> upsertEvaluation({String? id, String? academicYearId, String? periodId, required String classId, required String subjectId, required String title, double coefficient = 1, double maxScore = 20, DateTime? date}) async {
+    await _ensurePeriodUnlocked(periodId);
+    if (id != null) {
+      final old = await (db.select(db.evaluations)..where((t) => t.id.equals(id))).getSingleOrNull();
+      if (old != null) await _ensurePeriodUnlocked(old.periodId);
+    }
     final now = DateTime.now();
     if (id == null) {
       final nid = _uuid.v4();
@@ -33,6 +60,8 @@ class GradesRepository {
   }
 
   Future<void> setGrade({required String evaluationId, required String studentId, double? score, bool isAbsent = false, bool isExempt = false, String? comment}) async {
+    final ev = await (db.select(db.evaluations)..where((t) => t.id.equals(evaluationId))).getSingle();
+    await _ensurePeriodUnlocked(ev.periodId);
     final existing = await (db.select(db.grades)..where((t) => t.evaluationId.equals(evaluationId) & t.studentId.equals(studentId))).getSingleOrNull();
     final now = DateTime.now();
     if (existing == null) {
@@ -81,5 +110,32 @@ class GradesRepository {
     }
     result.sort((a,b)=>(a['subject'] as String).compareTo(b['subject'] as String));
     return result;
+  }
+
+  // --- Council decisions ---
+  Stream<List<CouncilDecision>> watchCouncilDecisions({required String periodId, required String classId}) {
+    return (db.select(db.councilDecisions)..where((t) => t.periodId.equals(periodId) & t.classId.equals(classId) & t.isDeleted.equals(false))).watch();
+  }
+
+  Future<void> setCouncilDecision({required String periodId, required String classId, required String studentId, String? appreciation, String? decision}) async {
+    await _ensurePeriodUnlocked(periodId);
+    final existing = await (db.select(db.councilDecisions)..where((t) => t.periodId.equals(periodId) & t.classId.equals(classId) & t.studentId.equals(studentId))).getSingleOrNull();
+    final now = DateTime.now();
+    if (existing == null) {
+      await db.into(db.councilDecisions).insert(CouncilDecisionsCompanion.insert(id: _uuid.v4(), periodId: periodId, classId: classId, studentId: studentId, appreciation: Value(appreciation), decision: Value(decision)));
+    } else {
+      await (db.update(db.councilDecisions)..where((t) => t.id.equals(existing.id))).write(CouncilDecisionsCompanion(appreciation: Value(appreciation), decision: Value(decision), updatedAt: Value(now)));
+    }
+  }
+
+  // --- Period lock/unlock ---
+  Future<void> lockPeriod(String periodId, {String? userId, String? username}) async {
+    await (db.update(db.periods)..where((t) => t.id.equals(periodId))).write(PeriodsCompanion(isClosed: const Value(true), closedAt: Value(DateTime.now()), closedBy: Value(userId ?? username), updatedAt: Value(DateTime.now())));
+    await _audit(userId: userId, username: username, action: 'period_locked', targetId: periodId, details: 'Période clôturée/verrouillée');
+  }
+
+  Future<void> unlockPeriod(String periodId, {String? userId, String? username, String? reason}) async {
+    await (db.update(db.periods)..where((t) => t.id.equals(periodId))).write(PeriodsCompanion(isClosed: const Value(false), closedAt: const Value(null), updatedAt: Value(DateTime.now())));
+    await _audit(userId: userId, username: username, action: 'period_unlocked', targetId: periodId, details: reason ?? 'Déverrouillage de période');
   }
 }

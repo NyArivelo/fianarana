@@ -255,3 +255,11 @@ class Grades extends Table with UuidPrimaryKey, AuditColumns {
   BoolColumn get isExempt => boolean().withDefault(const Constant(false))(); // dispense/neutralized
   TextColumn get comment => text().nullable()();
 }
+
+class CouncilDecisions extends Table with UuidPrimaryKey, AuditColumns {
+  TextColumn get periodId => text().references(Periods, #id)();
+  TextColumn get classId => text().references(Classes, #id)();
+  TextColumn get studentId => text().references(Students, #id)();
+  TextColumn get appreciation => text().nullable()();
+  TextColumn get decision => text().nullable()(); // passage, redoublement, avertissement, felicitations, etc.
+}
