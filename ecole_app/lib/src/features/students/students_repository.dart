@@ -8,7 +8,24 @@ class StudentsRepository {
   final _uuid = const Uuid();
   StudentsRepository(this.db);
 
-  Stream<List<Student>> watchStudents({String query = ''}) {
+  Stream<List<Student>> watchStudents({String query = '', List<String>? allowedClassIds, String? academicYearId}) {
+    if (allowedClassIds != null) {
+      if (allowedClassIds.isEmpty) return Stream.value(<Student>[]);
+      final jq = db.select(db.students).join([innerJoin(db.enrollments, db.enrollments.studentId.equalsExp(db.students.id))]);
+      var where = db.students.isDeleted.equals(false) & db.enrollments.isDeleted.equals(false) & db.enrollments.classId.isIn(allowedClassIds);
+      if (academicYearId != null) where = where & db.enrollments.academicYearId.equals(academicYearId);
+      if (query.trim().isNotEmpty) {
+        final like = '%${query.trim()}%';
+        where = where & (db.students.firstName.like(like) | db.students.lastName.like(like) | db.students.matricule.like(like));
+      }
+      jq.where(where);
+      jq.orderBy([OrderingTerm.asc(db.students.lastName), OrderingTerm.asc(db.students.firstName)]);
+      return jq.watch().map((rows) {
+        final map = <String, Student>{};
+        for (final r in rows) { final s = r.readTable(db.students); map[s.id] = s; }
+        return map.values.toList();
+      });
+    }
     final q = db.select(db.students)..where((t) => t.isDeleted.equals(false));
     if (query.trim().isNotEmpty) {
       final like = '%${query.trim()}%';

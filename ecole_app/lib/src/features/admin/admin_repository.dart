@@ -106,4 +106,15 @@ class AdminRepository {
     final hash = sha256.convert(utf8.encode(jsonStr)).toString();
     return (json: jsonStr, sha256: hash);
   }
+
+  // --- Teacher assignments ---
+  Stream<List<TeacherAssignment>> watchAssignmentsForUser(String userId) => (db.select(db.teacherAssignments)..where((t)=>t.userId.equals(userId) & t.isDeleted.equals(false))).watch();
+
+  Future<void> addAssignment({required String userId, required String classId, String? subjectId, String? academicYearId}) async {
+    await db.into(db.teacherAssignments).insert(TeacherAssignmentsCompanion.insert(id: _uuid.v4(), userId: userId, classId: classId, subjectId: Value(subjectId), academicYearId: Value(academicYearId)));
+  }
+
+  Future<void> removeAssignment(String id) async {
+    await (db.update(db.teacherAssignments)..where((t)=>t.id.equals(id))).write(TeacherAssignmentsCompanion(isDeleted: const Value(true), deletedAt: Value(DateTime.now())));
+  }
 }

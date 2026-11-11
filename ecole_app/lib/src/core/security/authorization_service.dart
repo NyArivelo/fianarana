@@ -16,7 +16,7 @@ class AuthorizationService {
 
   Future<bool> isAdmin(String userId) async {
     final roles = await rolesForUser(userId);
-    return roles.any((r) => r.name == 'Administrateur' || r.scope == 'global' && r.isSystem);
+    return roles.any((r) => r.name == 'Administrateur' || (r.scope == 'global' && r.isSystem));
   }
 
   Future<bool> hasScope(String userId, String scope) async {
@@ -30,7 +30,8 @@ class AuthorizationService {
     final roles = await rolesForUser(userId);
     if (roles.any((r) => r.name == 'Administrateur' || r.scope == 'global')) return 'global';
     if (roles.any((r) => r.scope == 'caisse')) return 'caisse';
-    return 'restricted';
+    if (roles.any((r) => r.scope == 'restricted')) return 'restricted';
+    return 'global';
   }
 
   Future<Set<String>> permissionCodes(String userId) async {
@@ -46,5 +47,12 @@ class AuthorizationService {
     if (await isAdmin(userId)) return true;
     final codes = await permissionCodes(userId);
     return codes.contains(code);
+  }
+
+  Future<List<String>> assignedClassIds(String userId, {String? academicYearId}) async {
+    final q = db.select(db.teacherAssignments)..where((t) => t.userId.equals(userId) & t.isDeleted.equals(false));
+    if (academicYearId != null) q.where((t) => t.academicYearId.equals(academicYearId) | t.academicYearId.isNull());
+    final rows = await q.get();
+    return rows.map((r) => r.classId).toSet().toList();
   }
 }

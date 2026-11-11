@@ -39,6 +39,7 @@ part 'app_database.g.dart';
     Evaluations,
     Grades,
     CouncilDecisions,
+    TeacherAssignments,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -47,7 +48,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 6;
+  int get schemaVersion => 7;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -74,6 +75,9 @@ class AppDatabase extends _$AppDatabase {
           }
           if (from < 6) {
             await m.addColumn(roles, roles.scope);
+          }
+          if (from < 7) {
+            await m.createTable(teacherAssignments);
           }
         },
         beforeOpen: (details) async {

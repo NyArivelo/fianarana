@@ -264,3 +264,11 @@ class CouncilDecisions extends Table with UuidPrimaryKey, AuditColumns {
   TextColumn get appreciation => text().nullable()();
   TextColumn get decision => text().nullable()(); // passage, redoublement, avertissement, felicitations, etc.
 }
+
+// --- RBAC scope assignments ---
+class TeacherAssignments extends Table with UuidPrimaryKey, AuditColumns {
+  TextColumn get userId => text().references(Users, #id)();
+  TextColumn get classId => text().references(Classes, #id)();
+  TextColumn get subjectId => text().nullable().references(Subjects, #id)();
+  TextColumn get academicYearId => text().nullable().references(AcademicYears, #id)();
+}

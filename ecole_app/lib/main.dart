@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'src/core/services/auto_backup_service.dart';
+import 'src/core/services/backup_service.dart';
 import 'src/features/auth/auth_controller.dart';
 import 'src/features/auth/login_screen.dart';
 import 'src/features/dashboard/dashboard_screen.dart';
@@ -25,8 +27,13 @@ class _EcoleAppState extends ConsumerState<EcoleApp> {
   @override
   void initState() {
     super.initState();
-    Future.microtask(
-        () => ref.read(authControllerProvider.notifier).initialize());
+    Future.microtask(() async {
+      await ref.read(authControllerProvider.notifier).initialize();
+      // Best-effort automatic backup on startup
+      try {
+        await AutoBackupService(BackupService()).maybeRunAutoBackup();
+      } catch (_) {}
+    });
 
     _router = GoRouter(
       initialLocation: '/splash',

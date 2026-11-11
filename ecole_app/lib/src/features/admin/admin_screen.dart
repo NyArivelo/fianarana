@@ -6,7 +6,11 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
+import 'package:collection/collection.dart';
+
 import '../../core/database/app_database.dart';
+import '../academics/academics_providers.dart';
+import '../settings/settings_providers.dart';
 import 'admin_providers.dart';
 
 class AdminSecurityTab extends ConsumerStatefulWidget {
@@ -51,6 +55,7 @@ class _UsersTab extends ConsumerWidget {
             title: Text('${u.displayName} (${u.username})'),
             subtitle: Text('Rôles: ${rnames.isEmpty ? '-' : rnames} • ${u.isActive ? 'Actif' : 'Désactivé'}'),
             trailing: Wrap(spacing: 4, children: [
+              IconButton(icon: const Icon(Icons.assignment_ind_outlined), tooltip: 'Affectations (portée restreinte)', onPressed: ()=>_assignments(context, ref, u)),
               IconButton(icon: const Icon(Icons.edit_outlined), onPressed: ()=>_editUser(context, ref, roles, u)),
               IconButton(icon: const Icon(Icons.lock_reset), tooltip: 'Réinitialiser mot de passe', onPressed: ()=>_resetPwd(context, ref, u)),
               IconButton(icon: Icon(u.isActive ? Icons.block : Icons.check_circle_outline), tooltip: u.isActive?'Désactiver':'Activer', onPressed: ()=>ref.read(adminRepositoryProvider).updateUser(u, isActive: !u.isActive)),
@@ -99,6 +104,10 @@ class _UsersTab extends ConsumerWidget {
       content: TextField(controller: p, decoration: const InputDecoration(labelText:'Nouveau mot de passe'), obscureText: true),
       actions:[TextButton(onPressed:()=>Navigator.pop(ctx), child: const Text('Annuler')), FilledButton(onPressed:() async { if(p.text.length<8) return; await ref.read(adminRepositoryProvider).resetPassword(u.id, p.text); if(ctx.mounted) Navigator.pop(ctx); }, child: const Text('Réinitialiser'))],
     ));
+  }
+
+  static Future<void> _assignments(BuildContext context, WidgetRef ref, User u) async {
+    await showDialog(context: context, builder: (ctx) => _AssignmentsDialog(user: u));
   }
 }
 
@@ -166,5 +175,46 @@ class _AuditTab extends ConsumerWidget {
         }, child: const Text('Enregistrer JSON')),
       ],
     ));
+  }
+}
+
+class _AssignmentsDialog extends ConsumerWidget {
+  final User user;
+  const _AssignmentsDialog({required this.user});
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final assignments = ref.watch(StreamProvider<List<TeacherAssignment>>((ref) {
+      final db = ref.watch(adminRepositoryProvider).db;
+      return (db.select(db.teacherAssignments)..where((t) => t.userId.equals(user.id))..where((t) => t.isDeleted.equals(false))).watch();
+    }));
+    final years = ref.watch(academicYearsProvider).valueOrNull ?? [];
+    final yearId = years.where((y) => y.isCurrent).firstOrNull?.id ?? (years.isNotEmpty ? years.first.id : null);
+    final classes = ref.watch(classesProvider(yearId)).valueOrNull ?? [];
+    final classNames = {for (final c in classes) c.id: c.name};
+    return AlertDialog(
+      title: Text('Affectations - ${user.displayName}'),
+      content: SizedBox(width: 520, height: 400, child: assignments.when(
+        loading: ()=>const Center(child:CircularProgressIndicator()),
+        error: (e,_)=>Text('Erreur: $e'),
+        data: (list)=> Column(crossAxisAlignment: CrossAxisAlignment.start, children:[
+          FilledButton.icon(onPressed: ()=>_add(context, ref, yearId), icon: const Icon(Icons.add), label: const Text('Ajouter affectation')),
+          const SizedBox(height: 8),
+          const Text('Portée restreinte: l\'enseignant n\'accède qu\'aux classes/matières affectées.'),
+          const SizedBox(height: 8),
+          Expanded(child: list.isEmpty ? const Text('Aucune affectation.') : ListView.builder(itemCount: list.length, itemBuilder: (c,i){ final a=list[i]; return ListTile(title: Text(classNames[a.classId] ?? a.classId), subtitle: Text('Année: ${a.academicYearId ?? '-'}'), trailing: IconButton(icon: const Icon(Icons.delete_outline), onPressed: ()=>ref.read(adminRepositoryProvider).removeAssignment(a.id))); })),
+        ]),
+      )),
+      actions: [TextButton(onPressed: ()=>Navigator.pop(context), child: const Text('Fermer'))],
+    );
+  }
+  Future<void> _add(BuildContext context, WidgetRef ref, String? yearId) async {
+    final classes = ref.read(classesProvider(yearId)).valueOrNull ?? [];
+    if (classes.isEmpty) return;
+    String classId = classes.first.id;
+    await showDialog(context: context, builder: (ctx)=>StatefulBuilder(builder:(ctx,setState)=>AlertDialog(
+      title: const Text('Nouvelle affectation'),
+      content: DropdownButtonFormField<String>(initialValue: classId, items: [for (final c in classes) DropdownMenuItem(value: c.id, child: Text(c.name))], onChanged: (v)=>setState(()=>classId=v??classId), decoration: const InputDecoration(labelText: 'Classe')),
+      actions: [TextButton(onPressed: ()=>Navigator.pop(ctx), child: const Text('Annuler')), FilledButton(onPressed: () async { await ref.read(adminRepositoryProvider).addAssignment(userId: user.id, classId: classId, academicYearId: yearId); if (ctx.mounted) Navigator.pop(ctx); }, child: const Text('Ajouter'))],
+    )));
   }
 }

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../core/database/app_database.dart';
+import '../../core/security/current_user_scope.dart';
 import '../academics/academics_structure_screen.dart';
 import '../admin/admin_screen.dart';
 import 'backup_tab.dart';
@@ -15,53 +16,36 @@ class SettingsScreen extends ConsumerStatefulWidget {
   ConsumerState<SettingsScreen> createState() => _SettingsScreenState();
 }
 
-class _SettingsScreenState extends ConsumerState<SettingsScreen>
-    with SingleTickerProviderStateMixin {
-  late final TabController _tabController;
-
-  @override
-  void initState() {
-    super.initState();
-    _tabController = TabController(length: 5, vsync: this);
-  }
-
-  @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
-  }
-
+class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Material(
-          color: Theme.of(context).colorScheme.surface,
-          child: TabBar(
-            controller: _tabController,
-            isScrollable: true,
-            tabs: const [
-              Tab(text: 'Établissement'),
-              Tab(text: 'Années scolaires & Périodes'),
-              Tab(text: 'Structure pédagogique'),
-              Tab(text: 'Sécurité & Administration'),
-              Tab(text: 'Sauvegarde & Restauration'),
-            ],
+    final scope = ref.watch(currentUserScopeProvider).valueOrNull?.scope ?? 'global';
+    final isGlobal = scope == 'global';
+    final tabs = <Tab>[
+      const Tab(text: 'Établissement'),
+      const Tab(text: 'Années scolaires & Périodes'),
+      const Tab(text: 'Structure pédagogique'),
+      if (isGlobal) const Tab(text: 'Sécurité & Administration'),
+      if (isGlobal) const Tab(text: 'Sauvegarde & Restauration'),
+    ];
+    final views = <Widget>[
+      const _SchoolSettingsTab(),
+      const _AcademicYearsTab(),
+      const AcademicsStructureTab(),
+      if (isGlobal) const AdminSecurityTab(),
+      if (isGlobal) const BackupRestoreTab(),
+    ];
+    return DefaultTabController(
+      length: tabs.length,
+      child: Column(
+        children: [
+          Material(
+            color: Theme.of(context).colorScheme.surface,
+            child: TabBar(isScrollable: true, tabs: tabs),
           ),
-        ),
-        Expanded(
-          child: TabBarView(
-            controller: _tabController,
-            children: const [
-              _SchoolSettingsTab(),
-              _AcademicYearsTab(),
-              AcademicsStructureTab(),
-              AdminSecurityTab(),
-              BackupRestoreTab(),
-            ],
-          ),
-        ),
-      ],
+          Expanded(child: TabBarView(children: views)),
+        ],
+      ),
     );
   }
 }
