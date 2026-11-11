@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../auth/auth_controller.dart';
 import '../settings/settings_screen.dart';
+import '../students/students_screen.dart';
 
 class DashboardScreen extends ConsumerStatefulWidget {
   const DashboardScreen({super.key});
@@ -114,6 +115,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                 Expanded(
                   child: switch (_selected) {
                     0 => _HomeOverview(username: user?.displayName ?? ''),
+                    1 => const StudentsScreen(),
                     9 => const SettingsScreen(),
                     _ => _ModulePlaceholder(title: module.$2),
                   },
