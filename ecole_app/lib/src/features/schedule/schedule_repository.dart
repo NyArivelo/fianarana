@@ -43,6 +43,15 @@ class ScheduleRepository {
     return q.watch();
   }
 
+  Stream<List<CourseSession>> watchSessionsInRange(DateTime from, DateTime to) {
+    final start = DateTime(from.year, from.month, from.day);
+    final end = DateTime(to.year, to.month, to.day);
+    final q = db.select(db.courseSessions)
+      ..where((t) => t.isDeleted.equals(false) & t.startAt.isBiggerOrEqualValue(start) & t.startAt.isSmallerThanValue(end))
+      ..orderBy([(t) => OrderingTerm.asc(t.startAt)]);
+    return q.watch();
+  }
+
   Future<List<Conflict>> detectConflicts({
     String? excludeId,
     String? roomId,
@@ -114,6 +123,34 @@ class ScheduleRepository {
         startAt: Value(startAt), endAt: Value(endAt), status: Value(status), notes: Value(notes), updatedAt: Value(now),
       ));
     }
+  }
+
+  Future<int> createRecurringSessions({
+    String? academicYearId,
+    String? classId,
+    String? subjectId,
+    String? roomId,
+    String? teacherName,
+    String? title,
+    String courseType = 'regular',
+    required DateTime firstStartAt,
+    required DateTime firstEndAt,
+    required int weeks,
+  }) async {
+    int created = 0;
+    await db.transaction(() async {
+      for (int i = 0; i < weeks; i++) {
+        final startAt = firstStartAt.add(Duration(days: 7 * i));
+        final endAt = firstEndAt.add(Duration(days: 7 * i));
+        await db.into(db.courseSessions).insert(CourseSessionsCompanion.insert(
+          id: _uuid.v4(), academicYearId: Value(academicYearId), classId: Value(classId), subjectId: Value(subjectId),
+          roomId: Value(roomId), teacherName: Value(teacherName), title: Value(title), courseType: Value(courseType),
+          startAt: startAt, endAt: endAt,
+        ));
+        created++;
+      }
+    });
+    return created;
   }
 
   Future<void> deleteSession(String id) async {

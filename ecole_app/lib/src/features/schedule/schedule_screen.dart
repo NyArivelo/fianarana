@@ -25,49 +25,73 @@ class _SessionsTab extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final day = ref.watch(selectedScheduleDayProvider);
-    final sessions = ref.watch(sessionsForDayProvider);
+    final mode = ref.watch(scheduleViewModeProvider);
+    final sessionsAsync = mode == 'week' ? ref.watch(sessionsForWeekProvider) : ref.watch(sessionsForDayProvider);
     final classes = {for (final c in (ref.watch(classesProvider(null)).valueOrNull ?? <ClassesData>[])) c.id: c};
     final subjects = {for (final s in (ref.watch(subjectsProvider).valueOrNull ?? <Subject>[])) s.id: s};
     final rooms = {for (final r in (ref.watch(roomsProvider).valueOrNull ?? <Room>[])) r.id: r};
     final fmtDay = DateFormat('EEEE dd/MM/yyyy', 'fr');
     final fmtTime = DateFormat('HH:mm');
+    final weekStart = day.subtract(Duration(days: day.weekday - 1));
+    final weekEnd = weekStart.add(const Duration(days: 6));
+    final label = mode == 'week'
+        ? 'Semaine du ${DateFormat('dd/MM').format(weekStart)} au ${DateFormat('dd/MM/yyyy').format(weekEnd)}'
+        : fmtDay.format(day);
+    final step = mode == 'week' ? 7 : 1;
+
     return Padding(padding: const EdgeInsets.all(16), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Row(children: [
-        IconButton(icon: const Icon(Icons.chevron_left), onPressed: () => ref.read(selectedScheduleDayProvider.notifier).state = day.subtract(const Duration(days: 1))),
+        IconButton(icon: const Icon(Icons.chevron_left), onPressed: () => ref.read(selectedScheduleDayProvider.notifier).state = day.subtract(Duration(days: step))),
         TextButton(onPressed: () async {
           final d = await showDatePicker(context: context, initialDate: day, firstDate: DateTime(2020), lastDate: DateTime(2100));
           if (d != null) ref.read(selectedScheduleDayProvider.notifier).state = DateTime(d.year, d.month, d.day);
-        }, child: Text(fmtDay.format(day))),
-        IconButton(icon: const Icon(Icons.chevron_right), onPressed: () => ref.read(selectedScheduleDayProvider.notifier).state = day.add(const Duration(days: 1))),
+        }, child: Text(label)),
+        IconButton(icon: const Icon(Icons.chevron_right), onPressed: () => ref.read(selectedScheduleDayProvider.notifier).state = day.add(Duration(days: step))),
+        const SizedBox(width: 12),
+        SegmentedButton<String>(segments: const [ButtonSegment(value: 'day', label: Text('Jour')), ButtonSegment(value: 'week', label: Text('Semaine'))], selected: {mode}, onSelectionChanged: (v) => ref.read(scheduleViewModeProvider.notifier).state = v.first),
         const Spacer(),
         FilledButton.icon(onPressed: () => _editSession(context, ref, day), icon: const Icon(Icons.add), label: const Text('Nouvelle séance')),
       ]),
       const SizedBox(height: 8),
-      Expanded(child: sessions.when(
+      Expanded(child: sessionsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('Erreur: $e')),
-        data: (list) => list.isEmpty ? const Center(child: Text('Aucune séance pour ce jour.')) : ListView.separated(
-          itemCount: list.length,
-          separatorBuilder: (c, i) => const SizedBox(height: 8),
-          itemBuilder: (context, i) {
-            final s = list[i];
-            return Card(child: ListTile(
-              title: Text('${s.title ?? subjects[s.subjectId]?.name ?? 'Séance'} • ${fmtTime.format(s.startAt)}-${fmtTime.format(s.endAt)}'),
-              subtitle: Text([
-                if (classes[s.classId] != null) 'Classe: ${classes[s.classId]!.name}',
-                if (s.teacherName != null && s.teacherName!.isNotEmpty) 'Ens.: ${s.teacherName}',
-                if (rooms[s.roomId] != null) 'Salle: ${rooms[s.roomId]!.name}',
-                'Type: ${s.courseType}', 'Statut: ${s.status}',
-              ].join(' • ')),
-              trailing: Wrap(spacing: 4, children: [
-                IconButton(icon: const Icon(Icons.edit_outlined), onPressed: () => _editSession(context, ref, day, s)),
-                IconButton(icon: const Icon(Icons.delete_outline), onPressed: () => ref.read(scheduleRepositoryProvider).deleteSession(s.id)),
-              ]),
-            ));
-          },
-        ),
+        data: (list) {
+          if (list.isEmpty) return Center(child: Text(mode == 'week' ? 'Aucune séance cette semaine.' : 'Aucune séance pour ce jour.'));
+          if (mode == 'week') {
+            final byDay = <String, List<CourseSession>>{};
+            for (final s in list) {
+              final k = DateFormat('yyyy-MM-dd').format(s.startAt);
+              byDay.putIfAbsent(k, () => []).add(s);
+            }
+            final keys = byDay.keys.toList()..sort();
+            return ListView(children: [for (final k in keys) ...[
+              Padding(padding: const EdgeInsets.symmetric(vertical: 6), child: Text(DateFormat('EEEE dd/MM/yyyy', 'fr').format(DateTime.parse(k)), style: const TextStyle(fontWeight: FontWeight.bold))),
+              for (final s in byDay[k]!) _sessionTile(context, ref, s, classes, subjects, rooms, fmtTime),
+              const SizedBox(height: 4),
+            ]]);
+          }
+          return ListView.separated(itemCount: list.length, separatorBuilder: (c, i) => const SizedBox(height: 8), itemBuilder: (context, i) => _sessionTile(context, ref, list[i], classes, subjects, rooms, fmtTime));
+        },
       )),
     ]));
+  }
+
+  static Widget _sessionTile(BuildContext context, WidgetRef ref, CourseSession s, Map<String, ClassesData> classes, Map<String, Subject> subjects, Map<String, Room> rooms, DateFormat fmtTime) {
+    final day = DateTime(s.startAt.year, s.startAt.month, s.startAt.day);
+    return Card(child: ListTile(
+      title: Text('${s.title ?? subjects[s.subjectId]?.name ?? 'Séance'} • ${fmtTime.format(s.startAt)}-${fmtTime.format(s.endAt)}'),
+      subtitle: Text([
+        if (classes[s.classId] != null) 'Classe: ${classes[s.classId]!.name}',
+        if (s.teacherName != null && s.teacherName!.isNotEmpty) 'Ens.: ${s.teacherName}',
+        if (rooms[s.roomId] != null) 'Salle: ${rooms[s.roomId]!.name}',
+        'Type: ${s.courseType}', 'Statut: ${s.status}',
+      ].join(' • ')),
+      trailing: Wrap(spacing: 4, children: [
+        IconButton(icon: const Icon(Icons.edit_outlined), onPressed: () => _editSession(context, ref, day, s)),
+        IconButton(icon: const Icon(Icons.delete_outline), onPressed: () => ref.read(scheduleRepositoryProvider).deleteSession(s.id)),
+      ]),
+    ));
   }
 
   static Future<void> _editSession(BuildContext context, WidgetRef ref, DateTime day, [CourseSession? s]) async {
@@ -79,6 +103,8 @@ class _SessionsTab extends ConsumerWidget {
     String courseType = s?.courseType ?? 'regular';
     final title = TextEditingController(text: s?.title ?? '');
     final teacher = TextEditingController(text: s?.teacherName ?? '');
+    final repeatWeeks = TextEditingController(text: '1');
+    bool repeat = false;
     TimeOfDay start = TimeOfDay.fromDateTime(s?.startAt ?? DateTime(day.year, day.month, day.day, 8, 0));
     TimeOfDay end = TimeOfDay.fromDateTime(s?.endAt ?? DateTime(day.year, day.month, day.day, 10, 0));
     DateTime date = s?.startAt ?? day;
@@ -134,6 +160,11 @@ class _SessionsTab extends ConsumerWidget {
             ],
             onChanged: (v) => setState(() => courseType = v ?? 'regular'),
           ),
+          if (s == null) ...[
+            const SizedBox(height: 8),
+            CheckboxListTile(contentPadding: EdgeInsets.zero, value: repeat, onChanged: (v)=>setState(()=>repeat = v ?? false), title: const Text('Répéter chaque semaine (récurrence)')),
+            if (repeat) TextField(controller: repeatWeeks, decoration: const InputDecoration(labelText: 'Nombre de semaines'), keyboardType: TextInputType.number),
+          ],
         ]))),
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Annuler')),
@@ -141,6 +172,19 @@ class _SessionsTab extends ConsumerWidget {
             final startAt = DateTime(date.year, date.month, date.day, start.hour, start.minute);
             final endAt = DateTime(date.year, date.month, date.day, end.hour, end.minute);
             if (!endAt.isAfter(startAt)) return;
+            if (s == null && repeat) {
+              final weeks = (int.tryParse(repeatWeeks.text) ?? 1).clamp(1, 52);
+              final n = await ref.read(scheduleRepositoryProvider).createRecurringSessions(
+                academicYearId: yearId, classId: classId, subjectId: subjectId, roomId: roomId,
+                teacherName: teacher.text.trim().isEmpty ? null : teacher.text.trim(),
+                title: title.text.trim().isEmpty ? null : title.text.trim(), courseType: courseType,
+                firstStartAt: startAt, firstEndAt: endAt, weeks: weeks);
+              if (ctx.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$n séances créées (récurrence hebdomadaire).')));
+                Navigator.pop(ctx);
+              }
+              return;
+            }
             final conflicts = await ref.read(scheduleRepositoryProvider).detectConflicts(
               excludeId: s?.id, roomId: roomId, classId: classId, teacherName: teacher.text, startAt: startAt, endAt: endAt);
             if (conflicts.isNotEmpty && ctx.mounted) {
