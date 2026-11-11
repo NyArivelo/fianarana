@@ -10,6 +10,7 @@ import '../attendance/attendance_screen.dart';
 import '../auth/auth_controller.dart';
 import '../auth/lock_screen.dart';
 import '../documents/documents_screen.dart';
+import '../facilities/facilities_screen.dart';
 import '../finance/finance_screen.dart';
 import '../grades/grades_screen.dart';
 import '../discipline/discipline_screen.dart';
@@ -51,6 +52,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     (Icons.description_outlined, 'Document Studio', 'Modèles et génération documentaire'),
     (Icons.settings_outlined, 'Paramètres', 'Établissement, années scolaires et sécurité'),
     (Icons.gavel_outlined, 'Discipline', 'Incidents, sanctions et suivi'),
+    (Icons.meeting_room_outlined, 'Locaux & équipements', 'Salles, inventaire et réservations'),
   ];
 
   @override
@@ -74,6 +76,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         if (scope == 'global') 2,
         if (scope == 'global') 7,
         if (scope == 'global') 10,
+        if (scope == 'global') 11,
       };
 
   Widget _buildModuleWidget(int idx, String username) {
@@ -89,6 +92,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       8 => const DocumentsScreen(),
       9 => const SettingsScreen(),
       10 => const DisciplineScreen(),
+      11 => const FacilitiesScreen(),
       _ => _ModulePlaceholder(title: _modules[idx].$2),
     };
   }
