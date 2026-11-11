@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../core/database/app_database.dart';
+import '../academics/academics_structure_screen.dart';
 import 'settings_providers.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
@@ -19,7 +20,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(length: 3, vsync: this);
   }
 
   @override
@@ -36,9 +37,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
           color: Theme.of(context).colorScheme.surface,
           child: TabBar(
             controller: _tabController,
+            isScrollable: true,
             tabs: const [
               Tab(text: 'Établissement'),
               Tab(text: 'Années scolaires & Périodes'),
+              Tab(text: 'Structure pédagogique'),
             ],
           ),
         ),
@@ -48,6 +51,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
             children: const [
               _SchoolSettingsTab(),
               _AcademicYearsTab(),
+              AcademicsStructureTab(),
             ],
           ),
         ),
