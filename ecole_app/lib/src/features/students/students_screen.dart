@@ -51,6 +51,8 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
                       ),
                     ),
                     const SizedBox(width: 8),
+                    OutlinedButton.icon(onPressed: () => _downloadImportTemplate(context), icon: const Icon(Icons.description_outlined), label: const Text('Modèle import')),
+                    const SizedBox(width: 8),
                     OutlinedButton.icon(onPressed: () => _exportStudents(context, ref), icon: const Icon(Icons.download), label: const Text('Exporter')),
                     const SizedBox(width: 8),
                     OutlinedButton.icon(onPressed: () => _importStudents(context, ref), icon: const Icon(Icons.upload), label: const Text('Importer')),
@@ -163,6 +165,29 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
       await File(path).writeAsBytes(StudentsIO.toXlsxFromRows(rows));
     }
     if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Exporté: $path (${rows.length} lignes)')));
+  }
+
+  static Future<void> _downloadImportTemplate(BuildContext context) async {
+    final format = await showDialog<String>(context: context, builder: (ctx) => SimpleDialog(title: const Text('Modèle d\'import élèves'), children: [
+      SimpleDialogOption(onPressed: ()=>Navigator.pop(ctx,'csv'), child: const Text('CSV (.csv)')),
+      SimpleDialogOption(onPressed: ()=>Navigator.pop(ctx,'xlsx'), child: const Text('Excel (.xlsx)')),
+    ]));
+    if (format == null) return;
+    final path = await FilePicker.platform.saveFile(dialogTitle: 'Enregistrer le modèle', fileName: 'modele_import_eleves.$format', type: FileType.custom, allowedExtensions: [format]);
+    if (path == null) return;
+    final sample = <Map<String,String>>[
+      {
+        'matricule':'E001','lastName':'DUPONT','firstName':'Jean','gender':'M','birthDate':'2012-05-10','birthPlace':'Abidjan','status':'active','notes':'',
+        'academicYear':'2025-2026','className':'6e A','enrollmentStatus':'validee',
+        'guardianLastName':'DUPONT','guardianFirstName':'Paul','guardianPhone':'0102030405','guardianRelation':'pere','guardianEmail':'parent@example.com',
+      },
+    ];
+    if (format == 'csv') {
+      await File(path).writeAsString(StudentsIO.toCsvFromRows(sample));
+    } else {
+      await File(path).writeAsBytes(StudentsIO.toXlsxFromRows(sample));
+    }
+    if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Modèle enregistré: $path')));
   }
 
   static Future<void> _importStudents(BuildContext context, WidgetRef ref) async {

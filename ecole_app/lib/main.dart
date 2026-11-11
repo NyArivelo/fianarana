@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'src/core/services/app_preferences.dart';
 import 'src/core/services/auto_backup_service.dart';
 import 'src/core/services/backup_service.dart';
 import 'src/features/auth/auth_controller.dart';
@@ -21,13 +22,15 @@ class EcoleApp extends ConsumerStatefulWidget {
   ConsumerState<EcoleApp> createState() => _EcoleAppState();
 }
 
-class _EcoleAppState extends ConsumerState<EcoleApp> {
+class _EcoleAppState extends ConsumerState<EcoleApp> with WidgetsBindingObserver {
   late final GoRouter _router;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     Future.microtask(() async {
+      await ref.read(appPreferencesProvider).load();
       await ref.read(authControllerProvider.notifier).initialize();
       // Best-effort automatic backup on startup
       try {
@@ -78,7 +81,22 @@ class _EcoleAppState extends ConsumerState<EcoleApp> {
   }
 
   @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.detached || state == AppLifecycleState.paused || state == AppLifecycleState.hidden) {
+      // Best-effort automatic backup on close/background
+      AutoBackupService(BackupService()).maybeRunAutoBackup().catchError((_) => null);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final prefs = ref.watch(appPreferencesProvider);
     return MaterialApp.router(
       title: 'Gestion Scolaire',
       debugShowCheckedModeBanner: false,
@@ -99,6 +117,13 @@ class _EcoleAppState extends ConsumerState<EcoleApp> {
           border: OutlineInputBorder(),
         ),
       ),
+      builder: (context, child) {
+        final mq = MediaQuery.of(context);
+        return MediaQuery(
+          data: mq.copyWith(textScaler: TextScaler.linear(prefs.uiScale)),
+          child: child ?? const SizedBox.shrink(),
+        );
+      },
       routerConfig: _router,
     );
   }

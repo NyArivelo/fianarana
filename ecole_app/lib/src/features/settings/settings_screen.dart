@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 
 import '../../core/database/app_database.dart';
 import '../../core/security/current_user_scope.dart';
+import '../../core/services/app_preferences.dart';
 import '../academics/academics_structure_screen.dart';
 import '../admin/admin_screen.dart';
 import 'backup_tab.dart';
@@ -175,6 +176,27 @@ class _SchoolSettingsTabState extends ConsumerState<_SchoolSettingsTab> {
                     icon: const Icon(Icons.save),
                     label: const Text('Enregistrer'),
                   ),
+                  const SizedBox(height: 24),
+                  const Divider(),
+                  const SizedBox(height: 8),
+                  Text('Apparence & accessibilité (Desktop)',
+                      style: Theme.of(context).textTheme.titleMedium),
+                  const SizedBox(height: 8),
+                  Consumer(builder: (context, ref, _) {
+                    final prefs = ref.watch(appPreferencesProvider);
+                    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                      Text('Taille d\'affichage / police (échelle UI): ${prefs.uiScale.toStringAsFixed(2)}x'),
+                      Slider(
+                        value: prefs.uiScale.clamp(0.8, 1.6),
+                        min: 0.8,
+                        max: 1.6,
+                        divisions: 16,
+                        label: '${prefs.uiScale.toStringAsFixed(2)}x',
+                        onChanged: (v) => ref.read(appPreferencesProvider).setUiScale(v),
+                      ),
+                      const Text('Ajustez pour le confort visuel (petits écrans ou grands écrans 4K).'),
+                    ]);
+                  }),
                 ],
               ),
             ),
