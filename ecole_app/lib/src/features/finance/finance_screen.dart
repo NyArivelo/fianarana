@@ -7,6 +7,7 @@ import '../../core/database/app_database.dart';
 import '../auth/auth_controller.dart';
 import '../students/students_providers.dart';
 import 'finance_providers.dart';
+import 'finance_repository.dart';
 
 class FinanceScreen extends ConsumerWidget {
   const FinanceScreen({super.key});
@@ -101,12 +102,16 @@ class _NewPaymentTabState extends ConsumerState<_NewPaymentTab> {
       return;
     }
     final user = ref.read(authControllerProvider).currentUser;
-    await ref.read(financeRepositoryProvider).addPayment(
-      studentId: _studentId!, feeTypeId: _feeTypeId, amount: amt, method: _method,
-      cashierUserId: user?.id, note: _note.text.trim().isEmpty ? null : _note.text.trim(),
-    );
-    _amount.clear(); _note.clear();
-    if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Paiement enregistré (reçu généré).')));
+    try {
+      await ref.read(financeRepositoryProvider).addPayment(
+        studentId: _studentId!, feeTypeId: _feeTypeId, amount: amt, method: _method,
+        cashierUserId: user?.id, note: _note.text.trim().isEmpty ? null : _note.text.trim(),
+      );
+      _amount.clear(); _note.clear();
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Paiement enregistré (reçu généré).')));
+    } on CashDayClosedException catch (e) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message)));
+    }
   }
 
   @override

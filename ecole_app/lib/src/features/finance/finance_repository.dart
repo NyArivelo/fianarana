@@ -4,6 +4,13 @@ import 'package:uuid/uuid.dart';
 
 import '../../core/database/app_database.dart';
 
+class CashDayClosedException implements Exception {
+  final String message;
+  CashDayClosedException(this.message);
+  @override
+  String toString() => message;
+}
+
 class FinanceRepository {
   final AppDatabase db;
   final _uuid = const Uuid();
@@ -59,6 +66,11 @@ class FinanceRepository {
     String? cashierUserId,
     String? note,
   }) async {
+    final date = paidAt ?? DateTime.now();
+    if (await isDayClosed(date, cashierUserId: cashierUserId) ||
+        (cashierUserId == null && await isDayClosed(date))) {
+      throw CashDayClosedException('Caisse clôturée pour cette journée : les écritures sont verrouillées.');
+    }
     final receipt = await _nextReceiptNumber();
     await db.transaction(() async {
       await db.into(db.payments).insert(PaymentsCompanion.insert(
@@ -70,7 +82,7 @@ class FinanceRepository {
             installmentId: Value(installmentId),
             amount: amount,
             method: Value(method),
-            paidAt: paidAt ?? DateTime.now(),
+            paidAt: date,
             cashierUserId: Value(cashierUserId),
             note: Value(note),
           ));
