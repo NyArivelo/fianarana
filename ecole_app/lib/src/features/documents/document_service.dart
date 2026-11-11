@@ -105,6 +105,10 @@ class DocumentService {
     required SchoolSetting? school,
     required List<Map<String, dynamic>> lines, // {subject, average, coef}
     String periodLabel = 'Période',
+    String? appreciation,
+    String? decision,
+    int? rank,
+    int? totalStudents,
   }) async {
     final doc = pw.Document();
     final schoolName = school?.name ?? 'Établissement scolaire';
@@ -143,8 +147,20 @@ class DocumentService {
             pw.Container(
               padding: const pw.EdgeInsets.all(8),
               decoration: pw.BoxDecoration(border: pw.Border.all()),
-              child: pw.Text('Moyenne générale: ${general.toStringAsFixed(2)} /20', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+              child: pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
+                pw.Text('Moyenne générale: ${general.toStringAsFixed(2)} /20', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                if (rank != null && totalStudents != null) pw.Text('Rang: $rank / $totalStudents'),
+              ]),
             ),
+          if (appreciation != null && appreciation.isNotEmpty) ...[
+            pw.SizedBox(height: 12),
+            pw.Text('Appréciation du conseil de classe:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+            pw.Text(appreciation),
+          ],
+          if (decision != null && decision.isNotEmpty) ...[
+            pw.SizedBox(height: 8),
+            pw.Text('Décision / orientation: $decision', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+          ],
           if (lines.isEmpty) pw.Text('Aucune note saisie pour la période sélectionnée.'),
           pw.SizedBox(height: 24),
           pw.Text('Édité le $dateStr', style: const pw.TextStyle(fontSize: 9)),

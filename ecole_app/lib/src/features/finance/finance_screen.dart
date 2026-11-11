@@ -88,6 +88,7 @@ class _NewPaymentTab extends ConsumerStatefulWidget {
 class _NewPaymentTabState extends ConsumerState<_NewPaymentTab> {
   String? _studentId;
   String? _feeTypeId;
+  String? _installmentId;
   String _method = 'cash';
   final _amount = TextEditingController();
   final _note = TextEditingController();
@@ -104,10 +105,10 @@ class _NewPaymentTabState extends ConsumerState<_NewPaymentTab> {
     final user = ref.read(authControllerProvider).currentUser;
     try {
       await ref.read(financeRepositoryProvider).addPayment(
-        studentId: _studentId!, feeTypeId: _feeTypeId, amount: amt, method: _method,
+        studentId: _studentId!, feeTypeId: _feeTypeId, installmentId: _installmentId, amount: amt, method: _method,
         cashierUserId: user?.id, note: _note.text.trim().isEmpty ? null : _note.text.trim(),
       );
-      _amount.clear(); _note.clear();
+      _amount.clear(); _note.clear(); setState(() => _installmentId = null);
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Paiement enregistré (reçu généré).')));
     } on CashDayClosedException catch (e) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message)));
@@ -143,6 +144,12 @@ class _NewPaymentTabState extends ConsumerState<_NewPaymentTab> {
             }
           },
         ),
+        if (_studentId != null) ...[
+          const SizedBox(height: 12),
+          _InstallmentPicker(studentId: _studentId!, value: _installmentId, onChanged: (id, suggested) {
+            setState(() { _installmentId = id; if (suggested != null && _amount.text.isEmpty) _amount.text = suggested.toStringAsFixed(0); });
+          }),
+        ],
         const SizedBox(height: 12),
         TextField(controller: _amount, decoration: const InputDecoration(labelText: 'Montant *'), keyboardType: TextInputType.number),
         const SizedBox(height: 12),
@@ -163,6 +170,36 @@ class _NewPaymentTabState extends ConsumerState<_NewPaymentTab> {
         FilledButton.icon(onPressed: _submit, icon: const Icon(Icons.save), label: const Text('Enregistrer et générer le reçu')),
       ]),
     ));
+  }
+}
+
+class _InstallmentPicker extends ConsumerWidget {
+  final String studentId; final String? value; final void Function(String? id, double? suggestedAmount) onChanged;
+  const _InstallmentPicker({required this.studentId, required this.value, required this.onChanged});
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final plans = ref.watch(paymentPlansProvider(studentId)).valueOrNull ?? [];
+    // collect installments from all plans
+    final items = <({PaymentInstallment inst, String planName})>[];
+    for (final p in plans) {
+      final insts = ref.watch(installmentsProvider(p.id)).valueOrNull ?? [];
+      for (final i in insts) {
+        if (i.status != 'paid') items.add((inst: i, planName: p.name));
+      }
+    }
+    items.sort((a,b)=>a.inst.dueDate.compareTo(b.inst.dueDate));
+    final fmt = DateFormat('dd/MM/yyyy');
+    final money = NumberFormat('#,##0.00', 'fr');
+    return DropdownButtonFormField<String?>(
+      initialValue: value,
+      decoration: const InputDecoration(labelText: 'Échéance (optionnel)'),
+      items: [const DropdownMenuItem(value: null, child: Text('(Aucune - paiement libre)')),
+        for (final it in items) DropdownMenuItem(value: it.inst.id, child: Text('${it.planName} #${it.inst.sequence} ${fmt.format(it.inst.dueDate)} reste ${money.format(it.inst.amount - it.inst.paidAmount)}'))],
+      onChanged: (v) {
+        final sel = items.firstWhereOrNull((x)=>x.inst.id==v);
+        onChanged(v, sel == null ? null : (sel.inst.amount - sel.inst.paidAmount));
+      },
+    );
   }
 }
 

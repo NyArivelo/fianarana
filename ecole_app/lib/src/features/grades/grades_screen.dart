@@ -233,19 +233,42 @@ class _BulletinTabState extends ConsumerState<_BulletinTab> {
     if (widget.classId == null) return const Center(child: Text('Sélectionnez une classe dans l\'onglet Notes.'));
     final studentsF = ref.watch(gradesRepositoryProvider).studentsForClass(widget.classId!, academicYearId: widget.academicYearId);
     final school = ref.watch(schoolSettingProvider).valueOrNull;
+    final periods = widget.academicYearId == null ? <Period>[] : (ref.watch(periodsProvider(widget.academicYearId!)).valueOrNull ?? []);
+    final periodLabel = periods.firstWhereOrNull((p)=>p.id==widget.periodId)?.name ?? 'Période';
+    final decisions = (widget.periodId == null) ? <CouncilDecision>[] : (ref.watch(councilDecisionsProvider((periodId: widget.periodId!, classId: widget.classId!))).valueOrNull ?? []);
     return FutureBuilder<List<Student>>(future: studentsF, builder: (context, snap){
       if (!snap.hasData) return const Center(child: CircularProgressIndicator());
       final students = snap.data!;
       final selected = students.firstWhereOrNull((s)=>s.id==_studentId);
+      final dec = decisions.firstWhereOrNull((d)=>d.studentId==selected?.id);
       return Row(children:[
         SizedBox(width:320, child: ListView(children:[ for(final s in students) ListTile(selected:s.id==_studentId, title: Text('${s.lastName} ${s.firstName}'), onTap: ()=>setState(()=>_studentId=s.id))])),
         const VerticalDivider(width:1),
-        Expanded(child: selected==null ? const Center(child: Text('Sélectionnez un élève pour générer un bulletin (base).')) : FutureBuilder<List<Map<String,dynamic>>>(
-          future: ref.read(gradesRepositoryProvider).bulletinLines(studentId: selected.id, classId: widget.classId!, periodId: widget.periodId, academicYearId: widget.academicYearId),
+        Expanded(child: selected==null ? const Center(child: Text('Sélectionnez un élève pour générer un bulletin.')) : FutureBuilder<Map<String, dynamic>>(
+          future: () async {
+            final repo = ref.read(gradesRepositoryProvider);
+            final lines = await repo.bulletinLines(studentId: selected.id, classId: widget.classId!, periodId: widget.periodId, academicYearId: widget.academicYearId);
+            // compute ranking
+            final avgs = <String, double>{};
+            for (final st in students) {
+              final ls = await repo.bulletinLines(studentId: st.id, classId: widget.classId!, periodId: widget.periodId, academicYearId: widget.academicYearId);
+              double total = 0, coefSum = 0;
+              for (final l in ls) { final a = (l['average'] as num).toDouble(); final c = (l['coef'] as num).toDouble(); total += a*c; coefSum += c; }
+              if (coefSum > 0) avgs[st.id] = total/coefSum;
+            }
+            final sorted = avgs.entries.toList()..sort((a,b)=>b.value.compareTo(a.value));
+            final rank = sorted.indexWhere((e)=>e.key==selected.id);
+            return {'lines': lines, 'rank': rank>=0 ? rank+1 : null, 'total': sorted.length};
+          }(),
           builder: (context, bsnap){
             if (!bsnap.hasData) return const Center(child: CircularProgressIndicator());
-            final lines = bsnap.data!;
-            return PdfPreview(build: (format) => DocumentService().buildBulletin(student: selected, school: school, lines: lines));
+            final data = bsnap.data!;
+            final lines = (data['lines'] as List).cast<Map<String,dynamic>>();
+            return PdfPreview(build: (format) => DocumentService().buildBulletin(
+              student: selected, school: school, lines: lines, periodLabel: periodLabel,
+              appreciation: dec?.appreciation, decision: dec?.decision,
+              rank: data['rank'] as int?, totalStudents: data['total'] as int?,
+            ));
           },
         )),
       ]);

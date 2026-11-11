@@ -20,16 +20,26 @@ class ScheduleScreen extends ConsumerWidget {
   }
 }
 
-class _SessionsTab extends ConsumerWidget {
+class _SessionsTab extends ConsumerStatefulWidget {
   const _SessionsTab();
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_SessionsTab> createState() => _SessionsTabState();
+}
+
+class _SessionsTabState extends ConsumerState<_SessionsTab> {
+  String? _classFilter;
+  String? _roomFilter;
+
+  @override
+  Widget build(BuildContext context) {
     final day = ref.watch(selectedScheduleDayProvider);
     final mode = ref.watch(scheduleViewModeProvider);
     final sessionsAsync = mode == 'week' ? ref.watch(sessionsForWeekProvider) : ref.watch(sessionsForDayProvider);
-    final classes = {for (final c in (ref.watch(classesProvider(null)).valueOrNull ?? <ClassesData>[])) c.id: c};
+    final allClasses = ref.watch(classesProvider(null)).valueOrNull ?? <ClassesData>[];
+    final classes = {for (final c in allClasses) c.id: c};
     final subjects = {for (final s in (ref.watch(subjectsProvider).valueOrNull ?? <Subject>[])) s.id: s};
-    final rooms = {for (final r in (ref.watch(roomsProvider).valueOrNull ?? <Room>[])) r.id: r};
+    final allRooms = ref.watch(roomsProvider).valueOrNull ?? <Room>[];
+    final rooms = {for (final r in allRooms) r.id: r};
     final fmtDay = DateFormat('EEEE dd/MM/yyyy', 'fr');
     final fmtTime = DateFormat('HH:mm');
     final weekStart = day.subtract(Duration(days: day.weekday - 1));
@@ -49,35 +59,42 @@ class _SessionsTab extends ConsumerWidget {
         IconButton(icon: const Icon(Icons.chevron_right), onPressed: () => ref.read(selectedScheduleDayProvider.notifier).state = day.add(Duration(days: step))),
         const SizedBox(width: 12),
         SegmentedButton<String>(segments: const [ButtonSegment(value: 'day', label: Text('Jour')), ButtonSegment(value: 'week', label: Text('Semaine'))], selected: {mode}, onSelectionChanged: (v) => ref.read(scheduleViewModeProvider.notifier).state = v.first),
+        const SizedBox(width: 12),
+        SizedBox(width: 180, child: DropdownButtonFormField<String?>(initialValue: _classFilter, isDense: true, decoration: const InputDecoration(labelText: 'Classe'), items: [const DropdownMenuItem(value: null, child: Text('Toutes')), for (final c in allClasses) DropdownMenuItem(value: c.id, child: Text(c.name))], onChanged: (v)=>setState(()=>_classFilter=v))),
+        const SizedBox(width: 8),
+        SizedBox(width: 160, child: DropdownButtonFormField<String?>(initialValue: _roomFilter, isDense: true, decoration: const InputDecoration(labelText: 'Salle'), items: [const DropdownMenuItem(value: null, child: Text('Toutes')), for (final r in allRooms) DropdownMenuItem(value: r.id, child: Text(r.name))], onChanged: (v)=>setState(()=>_roomFilter=v))),
         const Spacer(),
-        FilledButton.icon(onPressed: () => _editSession(context, ref, day), icon: const Icon(Icons.add), label: const Text('Nouvelle séance')),
+        FilledButton.icon(onPressed: () => _SessionsTabActions.editSession(context, ref, day), icon: const Icon(Icons.add), label: const Text('Nouvelle séance')),
       ]),
       const SizedBox(height: 8),
       Expanded(child: sessionsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('Erreur: $e')),
         data: (list) {
-          if (list.isEmpty) return Center(child: Text(mode == 'week' ? 'Aucune séance cette semaine.' : 'Aucune séance pour ce jour.'));
+          final filtered = list.where((s) => (_classFilter == null || s.classId == _classFilter) && (_roomFilter == null || s.roomId == _roomFilter)).toList();
+          if (filtered.isEmpty) return Center(child: Text(mode == 'week' ? 'Aucune séance cette semaine (filtres appliqués).' : 'Aucune séance pour ce jour (filtres appliqués).'));
           if (mode == 'week') {
             final byDay = <String, List<CourseSession>>{};
-            for (final s in list) {
+            for (final s in filtered) {
               final k = DateFormat('yyyy-MM-dd').format(s.startAt);
               byDay.putIfAbsent(k, () => []).add(s);
             }
             final keys = byDay.keys.toList()..sort();
             return ListView(children: [for (final k in keys) ...[
               Padding(padding: const EdgeInsets.symmetric(vertical: 6), child: Text(DateFormat('EEEE dd/MM/yyyy', 'fr').format(DateTime.parse(k)), style: const TextStyle(fontWeight: FontWeight.bold))),
-              for (final s in byDay[k]!) _sessionTile(context, ref, s, classes, subjects, rooms, fmtTime),
+              for (final s in byDay[k]!) _SessionsTabActions.sessionTile(context, ref, s, classes, subjects, rooms, fmtTime),
               const SizedBox(height: 4),
             ]]);
           }
-          return ListView.separated(itemCount: list.length, separatorBuilder: (c, i) => const SizedBox(height: 8), itemBuilder: (context, i) => _sessionTile(context, ref, list[i], classes, subjects, rooms, fmtTime));
+          return ListView.separated(itemCount: filtered.length, separatorBuilder: (c, i) => const SizedBox(height: 8), itemBuilder: (context, i) => _SessionsTabActions.sessionTile(context, ref, filtered[i], classes, subjects, rooms, fmtTime));
         },
       )),
     ]));
   }
+}
 
-  static Widget _sessionTile(BuildContext context, WidgetRef ref, CourseSession s, Map<String, ClassesData> classes, Map<String, Subject> subjects, Map<String, Room> rooms, DateFormat fmtTime) {
+class _SessionsTabActions {
+  static Widget sessionTile(BuildContext context, WidgetRef ref, CourseSession s, Map<String, ClassesData> classes, Map<String, Subject> subjects, Map<String, Room> rooms, DateFormat fmtTime) {
     final day = DateTime(s.startAt.year, s.startAt.month, s.startAt.day);
     return Card(child: ListTile(
       title: Text('${s.title ?? subjects[s.subjectId]?.name ?? 'Séance'} • ${fmtTime.format(s.startAt)}-${fmtTime.format(s.endAt)}'),
@@ -88,13 +105,13 @@ class _SessionsTab extends ConsumerWidget {
         'Type: ${s.courseType}', 'Statut: ${s.status}',
       ].join(' • ')),
       trailing: Wrap(spacing: 4, children: [
-        IconButton(icon: const Icon(Icons.edit_outlined), onPressed: () => _editSession(context, ref, day, s)),
+        IconButton(icon: const Icon(Icons.edit_outlined), onPressed: () => editSession(context, ref, day, s)),
         IconButton(icon: const Icon(Icons.delete_outline), onPressed: () => ref.read(scheduleRepositoryProvider).deleteSession(s.id)),
       ]),
     ));
   }
 
-  static Future<void> _editSession(BuildContext context, WidgetRef ref, DateTime day, [CourseSession? s]) async {
+  static Future<void> editSession(BuildContext context, WidgetRef ref, DateTime day, [CourseSession? s]) async {
     final years = ref.read(academicYearsProvider).valueOrNull ?? [];
     final yearId = s?.academicYearId ?? years.where((y) => y.isCurrent).firstOrNull?.id ?? (years.isNotEmpty ? years.first.id : null);
     String? classId = s?.classId;
