@@ -14,6 +14,7 @@ import '../finance/finance_screen.dart';
 import '../grades/grades_screen.dart';
 import '../schedule/schedule_screen.dart';
 import '../settings/settings_screen.dart';
+import '../staff/staff_screen.dart';
 import '../students/students_screen.dart';
 
 class _WorkspaceTab {
@@ -75,6 +76,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     return switch (idx) {
       0 => _HomeOverview(username: username),
       1 => const StudentsScreen(),
+      2 => const StaffScreen(),
       3 => const ScheduleScreen(),
       4 => const AttendanceScreen(),
       5 => const GradesScreen(),

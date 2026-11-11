@@ -22,7 +22,7 @@ class _TrashTabState extends ConsumerState<TrashTab> {
   void _reload() { _future = ref.read(trashRepositoryProvider).listAll(); }
 
   String _typeLabel(String t) => const {
-    'student':'Élève','guardian':'Responsable','enrollment':'Inscription','class':'Classe','subject':'Matière','level':'Niveau','educationType':'Type enseignement','room':'Salle','feeType':'Type de frais','session':'Séance','evaluation':'Évaluation','payment':'Paiement','paymentPlan':'Plan de paiement','teacherAssignment':'Affectation','academicYear':'Année scolaire','period':'Période'
+    'student':'Élève','guardian':'Responsable','enrollment':'Inscription','class':'Classe','subject':'Matière','level':'Niveau','educationType':'Type enseignement','room':'Salle','feeType':'Type de frais','session':'Séance','evaluation':'Évaluation','payment':'Paiement','paymentPlan':'Plan de paiement','teacherAssignment':'Affectation','academicYear':'Année scolaire','period':'Période','staffMember':'Personnel'
   }[t] ?? t;
 
   @override

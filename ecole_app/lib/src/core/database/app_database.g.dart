@@ -20129,6 +20129,1073 @@ class TeacherAssignmentsCompanion extends UpdateCompanion<TeacherAssignment> {
   }
 }
 
+class $StaffMembersTable extends StaffMembers
+    with TableInfo<$StaffMembersTable, StaffMember> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $StaffMembersTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _createdByMeta = const VerificationMeta(
+    'createdBy',
+  );
+  @override
+  late final GeneratedColumn<String> createdBy = GeneratedColumn<String>(
+    'created_by',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _updatedByMeta = const VerificationMeta(
+    'updatedBy',
+  );
+  @override
+  late final GeneratedColumn<String> updatedBy = GeneratedColumn<String>(
+    'updated_by',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _isDeletedMeta = const VerificationMeta(
+    'isDeleted',
+  );
+  @override
+  late final GeneratedColumn<bool> isDeleted = GeneratedColumn<bool>(
+    'is_deleted',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_deleted" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _deletedAtMeta = const VerificationMeta(
+    'deletedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
+    'deleted_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _firstNameMeta = const VerificationMeta(
+    'firstName',
+  );
+  @override
+  late final GeneratedColumn<String> firstName = GeneratedColumn<String>(
+    'first_name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _lastNameMeta = const VerificationMeta(
+    'lastName',
+  );
+  @override
+  late final GeneratedColumn<String> lastName = GeneratedColumn<String>(
+    'last_name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _staffTypeMeta = const VerificationMeta(
+    'staffType',
+  );
+  @override
+  late final GeneratedColumn<String> staffType = GeneratedColumn<String>(
+    'staff_type',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('teacher'),
+  );
+  static const VerificationMeta _specialtyMeta = const VerificationMeta(
+    'specialty',
+  );
+  @override
+  late final GeneratedColumn<String> specialty = GeneratedColumn<String>(
+    'specialty',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _phoneMeta = const VerificationMeta('phone');
+  @override
+  late final GeneratedColumn<String> phone = GeneratedColumn<String>(
+    'phone',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _emailMeta = const VerificationMeta('email');
+  @override
+  late final GeneratedColumn<String> email = GeneratedColumn<String>(
+    'email',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _contractTypeMeta = const VerificationMeta(
+    'contractType',
+  );
+  @override
+  late final GeneratedColumn<String> contractType = GeneratedColumn<String>(
+    'contract_type',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _contractStartMeta = const VerificationMeta(
+    'contractStart',
+  );
+  @override
+  late final GeneratedColumn<DateTime> contractStart =
+      GeneratedColumn<DateTime>(
+        'contract_start',
+        aliasedName,
+        true,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _contractEndMeta = const VerificationMeta(
+    'contractEnd',
+  );
+  @override
+  late final GeneratedColumn<DateTime> contractEnd = GeneratedColumn<DateTime>(
+    'contract_end',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _userIdMeta = const VerificationMeta('userId');
+  @override
+  late final GeneratedColumn<String> userId = GeneratedColumn<String>(
+    'user_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES users (id)',
+    ),
+  );
+  static const VerificationMeta _notesMeta = const VerificationMeta('notes');
+  @override
+  late final GeneratedColumn<String> notes = GeneratedColumn<String>(
+    'notes',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _documentsNoteMeta = const VerificationMeta(
+    'documentsNote',
+  );
+  @override
+  late final GeneratedColumn<String> documentsNote = GeneratedColumn<String>(
+    'documents_note',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    createdAt,
+    updatedAt,
+    createdBy,
+    updatedBy,
+    isDeleted,
+    deletedAt,
+    firstName,
+    lastName,
+    staffType,
+    specialty,
+    phone,
+    email,
+    contractType,
+    contractStart,
+    contractEnd,
+    userId,
+    notes,
+    documentsNote,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'staff_members';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<StaffMember> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    if (data.containsKey('created_by')) {
+      context.handle(
+        _createdByMeta,
+        createdBy.isAcceptableOrUnknown(data['created_by']!, _createdByMeta),
+      );
+    }
+    if (data.containsKey('updated_by')) {
+      context.handle(
+        _updatedByMeta,
+        updatedBy.isAcceptableOrUnknown(data['updated_by']!, _updatedByMeta),
+      );
+    }
+    if (data.containsKey('is_deleted')) {
+      context.handle(
+        _isDeletedMeta,
+        isDeleted.isAcceptableOrUnknown(data['is_deleted']!, _isDeletedMeta),
+      );
+    }
+    if (data.containsKey('deleted_at')) {
+      context.handle(
+        _deletedAtMeta,
+        deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta),
+      );
+    }
+    if (data.containsKey('first_name')) {
+      context.handle(
+        _firstNameMeta,
+        firstName.isAcceptableOrUnknown(data['first_name']!, _firstNameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_firstNameMeta);
+    }
+    if (data.containsKey('last_name')) {
+      context.handle(
+        _lastNameMeta,
+        lastName.isAcceptableOrUnknown(data['last_name']!, _lastNameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_lastNameMeta);
+    }
+    if (data.containsKey('staff_type')) {
+      context.handle(
+        _staffTypeMeta,
+        staffType.isAcceptableOrUnknown(data['staff_type']!, _staffTypeMeta),
+      );
+    }
+    if (data.containsKey('specialty')) {
+      context.handle(
+        _specialtyMeta,
+        specialty.isAcceptableOrUnknown(data['specialty']!, _specialtyMeta),
+      );
+    }
+    if (data.containsKey('phone')) {
+      context.handle(
+        _phoneMeta,
+        phone.isAcceptableOrUnknown(data['phone']!, _phoneMeta),
+      );
+    }
+    if (data.containsKey('email')) {
+      context.handle(
+        _emailMeta,
+        email.isAcceptableOrUnknown(data['email']!, _emailMeta),
+      );
+    }
+    if (data.containsKey('contract_type')) {
+      context.handle(
+        _contractTypeMeta,
+        contractType.isAcceptableOrUnknown(
+          data['contract_type']!,
+          _contractTypeMeta,
+        ),
+      );
+    }
+    if (data.containsKey('contract_start')) {
+      context.handle(
+        _contractStartMeta,
+        contractStart.isAcceptableOrUnknown(
+          data['contract_start']!,
+          _contractStartMeta,
+        ),
+      );
+    }
+    if (data.containsKey('contract_end')) {
+      context.handle(
+        _contractEndMeta,
+        contractEnd.isAcceptableOrUnknown(
+          data['contract_end']!,
+          _contractEndMeta,
+        ),
+      );
+    }
+    if (data.containsKey('user_id')) {
+      context.handle(
+        _userIdMeta,
+        userId.isAcceptableOrUnknown(data['user_id']!, _userIdMeta),
+      );
+    }
+    if (data.containsKey('notes')) {
+      context.handle(
+        _notesMeta,
+        notes.isAcceptableOrUnknown(data['notes']!, _notesMeta),
+      );
+    }
+    if (data.containsKey('documents_note')) {
+      context.handle(
+        _documentsNoteMeta,
+        documentsNote.isAcceptableOrUnknown(
+          data['documents_note']!,
+          _documentsNoteMeta,
+        ),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  StaffMember map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return StaffMember(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+      createdBy: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}created_by'],
+      ),
+      updatedBy: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}updated_by'],
+      ),
+      isDeleted: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_deleted'],
+      )!,
+      deletedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}deleted_at'],
+      ),
+      firstName: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}first_name'],
+      )!,
+      lastName: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}last_name'],
+      )!,
+      staffType: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}staff_type'],
+      )!,
+      specialty: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}specialty'],
+      ),
+      phone: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}phone'],
+      ),
+      email: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}email'],
+      ),
+      contractType: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}contract_type'],
+      ),
+      contractStart: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}contract_start'],
+      ),
+      contractEnd: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}contract_end'],
+      ),
+      userId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}user_id'],
+      ),
+      notes: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}notes'],
+      ),
+      documentsNote: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}documents_note'],
+      ),
+    );
+  }
+
+  @override
+  $StaffMembersTable createAlias(String alias) {
+    return $StaffMembersTable(attachedDatabase, alias);
+  }
+}
+
+class StaffMember extends DataClass implements Insertable<StaffMember> {
+  final String id;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  final String? createdBy;
+  final String? updatedBy;
+  final bool isDeleted;
+  final DateTime? deletedAt;
+  final String firstName;
+  final String lastName;
+  final String staffType;
+  final String? specialty;
+  final String? phone;
+  final String? email;
+  final String? contractType;
+  final DateTime? contractStart;
+  final DateTime? contractEnd;
+  final String? userId;
+  final String? notes;
+  final String? documentsNote;
+  const StaffMember({
+    required this.id,
+    required this.createdAt,
+    required this.updatedAt,
+    this.createdBy,
+    this.updatedBy,
+    required this.isDeleted,
+    this.deletedAt,
+    required this.firstName,
+    required this.lastName,
+    required this.staffType,
+    this.specialty,
+    this.phone,
+    this.email,
+    this.contractType,
+    this.contractStart,
+    this.contractEnd,
+    this.userId,
+    this.notes,
+    this.documentsNote,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    if (!nullToAbsent || createdBy != null) {
+      map['created_by'] = Variable<String>(createdBy);
+    }
+    if (!nullToAbsent || updatedBy != null) {
+      map['updated_by'] = Variable<String>(updatedBy);
+    }
+    map['is_deleted'] = Variable<bool>(isDeleted);
+    if (!nullToAbsent || deletedAt != null) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt);
+    }
+    map['first_name'] = Variable<String>(firstName);
+    map['last_name'] = Variable<String>(lastName);
+    map['staff_type'] = Variable<String>(staffType);
+    if (!nullToAbsent || specialty != null) {
+      map['specialty'] = Variable<String>(specialty);
+    }
+    if (!nullToAbsent || phone != null) {
+      map['phone'] = Variable<String>(phone);
+    }
+    if (!nullToAbsent || email != null) {
+      map['email'] = Variable<String>(email);
+    }
+    if (!nullToAbsent || contractType != null) {
+      map['contract_type'] = Variable<String>(contractType);
+    }
+    if (!nullToAbsent || contractStart != null) {
+      map['contract_start'] = Variable<DateTime>(contractStart);
+    }
+    if (!nullToAbsent || contractEnd != null) {
+      map['contract_end'] = Variable<DateTime>(contractEnd);
+    }
+    if (!nullToAbsent || userId != null) {
+      map['user_id'] = Variable<String>(userId);
+    }
+    if (!nullToAbsent || notes != null) {
+      map['notes'] = Variable<String>(notes);
+    }
+    if (!nullToAbsent || documentsNote != null) {
+      map['documents_note'] = Variable<String>(documentsNote);
+    }
+    return map;
+  }
+
+  StaffMembersCompanion toCompanion(bool nullToAbsent) {
+    return StaffMembersCompanion(
+      id: Value(id),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+      createdBy: createdBy == null && nullToAbsent
+          ? const Value.absent()
+          : Value(createdBy),
+      updatedBy: updatedBy == null && nullToAbsent
+          ? const Value.absent()
+          : Value(updatedBy),
+      isDeleted: Value(isDeleted),
+      deletedAt: deletedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deletedAt),
+      firstName: Value(firstName),
+      lastName: Value(lastName),
+      staffType: Value(staffType),
+      specialty: specialty == null && nullToAbsent
+          ? const Value.absent()
+          : Value(specialty),
+      phone: phone == null && nullToAbsent
+          ? const Value.absent()
+          : Value(phone),
+      email: email == null && nullToAbsent
+          ? const Value.absent()
+          : Value(email),
+      contractType: contractType == null && nullToAbsent
+          ? const Value.absent()
+          : Value(contractType),
+      contractStart: contractStart == null && nullToAbsent
+          ? const Value.absent()
+          : Value(contractStart),
+      contractEnd: contractEnd == null && nullToAbsent
+          ? const Value.absent()
+          : Value(contractEnd),
+      userId: userId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(userId),
+      notes: notes == null && nullToAbsent
+          ? const Value.absent()
+          : Value(notes),
+      documentsNote: documentsNote == null && nullToAbsent
+          ? const Value.absent()
+          : Value(documentsNote),
+    );
+  }
+
+  factory StaffMember.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return StaffMember(
+      id: serializer.fromJson<String>(json['id']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      createdBy: serializer.fromJson<String?>(json['createdBy']),
+      updatedBy: serializer.fromJson<String?>(json['updatedBy']),
+      isDeleted: serializer.fromJson<bool>(json['isDeleted']),
+      deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
+      firstName: serializer.fromJson<String>(json['firstName']),
+      lastName: serializer.fromJson<String>(json['lastName']),
+      staffType: serializer.fromJson<String>(json['staffType']),
+      specialty: serializer.fromJson<String?>(json['specialty']),
+      phone: serializer.fromJson<String?>(json['phone']),
+      email: serializer.fromJson<String?>(json['email']),
+      contractType: serializer.fromJson<String?>(json['contractType']),
+      contractStart: serializer.fromJson<DateTime?>(json['contractStart']),
+      contractEnd: serializer.fromJson<DateTime?>(json['contractEnd']),
+      userId: serializer.fromJson<String?>(json['userId']),
+      notes: serializer.fromJson<String?>(json['notes']),
+      documentsNote: serializer.fromJson<String?>(json['documentsNote']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'createdBy': serializer.toJson<String?>(createdBy),
+      'updatedBy': serializer.toJson<String?>(updatedBy),
+      'isDeleted': serializer.toJson<bool>(isDeleted),
+      'deletedAt': serializer.toJson<DateTime?>(deletedAt),
+      'firstName': serializer.toJson<String>(firstName),
+      'lastName': serializer.toJson<String>(lastName),
+      'staffType': serializer.toJson<String>(staffType),
+      'specialty': serializer.toJson<String?>(specialty),
+      'phone': serializer.toJson<String?>(phone),
+      'email': serializer.toJson<String?>(email),
+      'contractType': serializer.toJson<String?>(contractType),
+      'contractStart': serializer.toJson<DateTime?>(contractStart),
+      'contractEnd': serializer.toJson<DateTime?>(contractEnd),
+      'userId': serializer.toJson<String?>(userId),
+      'notes': serializer.toJson<String?>(notes),
+      'documentsNote': serializer.toJson<String?>(documentsNote),
+    };
+  }
+
+  StaffMember copyWith({
+    String? id,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    Value<String?> createdBy = const Value.absent(),
+    Value<String?> updatedBy = const Value.absent(),
+    bool? isDeleted,
+    Value<DateTime?> deletedAt = const Value.absent(),
+    String? firstName,
+    String? lastName,
+    String? staffType,
+    Value<String?> specialty = const Value.absent(),
+    Value<String?> phone = const Value.absent(),
+    Value<String?> email = const Value.absent(),
+    Value<String?> contractType = const Value.absent(),
+    Value<DateTime?> contractStart = const Value.absent(),
+    Value<DateTime?> contractEnd = const Value.absent(),
+    Value<String?> userId = const Value.absent(),
+    Value<String?> notes = const Value.absent(),
+    Value<String?> documentsNote = const Value.absent(),
+  }) => StaffMember(
+    id: id ?? this.id,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+    createdBy: createdBy.present ? createdBy.value : this.createdBy,
+    updatedBy: updatedBy.present ? updatedBy.value : this.updatedBy,
+    isDeleted: isDeleted ?? this.isDeleted,
+    deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+    firstName: firstName ?? this.firstName,
+    lastName: lastName ?? this.lastName,
+    staffType: staffType ?? this.staffType,
+    specialty: specialty.present ? specialty.value : this.specialty,
+    phone: phone.present ? phone.value : this.phone,
+    email: email.present ? email.value : this.email,
+    contractType: contractType.present ? contractType.value : this.contractType,
+    contractStart: contractStart.present
+        ? contractStart.value
+        : this.contractStart,
+    contractEnd: contractEnd.present ? contractEnd.value : this.contractEnd,
+    userId: userId.present ? userId.value : this.userId,
+    notes: notes.present ? notes.value : this.notes,
+    documentsNote: documentsNote.present
+        ? documentsNote.value
+        : this.documentsNote,
+  );
+  StaffMember copyWithCompanion(StaffMembersCompanion data) {
+    return StaffMember(
+      id: data.id.present ? data.id.value : this.id,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      createdBy: data.createdBy.present ? data.createdBy.value : this.createdBy,
+      updatedBy: data.updatedBy.present ? data.updatedBy.value : this.updatedBy,
+      isDeleted: data.isDeleted.present ? data.isDeleted.value : this.isDeleted,
+      deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
+      firstName: data.firstName.present ? data.firstName.value : this.firstName,
+      lastName: data.lastName.present ? data.lastName.value : this.lastName,
+      staffType: data.staffType.present ? data.staffType.value : this.staffType,
+      specialty: data.specialty.present ? data.specialty.value : this.specialty,
+      phone: data.phone.present ? data.phone.value : this.phone,
+      email: data.email.present ? data.email.value : this.email,
+      contractType: data.contractType.present
+          ? data.contractType.value
+          : this.contractType,
+      contractStart: data.contractStart.present
+          ? data.contractStart.value
+          : this.contractStart,
+      contractEnd: data.contractEnd.present
+          ? data.contractEnd.value
+          : this.contractEnd,
+      userId: data.userId.present ? data.userId.value : this.userId,
+      notes: data.notes.present ? data.notes.value : this.notes,
+      documentsNote: data.documentsNote.present
+          ? data.documentsNote.value
+          : this.documentsNote,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('StaffMember(')
+          ..write('id: $id, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('createdBy: $createdBy, ')
+          ..write('updatedBy: $updatedBy, ')
+          ..write('isDeleted: $isDeleted, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('firstName: $firstName, ')
+          ..write('lastName: $lastName, ')
+          ..write('staffType: $staffType, ')
+          ..write('specialty: $specialty, ')
+          ..write('phone: $phone, ')
+          ..write('email: $email, ')
+          ..write('contractType: $contractType, ')
+          ..write('contractStart: $contractStart, ')
+          ..write('contractEnd: $contractEnd, ')
+          ..write('userId: $userId, ')
+          ..write('notes: $notes, ')
+          ..write('documentsNote: $documentsNote')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    createdAt,
+    updatedAt,
+    createdBy,
+    updatedBy,
+    isDeleted,
+    deletedAt,
+    firstName,
+    lastName,
+    staffType,
+    specialty,
+    phone,
+    email,
+    contractType,
+    contractStart,
+    contractEnd,
+    userId,
+    notes,
+    documentsNote,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is StaffMember &&
+          other.id == this.id &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt &&
+          other.createdBy == this.createdBy &&
+          other.updatedBy == this.updatedBy &&
+          other.isDeleted == this.isDeleted &&
+          other.deletedAt == this.deletedAt &&
+          other.firstName == this.firstName &&
+          other.lastName == this.lastName &&
+          other.staffType == this.staffType &&
+          other.specialty == this.specialty &&
+          other.phone == this.phone &&
+          other.email == this.email &&
+          other.contractType == this.contractType &&
+          other.contractStart == this.contractStart &&
+          other.contractEnd == this.contractEnd &&
+          other.userId == this.userId &&
+          other.notes == this.notes &&
+          other.documentsNote == this.documentsNote);
+}
+
+class StaffMembersCompanion extends UpdateCompanion<StaffMember> {
+  final Value<String> id;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<String?> createdBy;
+  final Value<String?> updatedBy;
+  final Value<bool> isDeleted;
+  final Value<DateTime?> deletedAt;
+  final Value<String> firstName;
+  final Value<String> lastName;
+  final Value<String> staffType;
+  final Value<String?> specialty;
+  final Value<String?> phone;
+  final Value<String?> email;
+  final Value<String?> contractType;
+  final Value<DateTime?> contractStart;
+  final Value<DateTime?> contractEnd;
+  final Value<String?> userId;
+  final Value<String?> notes;
+  final Value<String?> documentsNote;
+  final Value<int> rowid;
+  const StaffMembersCompanion({
+    this.id = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.createdBy = const Value.absent(),
+    this.updatedBy = const Value.absent(),
+    this.isDeleted = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.firstName = const Value.absent(),
+    this.lastName = const Value.absent(),
+    this.staffType = const Value.absent(),
+    this.specialty = const Value.absent(),
+    this.phone = const Value.absent(),
+    this.email = const Value.absent(),
+    this.contractType = const Value.absent(),
+    this.contractStart = const Value.absent(),
+    this.contractEnd = const Value.absent(),
+    this.userId = const Value.absent(),
+    this.notes = const Value.absent(),
+    this.documentsNote = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  StaffMembersCompanion.insert({
+    required String id,
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.createdBy = const Value.absent(),
+    this.updatedBy = const Value.absent(),
+    this.isDeleted = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    required String firstName,
+    required String lastName,
+    this.staffType = const Value.absent(),
+    this.specialty = const Value.absent(),
+    this.phone = const Value.absent(),
+    this.email = const Value.absent(),
+    this.contractType = const Value.absent(),
+    this.contractStart = const Value.absent(),
+    this.contractEnd = const Value.absent(),
+    this.userId = const Value.absent(),
+    this.notes = const Value.absent(),
+    this.documentsNote = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       firstName = Value(firstName),
+       lastName = Value(lastName);
+  static Insertable<StaffMember> custom({
+    Expression<String>? id,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<String>? createdBy,
+    Expression<String>? updatedBy,
+    Expression<bool>? isDeleted,
+    Expression<DateTime>? deletedAt,
+    Expression<String>? firstName,
+    Expression<String>? lastName,
+    Expression<String>? staffType,
+    Expression<String>? specialty,
+    Expression<String>? phone,
+    Expression<String>? email,
+    Expression<String>? contractType,
+    Expression<DateTime>? contractStart,
+    Expression<DateTime>? contractEnd,
+    Expression<String>? userId,
+    Expression<String>? notes,
+    Expression<String>? documentsNote,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (createdBy != null) 'created_by': createdBy,
+      if (updatedBy != null) 'updated_by': updatedBy,
+      if (isDeleted != null) 'is_deleted': isDeleted,
+      if (deletedAt != null) 'deleted_at': deletedAt,
+      if (firstName != null) 'first_name': firstName,
+      if (lastName != null) 'last_name': lastName,
+      if (staffType != null) 'staff_type': staffType,
+      if (specialty != null) 'specialty': specialty,
+      if (phone != null) 'phone': phone,
+      if (email != null) 'email': email,
+      if (contractType != null) 'contract_type': contractType,
+      if (contractStart != null) 'contract_start': contractStart,
+      if (contractEnd != null) 'contract_end': contractEnd,
+      if (userId != null) 'user_id': userId,
+      if (notes != null) 'notes': notes,
+      if (documentsNote != null) 'documents_note': documentsNote,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  StaffMembersCompanion copyWith({
+    Value<String>? id,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+    Value<String?>? createdBy,
+    Value<String?>? updatedBy,
+    Value<bool>? isDeleted,
+    Value<DateTime?>? deletedAt,
+    Value<String>? firstName,
+    Value<String>? lastName,
+    Value<String>? staffType,
+    Value<String?>? specialty,
+    Value<String?>? phone,
+    Value<String?>? email,
+    Value<String?>? contractType,
+    Value<DateTime?>? contractStart,
+    Value<DateTime?>? contractEnd,
+    Value<String?>? userId,
+    Value<String?>? notes,
+    Value<String?>? documentsNote,
+    Value<int>? rowid,
+  }) {
+    return StaffMembersCompanion(
+      id: id ?? this.id,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      createdBy: createdBy ?? this.createdBy,
+      updatedBy: updatedBy ?? this.updatedBy,
+      isDeleted: isDeleted ?? this.isDeleted,
+      deletedAt: deletedAt ?? this.deletedAt,
+      firstName: firstName ?? this.firstName,
+      lastName: lastName ?? this.lastName,
+      staffType: staffType ?? this.staffType,
+      specialty: specialty ?? this.specialty,
+      phone: phone ?? this.phone,
+      email: email ?? this.email,
+      contractType: contractType ?? this.contractType,
+      contractStart: contractStart ?? this.contractStart,
+      contractEnd: contractEnd ?? this.contractEnd,
+      userId: userId ?? this.userId,
+      notes: notes ?? this.notes,
+      documentsNote: documentsNote ?? this.documentsNote,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (createdBy.present) {
+      map['created_by'] = Variable<String>(createdBy.value);
+    }
+    if (updatedBy.present) {
+      map['updated_by'] = Variable<String>(updatedBy.value);
+    }
+    if (isDeleted.present) {
+      map['is_deleted'] = Variable<bool>(isDeleted.value);
+    }
+    if (deletedAt.present) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt.value);
+    }
+    if (firstName.present) {
+      map['first_name'] = Variable<String>(firstName.value);
+    }
+    if (lastName.present) {
+      map['last_name'] = Variable<String>(lastName.value);
+    }
+    if (staffType.present) {
+      map['staff_type'] = Variable<String>(staffType.value);
+    }
+    if (specialty.present) {
+      map['specialty'] = Variable<String>(specialty.value);
+    }
+    if (phone.present) {
+      map['phone'] = Variable<String>(phone.value);
+    }
+    if (email.present) {
+      map['email'] = Variable<String>(email.value);
+    }
+    if (contractType.present) {
+      map['contract_type'] = Variable<String>(contractType.value);
+    }
+    if (contractStart.present) {
+      map['contract_start'] = Variable<DateTime>(contractStart.value);
+    }
+    if (contractEnd.present) {
+      map['contract_end'] = Variable<DateTime>(contractEnd.value);
+    }
+    if (userId.present) {
+      map['user_id'] = Variable<String>(userId.value);
+    }
+    if (notes.present) {
+      map['notes'] = Variable<String>(notes.value);
+    }
+    if (documentsNote.present) {
+      map['documents_note'] = Variable<String>(documentsNote.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('StaffMembersCompanion(')
+          ..write('id: $id, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('createdBy: $createdBy, ')
+          ..write('updatedBy: $updatedBy, ')
+          ..write('isDeleted: $isDeleted, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('firstName: $firstName, ')
+          ..write('lastName: $lastName, ')
+          ..write('staffType: $staffType, ')
+          ..write('specialty: $specialty, ')
+          ..write('phone: $phone, ')
+          ..write('email: $email, ')
+          ..write('contractType: $contractType, ')
+          ..write('contractStart: $contractStart, ')
+          ..write('contractEnd: $contractEnd, ')
+          ..write('userId: $userId, ')
+          ..write('notes: $notes, ')
+          ..write('documentsNote: $documentsNote, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -20170,6 +21237,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   );
   late final $TeacherAssignmentsTable teacherAssignments =
       $TeacherAssignmentsTable(this);
+  late final $StaffMembersTable staffMembers = $StaffMembersTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -20204,6 +21272,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     grades,
     councilDecisions,
     teacherAssignments,
+    staffMembers,
   ];
 }
 
@@ -20328,6 +21397,24 @@ final class $$UsersTableReferences
     final cache = $_typedResult.readTableOrNull(
       _teacherAssignmentsRefsTable($_db),
     );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<$StaffMembersTable, List<StaffMember>>
+  _staffMembersRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.staffMembers,
+    aliasName: $_aliasNameGenerator(db.users.id, db.staffMembers.userId),
+  );
+
+  $$StaffMembersTableProcessedTableManager get staffMembersRefs {
+    final manager = $$StaffMembersTableTableManager(
+      $_db,
+      $_db.staffMembers,
+    ).filter((f) => f.userId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_staffMembersRefsTable($_db));
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: cache),
     );
@@ -20518,6 +21605,31 @@ class $$UsersTableFilterComposer extends Composer<_$AppDatabase, $UsersTable> {
           }) => $$TeacherAssignmentsTableFilterComposer(
             $db: $db,
             $table: $db.teacherAssignments,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> staffMembersRefs(
+    Expression<bool> Function($$StaffMembersTableFilterComposer f) f,
+  ) {
+    final $$StaffMembersTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.staffMembers,
+      getReferencedColumn: (t) => t.userId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$StaffMembersTableFilterComposer(
+            $db: $db,
+            $table: $db.staffMembers,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -20795,6 +21907,31 @@ class $$UsersTableAnnotationComposer
         );
     return f(composer);
   }
+
+  Expression<T> staffMembersRefs<T extends Object>(
+    Expression<T> Function($$StaffMembersTableAnnotationComposer a) f,
+  ) {
+    final $$StaffMembersTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.staffMembers,
+      getReferencedColumn: (t) => t.userId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$StaffMembersTableAnnotationComposer(
+            $db: $db,
+            $table: $db.staffMembers,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$UsersTableTableManager
@@ -20815,6 +21952,7 @@ class $$UsersTableTableManager
             bool paymentsRefs,
             bool cashClosuresRefs,
             bool teacherAssignmentsRefs,
+            bool staffMembersRefs,
           })
         > {
   $$UsersTableTableManager(_$AppDatabase db, $UsersTable table)
@@ -20920,6 +22058,7 @@ class $$UsersTableTableManager
                 paymentsRefs = false,
                 cashClosuresRefs = false,
                 teacherAssignmentsRefs = false,
+                staffMembersRefs = false,
               }) {
                 return PrefetchHooks(
                   db: db,
@@ -20928,6 +22067,7 @@ class $$UsersTableTableManager
                     if (paymentsRefs) db.payments,
                     if (cashClosuresRefs) db.cashClosures,
                     if (teacherAssignmentsRefs) db.teacherAssignments,
+                    if (staffMembersRefs) db.staffMembers,
                   ],
                   addJoins: null,
                   getPrefetchedDataCallback: (items) async {
@@ -21008,6 +22148,27 @@ class $$UsersTableTableManager
                               ),
                           typedResults: items,
                         ),
+                      if (staffMembersRefs)
+                        await $_getPrefetchedData<
+                          User,
+                          $UsersTable,
+                          StaffMember
+                        >(
+                          currentTable: table,
+                          referencedTable: $$UsersTableReferences
+                              ._staffMembersRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$UsersTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).staffMembersRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.userId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
                     ];
                   },
                 );
@@ -21033,6 +22194,7 @@ typedef $$UsersTableProcessedTableManager =
         bool paymentsRefs,
         bool cashClosuresRefs,
         bool teacherAssignmentsRefs,
+        bool staffMembersRefs,
       })
     >;
 typedef $$RolesTableCreateCompanionBuilder =
@@ -38340,6 +39502,598 @@ typedef $$TeacherAssignmentsTableProcessedTableManager =
         bool academicYearId,
       })
     >;
+typedef $$StaffMembersTableCreateCompanionBuilder =
+    StaffMembersCompanion Function({
+      required String id,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<String?> createdBy,
+      Value<String?> updatedBy,
+      Value<bool> isDeleted,
+      Value<DateTime?> deletedAt,
+      required String firstName,
+      required String lastName,
+      Value<String> staffType,
+      Value<String?> specialty,
+      Value<String?> phone,
+      Value<String?> email,
+      Value<String?> contractType,
+      Value<DateTime?> contractStart,
+      Value<DateTime?> contractEnd,
+      Value<String?> userId,
+      Value<String?> notes,
+      Value<String?> documentsNote,
+      Value<int> rowid,
+    });
+typedef $$StaffMembersTableUpdateCompanionBuilder =
+    StaffMembersCompanion Function({
+      Value<String> id,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<String?> createdBy,
+      Value<String?> updatedBy,
+      Value<bool> isDeleted,
+      Value<DateTime?> deletedAt,
+      Value<String> firstName,
+      Value<String> lastName,
+      Value<String> staffType,
+      Value<String?> specialty,
+      Value<String?> phone,
+      Value<String?> email,
+      Value<String?> contractType,
+      Value<DateTime?> contractStart,
+      Value<DateTime?> contractEnd,
+      Value<String?> userId,
+      Value<String?> notes,
+      Value<String?> documentsNote,
+      Value<int> rowid,
+    });
+
+final class $$StaffMembersTableReferences
+    extends BaseReferences<_$AppDatabase, $StaffMembersTable, StaffMember> {
+  $$StaffMembersTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $UsersTable _userIdTable(_$AppDatabase db) => db.users.createAlias(
+    $_aliasNameGenerator(db.staffMembers.userId, db.users.id),
+  );
+
+  $$UsersTableProcessedTableManager? get userId {
+    final $_column = $_itemColumn<String>('user_id');
+    if ($_column == null) return null;
+    final manager = $$UsersTableTableManager(
+      $_db,
+      $_db.users,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_userIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$StaffMembersTableFilterComposer
+    extends Composer<_$AppDatabase, $StaffMembersTable> {
+  $$StaffMembersTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get createdBy => $composableBuilder(
+    column: $table.createdBy,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get updatedBy => $composableBuilder(
+    column: $table.updatedBy,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isDeleted => $composableBuilder(
+    column: $table.isDeleted,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get firstName => $composableBuilder(
+    column: $table.firstName,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get lastName => $composableBuilder(
+    column: $table.lastName,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get staffType => $composableBuilder(
+    column: $table.staffType,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get specialty => $composableBuilder(
+    column: $table.specialty,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get phone => $composableBuilder(
+    column: $table.phone,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get email => $composableBuilder(
+    column: $table.email,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get contractType => $composableBuilder(
+    column: $table.contractType,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get contractStart => $composableBuilder(
+    column: $table.contractStart,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get contractEnd => $composableBuilder(
+    column: $table.contractEnd,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get notes => $composableBuilder(
+    column: $table.notes,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get documentsNote => $composableBuilder(
+    column: $table.documentsNote,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$UsersTableFilterComposer get userId {
+    final $$UsersTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.userId,
+      referencedTable: $db.users,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$UsersTableFilterComposer(
+            $db: $db,
+            $table: $db.users,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$StaffMembersTableOrderingComposer
+    extends Composer<_$AppDatabase, $StaffMembersTable> {
+  $$StaffMembersTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get createdBy => $composableBuilder(
+    column: $table.createdBy,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get updatedBy => $composableBuilder(
+    column: $table.updatedBy,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isDeleted => $composableBuilder(
+    column: $table.isDeleted,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get firstName => $composableBuilder(
+    column: $table.firstName,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get lastName => $composableBuilder(
+    column: $table.lastName,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get staffType => $composableBuilder(
+    column: $table.staffType,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get specialty => $composableBuilder(
+    column: $table.specialty,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get phone => $composableBuilder(
+    column: $table.phone,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get email => $composableBuilder(
+    column: $table.email,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get contractType => $composableBuilder(
+    column: $table.contractType,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get contractStart => $composableBuilder(
+    column: $table.contractStart,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get contractEnd => $composableBuilder(
+    column: $table.contractEnd,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get notes => $composableBuilder(
+    column: $table.notes,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get documentsNote => $composableBuilder(
+    column: $table.documentsNote,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$UsersTableOrderingComposer get userId {
+    final $$UsersTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.userId,
+      referencedTable: $db.users,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$UsersTableOrderingComposer(
+            $db: $db,
+            $table: $db.users,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$StaffMembersTableAnnotationComposer
+    extends Composer<_$AppDatabase, $StaffMembersTable> {
+  $$StaffMembersTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<String> get createdBy =>
+      $composableBuilder(column: $table.createdBy, builder: (column) => column);
+
+  GeneratedColumn<String> get updatedBy =>
+      $composableBuilder(column: $table.updatedBy, builder: (column) => column);
+
+  GeneratedColumn<bool> get isDeleted =>
+      $composableBuilder(column: $table.isDeleted, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get deletedAt =>
+      $composableBuilder(column: $table.deletedAt, builder: (column) => column);
+
+  GeneratedColumn<String> get firstName =>
+      $composableBuilder(column: $table.firstName, builder: (column) => column);
+
+  GeneratedColumn<String> get lastName =>
+      $composableBuilder(column: $table.lastName, builder: (column) => column);
+
+  GeneratedColumn<String> get staffType =>
+      $composableBuilder(column: $table.staffType, builder: (column) => column);
+
+  GeneratedColumn<String> get specialty =>
+      $composableBuilder(column: $table.specialty, builder: (column) => column);
+
+  GeneratedColumn<String> get phone =>
+      $composableBuilder(column: $table.phone, builder: (column) => column);
+
+  GeneratedColumn<String> get email =>
+      $composableBuilder(column: $table.email, builder: (column) => column);
+
+  GeneratedColumn<String> get contractType => $composableBuilder(
+    column: $table.contractType,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get contractStart => $composableBuilder(
+    column: $table.contractStart,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get contractEnd => $composableBuilder(
+    column: $table.contractEnd,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get notes =>
+      $composableBuilder(column: $table.notes, builder: (column) => column);
+
+  GeneratedColumn<String> get documentsNote => $composableBuilder(
+    column: $table.documentsNote,
+    builder: (column) => column,
+  );
+
+  $$UsersTableAnnotationComposer get userId {
+    final $$UsersTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.userId,
+      referencedTable: $db.users,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$UsersTableAnnotationComposer(
+            $db: $db,
+            $table: $db.users,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$StaffMembersTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $StaffMembersTable,
+          StaffMember,
+          $$StaffMembersTableFilterComposer,
+          $$StaffMembersTableOrderingComposer,
+          $$StaffMembersTableAnnotationComposer,
+          $$StaffMembersTableCreateCompanionBuilder,
+          $$StaffMembersTableUpdateCompanionBuilder,
+          (StaffMember, $$StaffMembersTableReferences),
+          StaffMember,
+          PrefetchHooks Function({bool userId})
+        > {
+  $$StaffMembersTableTableManager(_$AppDatabase db, $StaffMembersTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$StaffMembersTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$StaffMembersTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$StaffMembersTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<String?> createdBy = const Value.absent(),
+                Value<String?> updatedBy = const Value.absent(),
+                Value<bool> isDeleted = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<String> firstName = const Value.absent(),
+                Value<String> lastName = const Value.absent(),
+                Value<String> staffType = const Value.absent(),
+                Value<String?> specialty = const Value.absent(),
+                Value<String?> phone = const Value.absent(),
+                Value<String?> email = const Value.absent(),
+                Value<String?> contractType = const Value.absent(),
+                Value<DateTime?> contractStart = const Value.absent(),
+                Value<DateTime?> contractEnd = const Value.absent(),
+                Value<String?> userId = const Value.absent(),
+                Value<String?> notes = const Value.absent(),
+                Value<String?> documentsNote = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => StaffMembersCompanion(
+                id: id,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                createdBy: createdBy,
+                updatedBy: updatedBy,
+                isDeleted: isDeleted,
+                deletedAt: deletedAt,
+                firstName: firstName,
+                lastName: lastName,
+                staffType: staffType,
+                specialty: specialty,
+                phone: phone,
+                email: email,
+                contractType: contractType,
+                contractStart: contractStart,
+                contractEnd: contractEnd,
+                userId: userId,
+                notes: notes,
+                documentsNote: documentsNote,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<String?> createdBy = const Value.absent(),
+                Value<String?> updatedBy = const Value.absent(),
+                Value<bool> isDeleted = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                required String firstName,
+                required String lastName,
+                Value<String> staffType = const Value.absent(),
+                Value<String?> specialty = const Value.absent(),
+                Value<String?> phone = const Value.absent(),
+                Value<String?> email = const Value.absent(),
+                Value<String?> contractType = const Value.absent(),
+                Value<DateTime?> contractStart = const Value.absent(),
+                Value<DateTime?> contractEnd = const Value.absent(),
+                Value<String?> userId = const Value.absent(),
+                Value<String?> notes = const Value.absent(),
+                Value<String?> documentsNote = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => StaffMembersCompanion.insert(
+                id: id,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                createdBy: createdBy,
+                updatedBy: updatedBy,
+                isDeleted: isDeleted,
+                deletedAt: deletedAt,
+                firstName: firstName,
+                lastName: lastName,
+                staffType: staffType,
+                specialty: specialty,
+                phone: phone,
+                email: email,
+                contractType: contractType,
+                contractStart: contractStart,
+                contractEnd: contractEnd,
+                userId: userId,
+                notes: notes,
+                documentsNote: documentsNote,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$StaffMembersTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({userId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (userId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.userId,
+                                referencedTable: $$StaffMembersTableReferences
+                                    ._userIdTable(db),
+                                referencedColumn: $$StaffMembersTableReferences
+                                    ._userIdTable(db)
+                                    .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$StaffMembersTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $StaffMembersTable,
+      StaffMember,
+      $$StaffMembersTableFilterComposer,
+      $$StaffMembersTableOrderingComposer,
+      $$StaffMembersTableAnnotationComposer,
+      $$StaffMembersTableCreateCompanionBuilder,
+      $$StaffMembersTableUpdateCompanionBuilder,
+      (StaffMember, $$StaffMembersTableReferences),
+      StaffMember,
+      PrefetchHooks Function({bool userId})
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -38402,4 +40156,6 @@ class $AppDatabaseManager {
       $$CouncilDecisionsTableTableManager(_db, _db.councilDecisions);
   $$TeacherAssignmentsTableTableManager get teacherAssignments =>
       $$TeacherAssignmentsTableTableManager(_db, _db.teacherAssignments);
+  $$StaffMembersTableTableManager get staffMembers =>
+      $$StaffMembersTableTableManager(_db, _db.staffMembers);
 }

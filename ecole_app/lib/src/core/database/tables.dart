@@ -273,3 +273,19 @@ class TeacherAssignments extends Table with UuidPrimaryKey, AuditColumns {
   TextColumn get subjectId => text().nullable().references(Subjects, #id)();
   TextColumn get academicYearId => text().nullable().references(AcademicYears, #id)();
 }
+
+// --- Staff / HR ---
+class StaffMembers extends Table with UuidPrimaryKey, AuditColumns {
+  TextColumn get firstName => text()();
+  TextColumn get lastName => text()();
+  TextColumn get staffType => text().withDefault(const Constant('teacher'))(); // teacher, admin_staff, direction, etc.
+  TextColumn get specialty => text().nullable()();
+  TextColumn get phone => text().nullable()();
+  TextColumn get email => text().nullable()();
+  TextColumn get contractType => text().nullable()();
+  DateTimeColumn get contractStart => dateTime().nullable()();
+  DateTimeColumn get contractEnd => dateTime().nullable()();
+  TextColumn get userId => text().nullable().references(Users, #id)();
+  TextColumn get notes => text().nullable()();
+  TextColumn get documentsNote => text().nullable()(); // paths/references summary
+}
