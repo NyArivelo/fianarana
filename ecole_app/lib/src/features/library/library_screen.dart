@@ -145,7 +145,7 @@ class _LoansTab extends ConsumerWidget {
   const _LoansTab();
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final loans = ref.watch(loansProvider);
+    final loans = ref.watch(loanDetailsProvider);
     final students = {for (final s in (ref.watch(studentsProvider).valueOrNull ?? <Student>[])) s.id: s};
     final fmt = DateFormat('dd/MM/yyyy');
     return Padding(padding: const EdgeInsets.all(16), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -163,13 +163,15 @@ class _LoansTab extends ConsumerWidget {
         data: (list){
           if (list.isEmpty) return const Center(child: Text('Aucun prêt enregistré.'));
           return ListView.builder(itemCount: list.length, itemBuilder: (context,i){
-            final l = list[i];
+            final d = list[i];
+            final l = d.loan;
             final st = students[l.studentId];
             final isActive = l.status == 'active' || l.status == 'overdue';
             return Card(child: ListTile(
               leading: Icon(isActive ? (l.status=='overdue'?Icons.warning:Icons.menu_book) : Icons.assignment_turned_in, color: l.status=='overdue'?Colors.red:(isActive?Colors.orange:Colors.green)),
-              title: Text('${st!=null?'${st.lastName} ${st.firstName}':l.studentId} — exemplaire ${l.copyId.substring(0,8)}'),
-              subtitle: Text('Emprunt: ${fmt.format(l.loanDate)} • Échéance: ${fmt.format(l.dueDate)} • Statut: ${l.status}${l.returnDate!=null ? ' • Retour: ${fmt.format(l.returnDate!)}' : ''}'),
+              title: Text('${st!=null?'${st.lastName} ${st.firstName}':l.studentId} — ${d.itemTitle}'),
+              subtitle: Text('Exemplaire: ${d.copyCode} • Emprunt: ${fmt.format(l.loanDate)} • Échéance: ${fmt.format(l.dueDate)} • Statut: ${l.status}${l.returnDate!=null ? ' • Retour: ${fmt.format(l.returnDate!)}' : ''}'),
+              isThreeLine: true,
               trailing: isActive ? FilledButton.tonal(onPressed: ()=>_returnDialog(context, ref, l), child: const Text('Retour')) : null,
             ));
           });

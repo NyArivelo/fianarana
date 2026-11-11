@@ -21,6 +21,11 @@ final loansProvider = StreamProvider<List<LibraryLoan>>((ref) {
   return ref.watch(libraryRepositoryProvider).watchLoans();
 });
 
+final loanDetailsProvider = StreamProvider<List<LoanDetail>>((ref) {
+  ref.watch(libraryRepositoryProvider).refreshOverdue();
+  return ref.watch(libraryRepositoryProvider).watchLoanDetails();
+});
+
 final activeLoansForStudentProvider = StreamProvider.family<List<LibraryLoan>, String>((ref, studentId) {
   return ref.watch(libraryRepositoryProvider).watchActiveLoansForStudent(studentId);
 });

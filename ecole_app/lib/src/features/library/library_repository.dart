@@ -3,6 +3,13 @@ import 'package:uuid/uuid.dart';
 
 import '../../core/database/app_database.dart';
 
+class LoanDetail {
+  final LibraryLoan loan;
+  final String copyCode;
+  final String itemTitle;
+  LoanDetail({required this.loan, required this.copyCode, required this.itemTitle});
+}
+
 class LibraryRepository {
   final AppDatabase db;
   final _uuid = const Uuid();
@@ -95,5 +102,23 @@ class LibraryRepository {
 
   Stream<List<LibraryLoan>> watchActiveLoansForStudent(String studentId) {
     return (db.select(db.libraryLoans)..where((t)=>t.studentId.equals(studentId) & t.isDeleted.equals(false) & t.status.isIn(['active','overdue']))).watch();
+  }
+
+  Stream<List<LoanDetail>> watchLoanDetails({String? studentId, String? status}) {
+    final l = db.libraryLoans;
+    final c = db.libraryCopies;
+    final i = db.libraryItems;
+    var q = db.select(l).join([
+      innerJoin(c, c.id.equalsExp(l.copyId)),
+      innerJoin(i, i.id.equalsExp(c.itemId)),
+    ])..where(l.isDeleted.equals(false));
+    if (studentId != null && studentId.isNotEmpty) q = q..where(l.studentId.equals(studentId));
+    if (status != null && status.isNotEmpty) q = q..where(l.status.equals(status));
+    q = q..orderBy([OrderingTerm.desc(l.loanDate)]);
+    return q.watch().map((rows) => rows.map((r) => LoanDetail(
+      loan: r.readTable(l),
+      copyCode: r.readTable(c).copyCode,
+      itemTitle: r.readTable(i).title,
+    )).toList());
   }
 }
