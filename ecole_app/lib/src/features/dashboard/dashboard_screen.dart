@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/security/current_user_scope.dart';
 import '../attendance/attendance_screen.dart';
 import '../auth/auth_controller.dart';
 import '../documents/documents_screen.dart';
@@ -37,15 +38,33 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   Widget build(BuildContext context) {
     final auth = ref.watch(authControllerProvider);
     final user = auth.currentUser;
+    final scope = ref.watch(currentUserScopeProvider).valueOrNull?.scope ?? 'global';
+    final allowed = <int>{
+      0,
+      1,
+      3,
+      4,
+      5,
+      8,
+      9,
+      if (scope == 'global' || scope == 'caisse') 6,
+      if (scope == 'global') 2,
+      if (scope == 'global') 7,
+    };
+    final visibleIndices = [for (int i = 0; i < _modules.length; i++) if (allowed.contains(i)) i];
+    if (!visibleIndices.contains(_selected)) {
+      _selected = visibleIndices.isNotEmpty ? visibleIndices.first : 0;
+    }
     final module = _modules[_selected];
+    final selectedVisibleIndex = visibleIndices.indexOf(_selected).clamp(0, visibleIndices.length - 1);
 
     return Scaffold(
       body: Row(
         children: [
           NavigationRail(
             extended: MediaQuery.of(context).size.width > 1100,
-            selectedIndex: _selected,
-            onDestinationSelected: (i) => setState(() => _selected = i),
+            selectedIndex: selectedVisibleIndex,
+            onDestinationSelected: (i) => setState(() => _selected = visibleIndices[i]),
             leading: Padding(
               padding: const EdgeInsets.symmetric(vertical: 16),
               child: Column(
@@ -75,10 +94,10 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
               ),
             ),
             destinations: [
-              for (final m in _modules)
+              for (final i in visibleIndices)
                 NavigationRailDestination(
-                  icon: Icon(m.$1),
-                  label: Text(m.$2),
+                  icon: Icon(_modules[i].$1),
+                  label: Text(_modules[i].$2),
                 ),
             ],
           ),
@@ -110,7 +129,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                         if (user != null)
                           Chip(
                             avatar: const Icon(Icons.person, size: 18),
-                            label: Text(user.displayName),
+                            label: Text('${user.displayName} ($scope)'),
                           ),
                       ],
                     ),

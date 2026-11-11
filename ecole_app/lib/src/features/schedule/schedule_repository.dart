@@ -32,23 +32,31 @@ class ScheduleRepository {
   }
 
   // Sessions
-  Stream<List<CourseSession>> watchSessions({DateTime? day}) {
+  Stream<List<CourseSession>> watchSessions({DateTime? day, List<String>? allowedClassIds}) {
     final q = db.select(db.courseSessions)..where((t) => t.isDeleted.equals(false));
     if (day != null) {
       final start = DateTime(day.year, day.month, day.day);
       final end = start.add(const Duration(days: 1));
       q.where((t) => t.startAt.isBiggerOrEqualValue(start) & t.startAt.isSmallerThanValue(end));
     }
+    if (allowedClassIds != null) {
+      if (allowedClassIds.isEmpty) return Stream.value(<CourseSession>[]);
+      q.where((t) => t.classId.isIn(allowedClassIds));
+    }
     q.orderBy([(t) => OrderingTerm.asc(t.startAt)]);
     return q.watch();
   }
 
-  Stream<List<CourseSession>> watchSessionsInRange(DateTime from, DateTime to) {
+  Stream<List<CourseSession>> watchSessionsInRange(DateTime from, DateTime to, {List<String>? allowedClassIds}) {
     final start = DateTime(from.year, from.month, from.day);
     final end = DateTime(to.year, to.month, to.day);
     final q = db.select(db.courseSessions)
-      ..where((t) => t.isDeleted.equals(false) & t.startAt.isBiggerOrEqualValue(start) & t.startAt.isSmallerThanValue(end))
-      ..orderBy([(t) => OrderingTerm.asc(t.startAt)]);
+      ..where((t) => t.isDeleted.equals(false) & t.startAt.isBiggerOrEqualValue(start) & t.startAt.isSmallerThanValue(end));
+    if (allowedClassIds != null) {
+      if (allowedClassIds.isEmpty) return Stream.value(<CourseSession>[]);
+      q.where((t) => t.classId.isIn(allowedClassIds));
+    }
+    q.orderBy([(t) => OrderingTerm.asc(t.startAt)]);
     return q.watch();
   }
 

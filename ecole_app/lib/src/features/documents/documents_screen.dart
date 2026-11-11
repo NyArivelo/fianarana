@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:printing/printing.dart';
 
 import '../../core/database/app_database.dart';
+import '../../core/security/current_user_scope.dart';
 import '../finance/finance_providers.dart';
 import '../settings/settings_providers.dart';
 import '../students/students_providers.dart';
@@ -52,26 +53,31 @@ class _ReceiptTab extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final scope = ref.watch(currentUserScopeProvider).valueOrNull?.scope;
     final payments = ref.watch(paymentsProvider).valueOrNull ?? [];
     final students = {for (final s in (ref.watch(studentsProvider).valueOrNull ?? <Student>[])) s.id: s};
     final fees = {for (final f in (ref.watch(feeTypesProvider).valueOrNull ?? <FeeType>[])) f.id: f};
     final school = ref.watch(schoolSettingProvider).valueOrNull;
-    final selected = payments.where((p) => p.id == selectedPaymentId).firstOrNull;
+    final visiblePayments = (scope == 'restricted')
+        ? payments.where((p) => students.containsKey(p.studentId)).toList()
+        : payments;
+    final selected = visiblePayments.where((p) => p.id == selectedPaymentId).firstOrNull;
 
     return Row(children: [
       SizedBox(width: 360, child: ListView(children: [
         const Padding(padding: EdgeInsets.all(12), child: Text('Sélectionnez un paiement pour prévisualiser/imprimer le reçu')),
-        for (final p in payments)
-          ListTile(
-            selected: p.id == selectedPaymentId,
-            title: Text(p.receiptNumber),
-            subtitle: Text(() { final s = students[p.studentId]; return s == null ? '' : '${s.lastName} ${s.firstName}'; }()),
-            onTap: () => onSelect(p.id),
-          ),
-        if (payments.isEmpty) const Padding(padding: EdgeInsets.all(12), child: Text('Aucun paiement. Enregistrez-en un dans Finances.')),
+        for (final p in visiblePayments)
+          if (students[p.studentId] != null)
+            ListTile(
+              selected: p.id == selectedPaymentId,
+              title: Text(p.receiptNumber),
+              subtitle: Text('${students[p.studentId]!.lastName} ${students[p.studentId]!.firstName}'),
+              onTap: () => onSelect(p.id),
+            ),
+        if (visiblePayments.isEmpty) const Padding(padding: EdgeInsets.all(12), child: Text('Aucun paiement disponible (ou hors de votre portée).')),
       ])),
       const VerticalDivider(width: 1),
-      Expanded(child: selected == null
+      Expanded(child: selected == null || students[selected.studentId] == null
           ? const Center(child: Text('Aucun reçu sélectionné.'))
           : PdfPreview(
               build: (format) => ref.read(documentServiceProvider).buildPaymentReceipt(
@@ -108,7 +114,7 @@ class _CertificateTab extends ConsumerWidget {
             subtitle: Text(s.matricule),
             onTap: () => onSelect(s.id),
           ),
-        if (students.isEmpty) const Padding(padding: EdgeInsets.all(12), child: Text('Aucun élève.')),
+        if (students.isEmpty) const Padding(padding: EdgeInsets.all(12), child: Text('Aucun élève disponible (ou hors de votre portée).')),
       ])),
       const VerticalDivider(width: 1),
       Expanded(child: selected == null

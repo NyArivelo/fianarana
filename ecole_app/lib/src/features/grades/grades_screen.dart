@@ -29,7 +29,9 @@ class _GradesScreenState extends ConsumerState<GradesScreen> {
     final classes = ref.watch(classesProvider(year?.id)).valueOrNull ?? [];
     final periods = year == null ? <Period>[] : (ref.watch(periodsProvider(year.id)).valueOrNull ?? []);
     final subjects = {for (final s in (ref.watch(subjectsProvider).valueOrNull ?? <Subject>[])) s.id: s};
-    _classId ??= classes.isNotEmpty ? classes.first.id : null;
+    if (_classId == null || (classes.isNotEmpty && !classes.any((c) => c.id == _classId))) {
+      _classId = classes.isNotEmpty ? classes.first.id : null;
+    }
 
     final evals = ref.watch(evaluationsProvider((classId: _classId, periodId: _periodId))).valueOrNull ?? [];
     final selected = evals.firstWhereOrNull((e) => e.id == _selectedEvalId);
