@@ -206,3 +206,52 @@ class PaymentInstallments extends Table with UuidPrimaryKey, AuditColumns {
   RealColumn get paidAmount => real().withDefault(const Constant(0.0))();
   TextColumn get status => text().withDefault(const Constant('pending'))(); // pending, partial, paid, overdue
 }
+
+// --- Timetable & Attendance ---
+class Rooms extends Table with UuidPrimaryKey, AuditColumns {
+  TextColumn get name => text()();
+  TextColumn get location => text().nullable()();
+  IntColumn get capacity => integer().nullable()();
+}
+
+class CourseSessions extends Table with UuidPrimaryKey, AuditColumns {
+  TextColumn get academicYearId => text().nullable().references(AcademicYears, #id)();
+  TextColumn get classId => text().nullable().references(Classes, #id)();
+  TextColumn get subjectId => text().nullable().references(Subjects, #id)();
+  TextColumn get roomId => text().nullable().references(Rooms, #id)();
+  TextColumn get teacherName => text().nullable()();
+  TextColumn get title => text().nullable()();
+  TextColumn get courseType => text().withDefault(const Constant('regular'))(); // regular, evening, weekend, intensive
+  DateTimeColumn get startAt => dateTime()();
+  DateTimeColumn get endAt => dateTime()();
+  TextColumn get status => text().withDefault(const Constant('planned'))(); // planned, done, cancelled
+  TextColumn get notes => text().nullable()();
+}
+
+class AttendanceRecords extends Table with UuidPrimaryKey, AuditColumns {
+  TextColumn get sessionId => text().references(CourseSessions, #id)();
+  TextColumn get studentId => text().references(Students, #id)();
+  TextColumn get status => text().withDefault(const Constant('present'))(); // present, absent, late, excused
+  TextColumn get note => text().nullable()();
+}
+
+// --- Evaluations & Grades ---
+class Evaluations extends Table with UuidPrimaryKey, AuditColumns {
+  TextColumn get academicYearId => text().nullable().references(AcademicYears, #id)();
+  TextColumn get periodId => text().nullable().references(Periods, #id)();
+  TextColumn get classId => text().references(Classes, #id)();
+  TextColumn get subjectId => text().references(Subjects, #id)();
+  TextColumn get title => text()();
+  RealColumn get coefficient => real().withDefault(const Constant(1.0))();
+  RealColumn get maxScore => real().withDefault(const Constant(20.0))();
+  DateTimeColumn get date => dateTime().nullable()();
+}
+
+class Grades extends Table with UuidPrimaryKey, AuditColumns {
+  TextColumn get evaluationId => text().references(Evaluations, #id)();
+  TextColumn get studentId => text().references(Students, #id)();
+  RealColumn get score => real().nullable()();
+  BoolColumn get isAbsent => boolean().withDefault(const Constant(false))();
+  BoolColumn get isExempt => boolean().withDefault(const Constant(false))(); // dispense/neutralized
+  TextColumn get comment => text().nullable()();
+}

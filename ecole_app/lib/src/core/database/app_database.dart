@@ -33,6 +33,9 @@ part 'app_database.g.dart';
     CashClosures,
     PaymentPlans,
     PaymentInstallments,
+    Rooms,
+    CourseSessions,
+    AttendanceRecords,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -41,7 +44,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -53,6 +56,11 @@ class AppDatabase extends _$AppDatabase {
             await m.createTable(paymentPlans);
             await m.createTable(paymentInstallments);
             await m.addColumn(payments, payments.installmentId);
+          }
+          if (from < 3) {
+            await m.createTable(rooms);
+            await m.createTable(courseSessions);
+            await m.createTable(attendanceRecords);
           }
         },
         beforeOpen: (details) async {

@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../attendance/attendance_screen.dart';
 import '../auth/auth_controller.dart';
 import '../documents/documents_screen.dart';
 import '../finance/finance_screen.dart';
+import '../schedule/schedule_screen.dart';
 import '../settings/settings_screen.dart';
 import '../students/students_screen.dart';
 
@@ -118,6 +120,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                   child: switch (_selected) {
                     0 => _HomeOverview(username: user?.displayName ?? ''),
                     1 => const StudentsScreen(),
+                    3 => const ScheduleScreen(),
+                    4 => const AttendanceScreen(),
                     6 => const FinanceScreen(),
                     8 => const DocumentsScreen(),
                     9 => const SettingsScreen(),
