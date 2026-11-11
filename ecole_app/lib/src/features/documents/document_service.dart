@@ -215,6 +215,39 @@ class DocumentService {
     return doc.save();
   }
 
+  Future<Uint8List> buildFromTemplate({
+    required String title,
+    required String renderedBody,
+    required SchoolSetting? school,
+  }) async {
+    final doc = pw.Document();
+    final schoolName = school?.name ?? 'Établissement scolaire';
+    final dateStr = DateFormat('dd/MM/yyyy').format(DateTime.now());
+    final lines = renderedBody.replaceAll('\r\n', '\n').split('\n');
+    doc.addPage(pw.MultiPage(
+      pageFormat: PdfPageFormat.a4,
+      margin: const pw.EdgeInsets.all(40),
+      build: (ctx) => [
+        pw.Text(schoolName, style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold)),
+        if (school?.address != null) pw.Text(school!.address!),
+        if (school?.phone != null) pw.Text('Tél: ${school!.phone}'),
+        pw.SizedBox(height: 16),
+        if (title.trim().isNotEmpty)
+          pw.Center(child: pw.Text(title, style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold))),
+        pw.SizedBox(height: 16),
+        for (final line in lines)
+          if (line.trim().isEmpty)
+            pw.SizedBox(height: 8)
+          else
+            pw.Padding(padding: const pw.EdgeInsets.only(bottom: 4), child: pw.Text(line)),
+        pw.SizedBox(height: 24),
+        pw.Text('Édité le $dateStr', style: const pw.TextStyle(fontSize: 9)),
+        if (school?.legalMentions != null) pw.Text(school!.legalMentions!, style: const pw.TextStyle(fontSize: 8)),
+      ],
+    ));
+    return doc.save();
+  }
+
   pw.Widget _row(String label, String value) => pw.Padding(
         padding: const pw.EdgeInsets.symmetric(vertical: 2),
         child: pw.Row(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [

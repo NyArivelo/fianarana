@@ -340,3 +340,47 @@ class LibraryLoans extends Table with UuidPrimaryKey, AuditColumns {
   TextColumn get status => text().withDefault(const Constant('active'))(); // active, returned, overdue, lost
   TextColumn get notes => text().nullable()();
 }
+
+// --- Document Studio / Templates ---
+class DocumentTemplates extends Table with UuidPrimaryKey, AuditColumns {
+  TextColumn get name => text()();
+  TextColumn get category => text().withDefault(const Constant('general'))(); // receipt, certificate, letter, invoice, other
+  TextColumn get title => text().nullable()();
+  TextColumn get body => text()(); // text with {{placeholders}} and ={{formula}} expressions
+  BoolColumn get isActive => boolean().withDefault(const Constant(true))();
+}
+
+// --- Finance advanced ---
+class FinancialAdjustments extends Table with UuidPrimaryKey, AuditColumns {
+  TextColumn get studentId => text().references(Students, #id)();
+  TextColumn get enrollmentId => text().nullable().references(Enrollments, #id)();
+  TextColumn get feeTypeId => text().nullable().references(FeeTypes, #id)();
+  TextColumn get type => text()(); // remise, avoir, bourse, reduction
+  RealColumn get amount => real()();
+  TextColumn get reason => text().nullable()();
+  DateTimeColumn get date => dateTime()();
+  TextColumn get status => text().withDefault(const Constant('active'))(); // active, cancelled
+  TextColumn get note => text().nullable()();
+}
+
+// --- Facilities / Equipment ---
+class EquipmentItems extends Table with UuidPrimaryKey, AuditColumns {
+  TextColumn get name => text()();
+  TextColumn get category => text().nullable()(); // mobilier, informatique, labo, sport, etc.
+  TextColumn get serialNumber => text().nullable()();
+  TextColumn get roomId => text().nullable().references(Rooms, #id)();
+  TextColumn get status => text().withDefault(const Constant('ok'))(); // ok, maintenance, broken, retired
+  IntColumn get quantity => integer().withDefault(const Constant(1))();
+  DateTimeColumn get purchaseDate => dateTime().nullable()();
+  TextColumn get notes => text().nullable()();
+}
+
+class RoomReservations extends Table with UuidPrimaryKey, AuditColumns {
+  TextColumn get roomId => text().references(Rooms, #id)();
+  TextColumn get title => text()();
+  TextColumn get reservedFor => text().nullable()(); // class, teacher, event
+  DateTimeColumn get startAt => dateTime()();
+  DateTimeColumn get endAt => dateTime()();
+  TextColumn get status => text().withDefault(const Constant('reserved'))(); // reserved, cancelled, done
+  TextColumn get notes => text().nullable()();
+}
