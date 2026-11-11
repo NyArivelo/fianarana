@@ -195,6 +195,36 @@ class StudentsRepository {
       EnrollmentsCompanion(status: Value(status), updatedAt: Value(DateTime.now())));
   }
 
+  Future<void> updateEnrollmentQuitus({required String enrollmentId, String? quitusFinancial, String? quitusLibrary}) async {
+    await (db.update(db.enrollments)..where((t) => t.id.equals(enrollmentId))).write(EnrollmentsCompanion(
+      quitusFinancial: quitusFinancial != null ? Value(quitusFinancial) : const Value.absent(),
+      quitusLibrary: quitusLibrary != null ? Value(quitusLibrary) : const Value.absent(),
+      updatedAt: Value(DateTime.now()),
+    ));
+  }
+
+  Future<void> transferEnrollment({
+    required String enrollmentId,
+    required String studentId,
+    String? reason,
+    DateTime? transferDate,
+    bool markStudentTransferred = true,
+  }) async {
+    final now = DateTime.now();
+    await (db.update(db.enrollments)..where((t) => t.id.equals(enrollmentId))).write(EnrollmentsCompanion(
+      status: const Value('transfere'),
+      transferDate: Value(transferDate ?? now),
+      transferReason: Value(reason),
+      updatedAt: Value(now),
+    ));
+    if (markStudentTransferred) {
+      await (db.update(db.students)..where((t) => t.id.equals(studentId))).write(StudentsCompanion(
+        status: const Value('transfere'),
+        updatedAt: Value(now),
+      ));
+    }
+  }
+
   Future<List<Student>> allStudents({List<String>? allowedClassIds, String? academicYearId}) async {
     if (allowedClassIds != null) {
       if (allowedClassIds.isEmpty) return [];

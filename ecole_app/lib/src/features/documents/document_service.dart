@@ -170,6 +170,51 @@ class DocumentService {
     return doc.save();
   }
 
+  Future<Uint8List> buildTransferCertificate({
+    required Student student,
+    required Enrollment enrollment,
+    required SchoolSetting? school,
+    String? academicYearLabel,
+    String? className,
+  }) async {
+    final doc = pw.Document();
+    final schoolName = school?.name ?? 'Établissement scolaire';
+    final dateStr = DateFormat('dd/MM/yyyy').format(DateTime.now());
+    final transferDate = enrollment.transferDate != null ? DateFormat('dd/MM/yyyy').format(enrollment.transferDate!) : dateStr;
+    doc.addPage(pw.Page(
+      pageFormat: PdfPageFormat.a4,
+      margin: const pw.EdgeInsets.all(48),
+      build: (ctx) => pw.Column(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [
+        pw.Center(child: pw.Text(schoolName, style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold))),
+        if (school?.address != null) pw.Center(child: pw.Text(school!.address!)),
+        if (school?.phone != null) pw.Center(child: pw.Text('Tél: ${school!.phone}')),
+        pw.SizedBox(height: 24),
+        pw.Center(child: pw.Text('CERTIFICAT DE RADIATION / SORTIE', style: pw.TextStyle(fontSize: 20, fontWeight: pw.FontWeight.bold))),
+        pw.SizedBox(height: 24),
+        _row('Élève', '${student.lastName} ${student.firstName}'),
+        _row('Matricule', student.matricule),
+        if (student.birthDate != null) _row('Date de naissance', DateFormat('dd/MM/yyyy').format(student.birthDate!)),
+        if (academicYearLabel != null) _row('Année scolaire', academicYearLabel),
+        if (className != null) _row('Classe', className),
+        _row('Statut inscription', enrollment.status),
+        _row('Quitus financier', enrollment.quitusFinancial),
+        _row('Quitus bibliothèque', enrollment.quitusLibrary),
+        _row('Date de départ', transferDate),
+        if (enrollment.transferReason != null && enrollment.transferReason!.isNotEmpty) _row('Motif', enrollment.transferReason!),
+        pw.SizedBox(height: 16),
+        pw.Text('Le présent certificat atteste que l\'élève susmentionné(e) a été régulièrement radié(e)/transféré(e) de notre établissement après accomplissement des formalités de sortie (quitus) conformément à la procédure en vigueur.'),
+        pw.SizedBox(height: 12),
+        pw.Text('L\'historique scolaire et administratif de l\'élève est conservé dans les archives de l\'établissement.'),
+        pw.Spacer(),
+        pw.Align(alignment: pw.Alignment.centerRight, child: pw.Text('Fait le $dateStr')),
+        pw.SizedBox(height: 40),
+        pw.Align(alignment: pw.Alignment.centerRight, child: pw.Text('Signature et cachet')),
+        if (school?.legalMentions != null) ...[pw.SizedBox(height: 16), pw.Text(school!.legalMentions!, style: const pw.TextStyle(fontSize: 8))],
+      ]),
+    ));
+    return doc.save();
+  }
+
   pw.Widget _row(String label, String value) => pw.Padding(
         padding: const pw.EdgeInsets.symmetric(vertical: 2),
         child: pw.Row(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [

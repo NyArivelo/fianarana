@@ -5,10 +5,12 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:printing/printing.dart';
 
 import '../../core/database/app_database.dart';
 import '../../core/security/current_user_scope.dart';
 import '../academics/academics_providers.dart';
+import '../documents/document_service.dart';
 import '../settings/settings_providers.dart';
 import 'students_io.dart';
 import 'students_providers.dart';
@@ -335,12 +337,14 @@ class _StudentDetail extends ConsumerWidget {
           error: (e, _) => Text('Erreur: $e'),
           data: (list) => Column(children: [
             for (final e in list)
-              ListTile(
+              Card(child: ListTile(
                 dense: true,
                 leading: const Icon(Icons.assignment_ind_outlined),
                 title: Text('${yearNames[e.academicYearId] ?? e.academicYearId} — ${classNames[e.classId] ?? 'Sans classe'}'),
-                subtitle: Text('Statut: ${e.status}'),
-              ),
+                subtitle: Text('Statut: ${e.status} • Quitus financier: ${e.quitusFinancial} • Quitus bibliothèque: ${e.quitusLibrary}${e.transferDate != null ? ' • Départ: ${DateFormat('dd/MM/yyyy').format(e.transferDate!)}' : ''}'),
+                isThreeLine: true,
+                trailing: FilledButton.tonalIcon(onPressed: () => _transferDialog(context, ref, studentId, e, yearNames[e.academicYearId], classNames[e.classId]), icon: const Icon(Icons.exit_to_app), label: const Text('Transfert/Quitus')),
+              )),
             if (list.isEmpty) const Text('Aucune inscription.'),
             Align(alignment: Alignment.centerLeft, child: TextButton.icon(
               onPressed: () => _addEnrollment(context, ref, studentId),
@@ -432,6 +436,60 @@ class _StudentDetail extends ConsumerWidget {
         ],
       );
     }));
+  }
+
+  static Future<void> _transferDialog(BuildContext context, WidgetRef ref, String studentId, Enrollment e, String? yearLabel, String? className) async {
+    String qf = e.quitusFinancial;
+    String ql = e.quitusLibrary;
+    final reason = TextEditingController(text: e.transferReason ?? '');
+    DateTime tDate = e.transferDate ?? DateTime.now();
+    final fmt = DateFormat('dd/MM/yyyy');
+    await showDialog(context: context, builder: (ctx) => StatefulBuilder(builder: (ctx, setState) => AlertDialog(
+      title: const Text('Transfert / Quitus / Certificat de sortie'),
+      content: SizedBox(width: 560, child: SingleChildScrollView(child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+        const Text('1) Valider les quitus (financier et bibliothèque) avant la radiation/transfert.'),
+        const SizedBox(height: 8),
+        DropdownButtonFormField<String>(initialValue: qf, decoration: const InputDecoration(labelText: 'Quitus financier (scolarité/frais régularisés)'), items: const [DropdownMenuItem(value: 'pending', child: Text('En attente')), DropdownMenuItem(value: 'ok', child: Text('Validé (OK)'))], onChanged: (v)=>setState(()=>qf=v??qf)),
+        const SizedBox(height: 8),
+        DropdownButtonFormField<String>(initialValue: ql, decoration: const InputDecoration(labelText: 'Quitus bibliothèque (ouvrages restitués)'), items: const [DropdownMenuItem(value: 'pending', child: Text('En attente')), DropdownMenuItem(value: 'ok', child: Text('Validé (OK)'))], onChanged: (v)=>setState(()=>ql=v??ql)),
+        const SizedBox(height: 8),
+        OutlinedButton(onPressed: () async { final d = await showDatePicker(context: ctx, initialDate: tDate, firstDate: DateTime(2020), lastDate: DateTime(2100)); if (d!=null) setState(()=>tDate=d); }, child: Text('Date de départ: ${fmt.format(tDate)}')),
+        const SizedBox(height: 8),
+        TextField(controller: reason, decoration: const InputDecoration(labelText: 'Motif de transfert/radiation'), maxLines: 2),
+        const SizedBox(height: 8),
+        Text('Statut actuel: ${e.status}', style: const TextStyle(fontWeight: FontWeight.w600)),
+        const SizedBox(height: 4),
+        const Text('La validation du transfert marque l\'inscription et l\'élève comme "Transféré/Radié" tout en conservant l\'historique.'),
+      ]))),
+      actions: [
+        TextButton(onPressed: ()=>Navigator.pop(ctx), child: const Text('Fermer')),
+        OutlinedButton(onPressed: () async {
+          await ref.read(studentsRepositoryProvider).updateEnrollmentQuitus(enrollmentId: e.id, quitusFinancial: qf, quitusLibrary: ql);
+          if (ctx.mounted) Navigator.pop(ctx);
+        }, child: const Text('Enregistrer quitus')),
+        FilledButton.tonal(onPressed: (qf == 'ok' && ql == 'ok') ? () async {
+          await ref.read(studentsRepositoryProvider).updateEnrollmentQuitus(enrollmentId: e.id, quitusFinancial: qf, quitusLibrary: ql);
+          await ref.read(studentsRepositoryProvider).transferEnrollment(enrollmentId: e.id, studentId: studentId, reason: reason.text.trim().isEmpty?null:reason.text.trim(), transferDate: tDate, markStudentTransferred: true);
+          final repo = ref.read(studentsRepositoryProvider);
+          final student = await repo.getStudent(studentId);
+          final school = ref.read(schoolSettingProvider).valueOrNull;
+          if (student != null) {
+            final enrollment = await (repo.db.select(repo.db.enrollments)..where((t)=>t.id.equals(e.id))).getSingle();
+            final bytes = await DocumentService().buildTransferCertificate(student: student, enrollment: enrollment, school: school, academicYearLabel: yearLabel, className: className);
+            if (ctx.mounted) {
+              Navigator.pop(ctx);
+              await showDialog(context: context, builder: (dctx)=>AlertDialog(
+                title: const Text('Certificat de radiation / sortie'),
+                content: SizedBox(width: 700, height: 800, child: PdfPreview(build: (format) async => bytes, canChangeOrientation: false, canChangePageFormat: false)),
+                actions: [TextButton(onPressed: ()=>Navigator.pop(dctx), child: const Text('Fermer'))],
+              ));
+            }
+          } else {
+            if (ctx.mounted) Navigator.pop(ctx);
+          }
+        } : null, child: const Text('Valider transfert & générer certificat')),
+      ],
+    )));
   }
 }
 
