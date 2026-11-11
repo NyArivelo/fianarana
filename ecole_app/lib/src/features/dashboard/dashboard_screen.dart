@@ -12,6 +12,8 @@ import '../auth/lock_screen.dart';
 import '../documents/documents_screen.dart';
 import '../finance/finance_screen.dart';
 import '../grades/grades_screen.dart';
+import '../discipline/discipline_screen.dart';
+import '../library/library_screen.dart';
 import '../schedule/schedule_screen.dart';
 import '../settings/settings_screen.dart';
 import '../staff/staff_screen.dart';
@@ -48,6 +50,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     (Icons.local_library_outlined, 'Bibliothèque', 'Catalogue, prêts et quitus'),
     (Icons.description_outlined, 'Document Studio', 'Modèles et génération documentaire'),
     (Icons.settings_outlined, 'Paramètres', 'Établissement, années scolaires et sécurité'),
+    (Icons.gavel_outlined, 'Discipline', 'Incidents, sanctions et suivi'),
   ];
 
   @override
@@ -70,6 +73,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
         if (scope == 'global' || scope == 'caisse') 6,
         if (scope == 'global') 2,
         if (scope == 'global') 7,
+        if (scope == 'global') 10,
       };
 
   Widget _buildModuleWidget(int idx, String username) {
@@ -81,8 +85,10 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       4 => const AttendanceScreen(),
       5 => const GradesScreen(),
       6 => const FinanceScreen(),
+      7 => const LibraryScreen(),
       8 => const DocumentsScreen(),
       9 => const SettingsScreen(),
+      10 => const DisciplineScreen(),
       _ => _ModulePlaceholder(title: _modules[idx].$2),
     };
   }

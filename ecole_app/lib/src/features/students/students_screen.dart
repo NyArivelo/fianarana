@@ -11,6 +11,7 @@ import '../../core/database/app_database.dart';
 import '../../core/security/current_user_scope.dart';
 import '../academics/academics_providers.dart';
 import '../documents/document_service.dart';
+import '../library/library_providers.dart';
 import '../settings/settings_providers.dart';
 import 'students_io.dart';
 import 'students_providers.dart';
@@ -439,11 +440,13 @@ class _StudentDetail extends ConsumerWidget {
   }
 
   static Future<void> _transferDialog(BuildContext context, WidgetRef ref, String studentId, Enrollment e, String? yearLabel, String? className) async {
+    final hasUnreturnedLoans = await ref.read(libraryRepositoryProvider).hasUnreturnedLoans(studentId);
     String qf = e.quitusFinancial;
-    String ql = e.quitusLibrary;
+    String ql = hasUnreturnedLoans ? 'pending' : e.quitusLibrary;
     final reason = TextEditingController(text: e.transferReason ?? '');
     DateTime tDate = e.transferDate ?? DateTime.now();
     final fmt = DateFormat('dd/MM/yyyy');
+    if (!context.mounted) return;
     await showDialog(context: context, builder: (ctx) => StatefulBuilder(builder: (ctx, setState) => AlertDialog(
       title: const Text('Transfert / Quitus / Certificat de sortie'),
       content: SizedBox(width: 560, child: SingleChildScrollView(child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -451,7 +454,17 @@ class _StudentDetail extends ConsumerWidget {
         const SizedBox(height: 8),
         DropdownButtonFormField<String>(initialValue: qf, decoration: const InputDecoration(labelText: 'Quitus financier (scolarité/frais régularisés)'), items: const [DropdownMenuItem(value: 'pending', child: Text('En attente')), DropdownMenuItem(value: 'ok', child: Text('Validé (OK)'))], onChanged: (v)=>setState(()=>qf=v??qf)),
         const SizedBox(height: 8),
-        DropdownButtonFormField<String>(initialValue: ql, decoration: const InputDecoration(labelText: 'Quitus bibliothèque (ouvrages restitués)'), items: const [DropdownMenuItem(value: 'pending', child: Text('En attente')), DropdownMenuItem(value: 'ok', child: Text('Validé (OK)'))], onChanged: (v)=>setState(()=>ql=v??ql)),
+        DropdownButtonFormField<String>(initialValue: ql, decoration: const InputDecoration(labelText: 'Quitus bibliothèque (ouvrages restitués)'), items: const [DropdownMenuItem(value: 'pending', child: Text('En attente')), DropdownMenuItem(value: 'ok', child: Text('Validé (OK)'))], onChanged: (v){
+          if (v == 'ok' && hasUnreturnedLoans) {
+            ScaffoldMessenger.of(ctx).showSnackBar(const SnackBar(content: Text('Quitus bibliothèque impossible: prêts actifs/en retard non retournés.')));
+            return;
+          }
+          setState(()=>ql=v??ql);
+        }),
+        if (hasUnreturnedLoans) ...[
+          const SizedBox(height: 8),
+          const Text('⚠ Prêts de bibliothèque actifs/en retard détectés pour cet élève. Le quitus bibliothèque et le transfert sont bloqués tant que les ouvrages ne sont pas retournés.', style: TextStyle(color: Colors.red)),
+        ],
         const SizedBox(height: 8),
         OutlinedButton(onPressed: () async { final d = await showDatePicker(context: ctx, initialDate: tDate, firstDate: DateTime(2020), lastDate: DateTime(2100)); if (d!=null) setState(()=>tDate=d); }, child: Text('Date de départ: ${fmt.format(tDate)}')),
         const SizedBox(height: 8),
@@ -464,10 +477,15 @@ class _StudentDetail extends ConsumerWidget {
       actions: [
         TextButton(onPressed: ()=>Navigator.pop(ctx), child: const Text('Fermer')),
         OutlinedButton(onPressed: () async {
+          final blocked = hasUnreturnedLoans && ql == 'ok';
+          if (blocked) {
+            ScaffoldMessenger.of(ctx).showSnackBar(const SnackBar(content: Text('Quitus bibliothèque bloqué: prêts actifs/en retard.')));
+            return;
+          }
           await ref.read(studentsRepositoryProvider).updateEnrollmentQuitus(enrollmentId: e.id, quitusFinancial: qf, quitusLibrary: ql);
           if (ctx.mounted) Navigator.pop(ctx);
         }, child: const Text('Enregistrer quitus')),
-        FilledButton.tonal(onPressed: (qf == 'ok' && ql == 'ok') ? () async {
+        FilledButton.tonal(onPressed: (qf == 'ok' && ql == 'ok' && !hasUnreturnedLoans) ? () async {
           await ref.read(studentsRepositoryProvider).updateEnrollmentQuitus(enrollmentId: e.id, quitusFinancial: qf, quitusLibrary: ql);
           await ref.read(studentsRepositoryProvider).transferEnrollment(enrollmentId: e.id, studentId: studentId, reason: reason.text.trim().isEmpty?null:reason.text.trim(), transferDate: tDate, markStudentTransferred: true);
           final repo = ref.read(studentsRepositoryProvider);

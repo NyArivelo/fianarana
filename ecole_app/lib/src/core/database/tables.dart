@@ -289,3 +289,54 @@ class StaffMembers extends Table with UuidPrimaryKey, AuditColumns {
   TextColumn get notes => text().nullable()();
   TextColumn get documentsNote => text().nullable()(); // paths/references summary
 }
+
+// --- Discipline ---
+class DisciplinaryIncidents extends Table with UuidPrimaryKey, AuditColumns {
+  TextColumn get studentId => text().references(Students, #id)();
+  DateTimeColumn get incidentDate => dateTime()();
+  TextColumn get incidentType => text()();
+  TextColumn get description => text()();
+  TextColumn get location => text().nullable()();
+  TextColumn get reportedBy => text().nullable()();
+  TextColumn get status => text().withDefault(const Constant('open'))(); // open, closed
+  BoolColumn get isConfidential => boolean().withDefault(const Constant(true))();
+}
+
+class DisciplinaryActions extends Table with UuidPrimaryKey, AuditColumns {
+  TextColumn get incidentId => text().references(DisciplinaryIncidents, #id)();
+  TextColumn get actionType => text()(); // convocation, retenue, exclusion_temporaire, avertissement, etc.
+  DateTimeColumn get decisionDate => dateTime().nullable()();
+  DateTimeColumn get startDate => dateTime().nullable()();
+  DateTimeColumn get endDate => dateTime().nullable()();
+  TextColumn get notes => text().nullable()();
+  TextColumn get executionStatus => text().withDefault(const Constant('planned'))(); // planned, in_progress, done, cancelled
+  TextColumn get followUpNotes => text().nullable()();
+}
+
+// --- Library ---
+class LibraryItems extends Table with UuidPrimaryKey, AuditColumns {
+  TextColumn get title => text()();
+  TextColumn get author => text().nullable()();
+  TextColumn get isbn => text().nullable()();
+  TextColumn get category => text().nullable()();
+  TextColumn get publisher => text().nullable()();
+  TextColumn get publicationYear => text().nullable()();
+  TextColumn get description => text().nullable()();
+}
+
+class LibraryCopies extends Table with UuidPrimaryKey, AuditColumns {
+  TextColumn get itemId => text().references(LibraryItems, #id)();
+  TextColumn get copyCode => text()();
+  TextColumn get status => text().withDefault(const Constant('available'))(); // available, borrowed, lost, damaged
+  TextColumn get locationNote => text().nullable()();
+}
+
+class LibraryLoans extends Table with UuidPrimaryKey, AuditColumns {
+  TextColumn get copyId => text().references(LibraryCopies, #id)();
+  TextColumn get studentId => text().references(Students, #id)();
+  DateTimeColumn get loanDate => dateTime()();
+  DateTimeColumn get dueDate => dateTime()();
+  DateTimeColumn get returnDate => dateTime().nullable()();
+  TextColumn get status => text().withDefault(const Constant('active'))(); // active, returned, overdue, lost
+  TextColumn get notes => text().nullable()();
+}

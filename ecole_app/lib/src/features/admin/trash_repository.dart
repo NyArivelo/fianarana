@@ -104,7 +104,32 @@ class TrashRepository {
         items.add(TrashItem(entityType: 'staffMember', id: r.id, label: '${r.lastName} ${r.firstName}', deletedAt: r.deletedAt, extra: r.staffType));
       }
     }
-    await Future.wait([addStudents(), addGuardians(), addEnrollments(), addClasses(), addSubjects(), addLevels(), addEduTypes(), addRooms(), addFeeTypes(), addSessions(), addEvals(), addPayments(), addPlans(), addAssignments(), addYears(), addPeriods(), addStaff()]);
+    Future<void> addDisciplineIncidents() async {
+      for (final r in await (db.select(db.disciplinaryIncidents)..where((t) => t.isDeleted.equals(true))).get()) {
+        items.add(TrashItem(entityType: 'disciplinaryIncident', id: r.id, label: '${r.incidentType} (${r.incidentDate.toIso8601String().substring(0,10)})', deletedAt: r.deletedAt, extra: r.status));
+      }
+    }
+    Future<void> addDisciplineActions() async {
+      for (final r in await (db.select(db.disciplinaryActions)..where((t) => t.isDeleted.equals(true))).get()) {
+        items.add(TrashItem(entityType: 'disciplinaryAction', id: r.id, label: '${r.actionType} (${r.executionStatus})', deletedAt: r.deletedAt));
+      }
+    }
+    Future<void> addLibraryItems() async {
+      for (final r in await (db.select(db.libraryItems)..where((t) => t.isDeleted.equals(true))).get()) {
+        items.add(TrashItem(entityType: 'libraryItem', id: r.id, label: r.title, deletedAt: r.deletedAt));
+      }
+    }
+    Future<void> addLibraryCopies() async {
+      for (final r in await (db.select(db.libraryCopies)..where((t) => t.isDeleted.equals(true))).get()) {
+        items.add(TrashItem(entityType: 'libraryCopy', id: r.id, label: r.copyCode, deletedAt: r.deletedAt, extra: r.status));
+      }
+    }
+    Future<void> addLibraryLoans() async {
+      for (final r in await (db.select(db.libraryLoans)..where((t) => t.isDeleted.equals(true))).get()) {
+        items.add(TrashItem(entityType: 'libraryLoan', id: r.id, label: 'Prêt ${r.id.substring(0,8)}', deletedAt: r.deletedAt, extra: r.status));
+      }
+    }
+    await Future.wait([addStudents(), addGuardians(), addEnrollments(), addClasses(), addSubjects(), addLevels(), addEduTypes(), addRooms(), addFeeTypes(), addSessions(), addEvals(), addPayments(), addPlans(), addAssignments(), addYears(), addPeriods(), addStaff(), addDisciplineIncidents(), addDisciplineActions(), addLibraryItems(), addLibraryCopies(), addLibraryLoans()]);
     items.sort((a,b)=> (b.deletedAt ?? DateTime(2000)).compareTo(a.deletedAt ?? DateTime(2000)));
     return items;
   }
@@ -129,6 +154,11 @@ class TrashRepository {
       case 'academicYear': await (db.update(db.academicYears)..where((t)=>t.id.equals(item.id))).write(AcademicYearsCompanion(isDeleted: const Value(false), deletedAt: const Value(null), updatedAt: Value(now))); break;
       case 'period': await (db.update(db.periods)..where((t)=>t.id.equals(item.id))).write(PeriodsCompanion(isDeleted: const Value(false), deletedAt: const Value(null), updatedAt: Value(now))); break;
       case 'staffMember': await (db.update(db.staffMembers)..where((t)=>t.id.equals(item.id))).write(StaffMembersCompanion(isDeleted: const Value(false), deletedAt: const Value(null), updatedAt: Value(now))); break;
+      case 'disciplinaryIncident': await (db.update(db.disciplinaryIncidents)..where((t)=>t.id.equals(item.id))).write(DisciplinaryIncidentsCompanion(isDeleted: const Value(false), deletedAt: const Value(null), updatedAt: Value(now))); break;
+      case 'disciplinaryAction': await (db.update(db.disciplinaryActions)..where((t)=>t.id.equals(item.id))).write(DisciplinaryActionsCompanion(isDeleted: const Value(false), deletedAt: const Value(null), updatedAt: Value(now))); break;
+      case 'libraryItem': await (db.update(db.libraryItems)..where((t)=>t.id.equals(item.id))).write(LibraryItemsCompanion(isDeleted: const Value(false), deletedAt: const Value(null), updatedAt: Value(now))); break;
+      case 'libraryCopy': await (db.update(db.libraryCopies)..where((t)=>t.id.equals(item.id))).write(LibraryCopiesCompanion(isDeleted: const Value(false), deletedAt: const Value(null), updatedAt: Value(now))); break;
+      case 'libraryLoan': await (db.update(db.libraryLoans)..where((t)=>t.id.equals(item.id))).write(LibraryLoansCompanion(isDeleted: const Value(false), deletedAt: const Value(null), updatedAt: Value(now))); break;
       default: throw Exception('Type non supporté: ${item.entityType}');
     }
     await db.into(db.auditLogs).insert(AuditLogsCompanion.insert(id: _uuid.v4(), timestamp: DateTime.now().toUtc(), module: 'trash', action: 'restore', targetType: Value(item.entityType), targetId: Value(item.id), details: Value(item.label)));
@@ -153,6 +183,11 @@ class TrashRepository {
       case 'academicYear': await (db.delete(db.academicYears)..where((t)=>t.id.equals(item.id))).go(); break;
       case 'period': await (db.delete(db.periods)..where((t)=>t.id.equals(item.id))).go(); break;
       case 'staffMember': await (db.delete(db.staffMembers)..where((t)=>t.id.equals(item.id))).go(); break;
+      case 'disciplinaryIncident': await (db.delete(db.disciplinaryIncidents)..where((t)=>t.id.equals(item.id))).go(); break;
+      case 'disciplinaryAction': await (db.delete(db.disciplinaryActions)..where((t)=>t.id.equals(item.id))).go(); break;
+      case 'libraryItem': await (db.delete(db.libraryItems)..where((t)=>t.id.equals(item.id))).go(); break;
+      case 'libraryCopy': await (db.delete(db.libraryCopies)..where((t)=>t.id.equals(item.id))).go(); break;
+      case 'libraryLoan': await (db.delete(db.libraryLoans)..where((t)=>t.id.equals(item.id))).go(); break;
       default: throw Exception('Type non supporté: ${item.entityType}');
     }
     await db.into(db.auditLogs).insert(AuditLogsCompanion.insert(id: _uuid.v4(), timestamp: DateTime.now().toUtc(), module: 'trash', action: 'purge', targetType: Value(item.entityType), targetId: Value(item.id), details: Value(item.label)));

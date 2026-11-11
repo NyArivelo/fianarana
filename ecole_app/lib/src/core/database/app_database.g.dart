@@ -21196,6 +21196,4025 @@ class StaffMembersCompanion extends UpdateCompanion<StaffMember> {
   }
 }
 
+class $DisciplinaryIncidentsTable extends DisciplinaryIncidents
+    with TableInfo<$DisciplinaryIncidentsTable, DisciplinaryIncident> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $DisciplinaryIncidentsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _createdByMeta = const VerificationMeta(
+    'createdBy',
+  );
+  @override
+  late final GeneratedColumn<String> createdBy = GeneratedColumn<String>(
+    'created_by',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _updatedByMeta = const VerificationMeta(
+    'updatedBy',
+  );
+  @override
+  late final GeneratedColumn<String> updatedBy = GeneratedColumn<String>(
+    'updated_by',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _isDeletedMeta = const VerificationMeta(
+    'isDeleted',
+  );
+  @override
+  late final GeneratedColumn<bool> isDeleted = GeneratedColumn<bool>(
+    'is_deleted',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_deleted" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _deletedAtMeta = const VerificationMeta(
+    'deletedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
+    'deleted_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _studentIdMeta = const VerificationMeta(
+    'studentId',
+  );
+  @override
+  late final GeneratedColumn<String> studentId = GeneratedColumn<String>(
+    'student_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES students (id)',
+    ),
+  );
+  static const VerificationMeta _incidentDateMeta = const VerificationMeta(
+    'incidentDate',
+  );
+  @override
+  late final GeneratedColumn<DateTime> incidentDate = GeneratedColumn<DateTime>(
+    'incident_date',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _incidentTypeMeta = const VerificationMeta(
+    'incidentType',
+  );
+  @override
+  late final GeneratedColumn<String> incidentType = GeneratedColumn<String>(
+    'incident_type',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _descriptionMeta = const VerificationMeta(
+    'description',
+  );
+  @override
+  late final GeneratedColumn<String> description = GeneratedColumn<String>(
+    'description',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _locationMeta = const VerificationMeta(
+    'location',
+  );
+  @override
+  late final GeneratedColumn<String> location = GeneratedColumn<String>(
+    'location',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _reportedByMeta = const VerificationMeta(
+    'reportedBy',
+  );
+  @override
+  late final GeneratedColumn<String> reportedBy = GeneratedColumn<String>(
+    'reported_by',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _statusMeta = const VerificationMeta('status');
+  @override
+  late final GeneratedColumn<String> status = GeneratedColumn<String>(
+    'status',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('open'),
+  );
+  static const VerificationMeta _isConfidentialMeta = const VerificationMeta(
+    'isConfidential',
+  );
+  @override
+  late final GeneratedColumn<bool> isConfidential = GeneratedColumn<bool>(
+    'is_confidential',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_confidential" IN (0, 1))',
+    ),
+    defaultValue: const Constant(true),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    createdAt,
+    updatedAt,
+    createdBy,
+    updatedBy,
+    isDeleted,
+    deletedAt,
+    studentId,
+    incidentDate,
+    incidentType,
+    description,
+    location,
+    reportedBy,
+    status,
+    isConfidential,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'disciplinary_incidents';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<DisciplinaryIncident> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    if (data.containsKey('created_by')) {
+      context.handle(
+        _createdByMeta,
+        createdBy.isAcceptableOrUnknown(data['created_by']!, _createdByMeta),
+      );
+    }
+    if (data.containsKey('updated_by')) {
+      context.handle(
+        _updatedByMeta,
+        updatedBy.isAcceptableOrUnknown(data['updated_by']!, _updatedByMeta),
+      );
+    }
+    if (data.containsKey('is_deleted')) {
+      context.handle(
+        _isDeletedMeta,
+        isDeleted.isAcceptableOrUnknown(data['is_deleted']!, _isDeletedMeta),
+      );
+    }
+    if (data.containsKey('deleted_at')) {
+      context.handle(
+        _deletedAtMeta,
+        deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta),
+      );
+    }
+    if (data.containsKey('student_id')) {
+      context.handle(
+        _studentIdMeta,
+        studentId.isAcceptableOrUnknown(data['student_id']!, _studentIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_studentIdMeta);
+    }
+    if (data.containsKey('incident_date')) {
+      context.handle(
+        _incidentDateMeta,
+        incidentDate.isAcceptableOrUnknown(
+          data['incident_date']!,
+          _incidentDateMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_incidentDateMeta);
+    }
+    if (data.containsKey('incident_type')) {
+      context.handle(
+        _incidentTypeMeta,
+        incidentType.isAcceptableOrUnknown(
+          data['incident_type']!,
+          _incidentTypeMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_incidentTypeMeta);
+    }
+    if (data.containsKey('description')) {
+      context.handle(
+        _descriptionMeta,
+        description.isAcceptableOrUnknown(
+          data['description']!,
+          _descriptionMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_descriptionMeta);
+    }
+    if (data.containsKey('location')) {
+      context.handle(
+        _locationMeta,
+        location.isAcceptableOrUnknown(data['location']!, _locationMeta),
+      );
+    }
+    if (data.containsKey('reported_by')) {
+      context.handle(
+        _reportedByMeta,
+        reportedBy.isAcceptableOrUnknown(data['reported_by']!, _reportedByMeta),
+      );
+    }
+    if (data.containsKey('status')) {
+      context.handle(
+        _statusMeta,
+        status.isAcceptableOrUnknown(data['status']!, _statusMeta),
+      );
+    }
+    if (data.containsKey('is_confidential')) {
+      context.handle(
+        _isConfidentialMeta,
+        isConfidential.isAcceptableOrUnknown(
+          data['is_confidential']!,
+          _isConfidentialMeta,
+        ),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  DisciplinaryIncident map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return DisciplinaryIncident(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+      createdBy: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}created_by'],
+      ),
+      updatedBy: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}updated_by'],
+      ),
+      isDeleted: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_deleted'],
+      )!,
+      deletedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}deleted_at'],
+      ),
+      studentId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}student_id'],
+      )!,
+      incidentDate: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}incident_date'],
+      )!,
+      incidentType: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}incident_type'],
+      )!,
+      description: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}description'],
+      )!,
+      location: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}location'],
+      ),
+      reportedBy: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}reported_by'],
+      ),
+      status: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}status'],
+      )!,
+      isConfidential: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_confidential'],
+      )!,
+    );
+  }
+
+  @override
+  $DisciplinaryIncidentsTable createAlias(String alias) {
+    return $DisciplinaryIncidentsTable(attachedDatabase, alias);
+  }
+}
+
+class DisciplinaryIncident extends DataClass
+    implements Insertable<DisciplinaryIncident> {
+  final String id;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  final String? createdBy;
+  final String? updatedBy;
+  final bool isDeleted;
+  final DateTime? deletedAt;
+  final String studentId;
+  final DateTime incidentDate;
+  final String incidentType;
+  final String description;
+  final String? location;
+  final String? reportedBy;
+  final String status;
+  final bool isConfidential;
+  const DisciplinaryIncident({
+    required this.id,
+    required this.createdAt,
+    required this.updatedAt,
+    this.createdBy,
+    this.updatedBy,
+    required this.isDeleted,
+    this.deletedAt,
+    required this.studentId,
+    required this.incidentDate,
+    required this.incidentType,
+    required this.description,
+    this.location,
+    this.reportedBy,
+    required this.status,
+    required this.isConfidential,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    if (!nullToAbsent || createdBy != null) {
+      map['created_by'] = Variable<String>(createdBy);
+    }
+    if (!nullToAbsent || updatedBy != null) {
+      map['updated_by'] = Variable<String>(updatedBy);
+    }
+    map['is_deleted'] = Variable<bool>(isDeleted);
+    if (!nullToAbsent || deletedAt != null) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt);
+    }
+    map['student_id'] = Variable<String>(studentId);
+    map['incident_date'] = Variable<DateTime>(incidentDate);
+    map['incident_type'] = Variable<String>(incidentType);
+    map['description'] = Variable<String>(description);
+    if (!nullToAbsent || location != null) {
+      map['location'] = Variable<String>(location);
+    }
+    if (!nullToAbsent || reportedBy != null) {
+      map['reported_by'] = Variable<String>(reportedBy);
+    }
+    map['status'] = Variable<String>(status);
+    map['is_confidential'] = Variable<bool>(isConfidential);
+    return map;
+  }
+
+  DisciplinaryIncidentsCompanion toCompanion(bool nullToAbsent) {
+    return DisciplinaryIncidentsCompanion(
+      id: Value(id),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+      createdBy: createdBy == null && nullToAbsent
+          ? const Value.absent()
+          : Value(createdBy),
+      updatedBy: updatedBy == null && nullToAbsent
+          ? const Value.absent()
+          : Value(updatedBy),
+      isDeleted: Value(isDeleted),
+      deletedAt: deletedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deletedAt),
+      studentId: Value(studentId),
+      incidentDate: Value(incidentDate),
+      incidentType: Value(incidentType),
+      description: Value(description),
+      location: location == null && nullToAbsent
+          ? const Value.absent()
+          : Value(location),
+      reportedBy: reportedBy == null && nullToAbsent
+          ? const Value.absent()
+          : Value(reportedBy),
+      status: Value(status),
+      isConfidential: Value(isConfidential),
+    );
+  }
+
+  factory DisciplinaryIncident.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return DisciplinaryIncident(
+      id: serializer.fromJson<String>(json['id']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      createdBy: serializer.fromJson<String?>(json['createdBy']),
+      updatedBy: serializer.fromJson<String?>(json['updatedBy']),
+      isDeleted: serializer.fromJson<bool>(json['isDeleted']),
+      deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
+      studentId: serializer.fromJson<String>(json['studentId']),
+      incidentDate: serializer.fromJson<DateTime>(json['incidentDate']),
+      incidentType: serializer.fromJson<String>(json['incidentType']),
+      description: serializer.fromJson<String>(json['description']),
+      location: serializer.fromJson<String?>(json['location']),
+      reportedBy: serializer.fromJson<String?>(json['reportedBy']),
+      status: serializer.fromJson<String>(json['status']),
+      isConfidential: serializer.fromJson<bool>(json['isConfidential']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'createdBy': serializer.toJson<String?>(createdBy),
+      'updatedBy': serializer.toJson<String?>(updatedBy),
+      'isDeleted': serializer.toJson<bool>(isDeleted),
+      'deletedAt': serializer.toJson<DateTime?>(deletedAt),
+      'studentId': serializer.toJson<String>(studentId),
+      'incidentDate': serializer.toJson<DateTime>(incidentDate),
+      'incidentType': serializer.toJson<String>(incidentType),
+      'description': serializer.toJson<String>(description),
+      'location': serializer.toJson<String?>(location),
+      'reportedBy': serializer.toJson<String?>(reportedBy),
+      'status': serializer.toJson<String>(status),
+      'isConfidential': serializer.toJson<bool>(isConfidential),
+    };
+  }
+
+  DisciplinaryIncident copyWith({
+    String? id,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    Value<String?> createdBy = const Value.absent(),
+    Value<String?> updatedBy = const Value.absent(),
+    bool? isDeleted,
+    Value<DateTime?> deletedAt = const Value.absent(),
+    String? studentId,
+    DateTime? incidentDate,
+    String? incidentType,
+    String? description,
+    Value<String?> location = const Value.absent(),
+    Value<String?> reportedBy = const Value.absent(),
+    String? status,
+    bool? isConfidential,
+  }) => DisciplinaryIncident(
+    id: id ?? this.id,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+    createdBy: createdBy.present ? createdBy.value : this.createdBy,
+    updatedBy: updatedBy.present ? updatedBy.value : this.updatedBy,
+    isDeleted: isDeleted ?? this.isDeleted,
+    deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+    studentId: studentId ?? this.studentId,
+    incidentDate: incidentDate ?? this.incidentDate,
+    incidentType: incidentType ?? this.incidentType,
+    description: description ?? this.description,
+    location: location.present ? location.value : this.location,
+    reportedBy: reportedBy.present ? reportedBy.value : this.reportedBy,
+    status: status ?? this.status,
+    isConfidential: isConfidential ?? this.isConfidential,
+  );
+  DisciplinaryIncident copyWithCompanion(DisciplinaryIncidentsCompanion data) {
+    return DisciplinaryIncident(
+      id: data.id.present ? data.id.value : this.id,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      createdBy: data.createdBy.present ? data.createdBy.value : this.createdBy,
+      updatedBy: data.updatedBy.present ? data.updatedBy.value : this.updatedBy,
+      isDeleted: data.isDeleted.present ? data.isDeleted.value : this.isDeleted,
+      deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
+      studentId: data.studentId.present ? data.studentId.value : this.studentId,
+      incidentDate: data.incidentDate.present
+          ? data.incidentDate.value
+          : this.incidentDate,
+      incidentType: data.incidentType.present
+          ? data.incidentType.value
+          : this.incidentType,
+      description: data.description.present
+          ? data.description.value
+          : this.description,
+      location: data.location.present ? data.location.value : this.location,
+      reportedBy: data.reportedBy.present
+          ? data.reportedBy.value
+          : this.reportedBy,
+      status: data.status.present ? data.status.value : this.status,
+      isConfidential: data.isConfidential.present
+          ? data.isConfidential.value
+          : this.isConfidential,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DisciplinaryIncident(')
+          ..write('id: $id, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('createdBy: $createdBy, ')
+          ..write('updatedBy: $updatedBy, ')
+          ..write('isDeleted: $isDeleted, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('studentId: $studentId, ')
+          ..write('incidentDate: $incidentDate, ')
+          ..write('incidentType: $incidentType, ')
+          ..write('description: $description, ')
+          ..write('location: $location, ')
+          ..write('reportedBy: $reportedBy, ')
+          ..write('status: $status, ')
+          ..write('isConfidential: $isConfidential')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    createdAt,
+    updatedAt,
+    createdBy,
+    updatedBy,
+    isDeleted,
+    deletedAt,
+    studentId,
+    incidentDate,
+    incidentType,
+    description,
+    location,
+    reportedBy,
+    status,
+    isConfidential,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is DisciplinaryIncident &&
+          other.id == this.id &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt &&
+          other.createdBy == this.createdBy &&
+          other.updatedBy == this.updatedBy &&
+          other.isDeleted == this.isDeleted &&
+          other.deletedAt == this.deletedAt &&
+          other.studentId == this.studentId &&
+          other.incidentDate == this.incidentDate &&
+          other.incidentType == this.incidentType &&
+          other.description == this.description &&
+          other.location == this.location &&
+          other.reportedBy == this.reportedBy &&
+          other.status == this.status &&
+          other.isConfidential == this.isConfidential);
+}
+
+class DisciplinaryIncidentsCompanion
+    extends UpdateCompanion<DisciplinaryIncident> {
+  final Value<String> id;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<String?> createdBy;
+  final Value<String?> updatedBy;
+  final Value<bool> isDeleted;
+  final Value<DateTime?> deletedAt;
+  final Value<String> studentId;
+  final Value<DateTime> incidentDate;
+  final Value<String> incidentType;
+  final Value<String> description;
+  final Value<String?> location;
+  final Value<String?> reportedBy;
+  final Value<String> status;
+  final Value<bool> isConfidential;
+  final Value<int> rowid;
+  const DisciplinaryIncidentsCompanion({
+    this.id = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.createdBy = const Value.absent(),
+    this.updatedBy = const Value.absent(),
+    this.isDeleted = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.studentId = const Value.absent(),
+    this.incidentDate = const Value.absent(),
+    this.incidentType = const Value.absent(),
+    this.description = const Value.absent(),
+    this.location = const Value.absent(),
+    this.reportedBy = const Value.absent(),
+    this.status = const Value.absent(),
+    this.isConfidential = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  DisciplinaryIncidentsCompanion.insert({
+    required String id,
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.createdBy = const Value.absent(),
+    this.updatedBy = const Value.absent(),
+    this.isDeleted = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    required String studentId,
+    required DateTime incidentDate,
+    required String incidentType,
+    required String description,
+    this.location = const Value.absent(),
+    this.reportedBy = const Value.absent(),
+    this.status = const Value.absent(),
+    this.isConfidential = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       studentId = Value(studentId),
+       incidentDate = Value(incidentDate),
+       incidentType = Value(incidentType),
+       description = Value(description);
+  static Insertable<DisciplinaryIncident> custom({
+    Expression<String>? id,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<String>? createdBy,
+    Expression<String>? updatedBy,
+    Expression<bool>? isDeleted,
+    Expression<DateTime>? deletedAt,
+    Expression<String>? studentId,
+    Expression<DateTime>? incidentDate,
+    Expression<String>? incidentType,
+    Expression<String>? description,
+    Expression<String>? location,
+    Expression<String>? reportedBy,
+    Expression<String>? status,
+    Expression<bool>? isConfidential,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (createdBy != null) 'created_by': createdBy,
+      if (updatedBy != null) 'updated_by': updatedBy,
+      if (isDeleted != null) 'is_deleted': isDeleted,
+      if (deletedAt != null) 'deleted_at': deletedAt,
+      if (studentId != null) 'student_id': studentId,
+      if (incidentDate != null) 'incident_date': incidentDate,
+      if (incidentType != null) 'incident_type': incidentType,
+      if (description != null) 'description': description,
+      if (location != null) 'location': location,
+      if (reportedBy != null) 'reported_by': reportedBy,
+      if (status != null) 'status': status,
+      if (isConfidential != null) 'is_confidential': isConfidential,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  DisciplinaryIncidentsCompanion copyWith({
+    Value<String>? id,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+    Value<String?>? createdBy,
+    Value<String?>? updatedBy,
+    Value<bool>? isDeleted,
+    Value<DateTime?>? deletedAt,
+    Value<String>? studentId,
+    Value<DateTime>? incidentDate,
+    Value<String>? incidentType,
+    Value<String>? description,
+    Value<String?>? location,
+    Value<String?>? reportedBy,
+    Value<String>? status,
+    Value<bool>? isConfidential,
+    Value<int>? rowid,
+  }) {
+    return DisciplinaryIncidentsCompanion(
+      id: id ?? this.id,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      createdBy: createdBy ?? this.createdBy,
+      updatedBy: updatedBy ?? this.updatedBy,
+      isDeleted: isDeleted ?? this.isDeleted,
+      deletedAt: deletedAt ?? this.deletedAt,
+      studentId: studentId ?? this.studentId,
+      incidentDate: incidentDate ?? this.incidentDate,
+      incidentType: incidentType ?? this.incidentType,
+      description: description ?? this.description,
+      location: location ?? this.location,
+      reportedBy: reportedBy ?? this.reportedBy,
+      status: status ?? this.status,
+      isConfidential: isConfidential ?? this.isConfidential,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (createdBy.present) {
+      map['created_by'] = Variable<String>(createdBy.value);
+    }
+    if (updatedBy.present) {
+      map['updated_by'] = Variable<String>(updatedBy.value);
+    }
+    if (isDeleted.present) {
+      map['is_deleted'] = Variable<bool>(isDeleted.value);
+    }
+    if (deletedAt.present) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt.value);
+    }
+    if (studentId.present) {
+      map['student_id'] = Variable<String>(studentId.value);
+    }
+    if (incidentDate.present) {
+      map['incident_date'] = Variable<DateTime>(incidentDate.value);
+    }
+    if (incidentType.present) {
+      map['incident_type'] = Variable<String>(incidentType.value);
+    }
+    if (description.present) {
+      map['description'] = Variable<String>(description.value);
+    }
+    if (location.present) {
+      map['location'] = Variable<String>(location.value);
+    }
+    if (reportedBy.present) {
+      map['reported_by'] = Variable<String>(reportedBy.value);
+    }
+    if (status.present) {
+      map['status'] = Variable<String>(status.value);
+    }
+    if (isConfidential.present) {
+      map['is_confidential'] = Variable<bool>(isConfidential.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DisciplinaryIncidentsCompanion(')
+          ..write('id: $id, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('createdBy: $createdBy, ')
+          ..write('updatedBy: $updatedBy, ')
+          ..write('isDeleted: $isDeleted, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('studentId: $studentId, ')
+          ..write('incidentDate: $incidentDate, ')
+          ..write('incidentType: $incidentType, ')
+          ..write('description: $description, ')
+          ..write('location: $location, ')
+          ..write('reportedBy: $reportedBy, ')
+          ..write('status: $status, ')
+          ..write('isConfidential: $isConfidential, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $DisciplinaryActionsTable extends DisciplinaryActions
+    with TableInfo<$DisciplinaryActionsTable, DisciplinaryAction> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $DisciplinaryActionsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _createdByMeta = const VerificationMeta(
+    'createdBy',
+  );
+  @override
+  late final GeneratedColumn<String> createdBy = GeneratedColumn<String>(
+    'created_by',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _updatedByMeta = const VerificationMeta(
+    'updatedBy',
+  );
+  @override
+  late final GeneratedColumn<String> updatedBy = GeneratedColumn<String>(
+    'updated_by',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _isDeletedMeta = const VerificationMeta(
+    'isDeleted',
+  );
+  @override
+  late final GeneratedColumn<bool> isDeleted = GeneratedColumn<bool>(
+    'is_deleted',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_deleted" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _deletedAtMeta = const VerificationMeta(
+    'deletedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
+    'deleted_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _incidentIdMeta = const VerificationMeta(
+    'incidentId',
+  );
+  @override
+  late final GeneratedColumn<String> incidentId = GeneratedColumn<String>(
+    'incident_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES disciplinary_incidents (id)',
+    ),
+  );
+  static const VerificationMeta _actionTypeMeta = const VerificationMeta(
+    'actionType',
+  );
+  @override
+  late final GeneratedColumn<String> actionType = GeneratedColumn<String>(
+    'action_type',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _decisionDateMeta = const VerificationMeta(
+    'decisionDate',
+  );
+  @override
+  late final GeneratedColumn<DateTime> decisionDate = GeneratedColumn<DateTime>(
+    'decision_date',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _startDateMeta = const VerificationMeta(
+    'startDate',
+  );
+  @override
+  late final GeneratedColumn<DateTime> startDate = GeneratedColumn<DateTime>(
+    'start_date',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _endDateMeta = const VerificationMeta(
+    'endDate',
+  );
+  @override
+  late final GeneratedColumn<DateTime> endDate = GeneratedColumn<DateTime>(
+    'end_date',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _notesMeta = const VerificationMeta('notes');
+  @override
+  late final GeneratedColumn<String> notes = GeneratedColumn<String>(
+    'notes',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _executionStatusMeta = const VerificationMeta(
+    'executionStatus',
+  );
+  @override
+  late final GeneratedColumn<String> executionStatus = GeneratedColumn<String>(
+    'execution_status',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('planned'),
+  );
+  static const VerificationMeta _followUpNotesMeta = const VerificationMeta(
+    'followUpNotes',
+  );
+  @override
+  late final GeneratedColumn<String> followUpNotes = GeneratedColumn<String>(
+    'follow_up_notes',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    createdAt,
+    updatedAt,
+    createdBy,
+    updatedBy,
+    isDeleted,
+    deletedAt,
+    incidentId,
+    actionType,
+    decisionDate,
+    startDate,
+    endDate,
+    notes,
+    executionStatus,
+    followUpNotes,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'disciplinary_actions';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<DisciplinaryAction> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    if (data.containsKey('created_by')) {
+      context.handle(
+        _createdByMeta,
+        createdBy.isAcceptableOrUnknown(data['created_by']!, _createdByMeta),
+      );
+    }
+    if (data.containsKey('updated_by')) {
+      context.handle(
+        _updatedByMeta,
+        updatedBy.isAcceptableOrUnknown(data['updated_by']!, _updatedByMeta),
+      );
+    }
+    if (data.containsKey('is_deleted')) {
+      context.handle(
+        _isDeletedMeta,
+        isDeleted.isAcceptableOrUnknown(data['is_deleted']!, _isDeletedMeta),
+      );
+    }
+    if (data.containsKey('deleted_at')) {
+      context.handle(
+        _deletedAtMeta,
+        deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta),
+      );
+    }
+    if (data.containsKey('incident_id')) {
+      context.handle(
+        _incidentIdMeta,
+        incidentId.isAcceptableOrUnknown(data['incident_id']!, _incidentIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_incidentIdMeta);
+    }
+    if (data.containsKey('action_type')) {
+      context.handle(
+        _actionTypeMeta,
+        actionType.isAcceptableOrUnknown(data['action_type']!, _actionTypeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_actionTypeMeta);
+    }
+    if (data.containsKey('decision_date')) {
+      context.handle(
+        _decisionDateMeta,
+        decisionDate.isAcceptableOrUnknown(
+          data['decision_date']!,
+          _decisionDateMeta,
+        ),
+      );
+    }
+    if (data.containsKey('start_date')) {
+      context.handle(
+        _startDateMeta,
+        startDate.isAcceptableOrUnknown(data['start_date']!, _startDateMeta),
+      );
+    }
+    if (data.containsKey('end_date')) {
+      context.handle(
+        _endDateMeta,
+        endDate.isAcceptableOrUnknown(data['end_date']!, _endDateMeta),
+      );
+    }
+    if (data.containsKey('notes')) {
+      context.handle(
+        _notesMeta,
+        notes.isAcceptableOrUnknown(data['notes']!, _notesMeta),
+      );
+    }
+    if (data.containsKey('execution_status')) {
+      context.handle(
+        _executionStatusMeta,
+        executionStatus.isAcceptableOrUnknown(
+          data['execution_status']!,
+          _executionStatusMeta,
+        ),
+      );
+    }
+    if (data.containsKey('follow_up_notes')) {
+      context.handle(
+        _followUpNotesMeta,
+        followUpNotes.isAcceptableOrUnknown(
+          data['follow_up_notes']!,
+          _followUpNotesMeta,
+        ),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  DisciplinaryAction map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return DisciplinaryAction(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+      createdBy: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}created_by'],
+      ),
+      updatedBy: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}updated_by'],
+      ),
+      isDeleted: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_deleted'],
+      )!,
+      deletedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}deleted_at'],
+      ),
+      incidentId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}incident_id'],
+      )!,
+      actionType: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}action_type'],
+      )!,
+      decisionDate: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}decision_date'],
+      ),
+      startDate: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}start_date'],
+      ),
+      endDate: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}end_date'],
+      ),
+      notes: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}notes'],
+      ),
+      executionStatus: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}execution_status'],
+      )!,
+      followUpNotes: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}follow_up_notes'],
+      ),
+    );
+  }
+
+  @override
+  $DisciplinaryActionsTable createAlias(String alias) {
+    return $DisciplinaryActionsTable(attachedDatabase, alias);
+  }
+}
+
+class DisciplinaryAction extends DataClass
+    implements Insertable<DisciplinaryAction> {
+  final String id;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  final String? createdBy;
+  final String? updatedBy;
+  final bool isDeleted;
+  final DateTime? deletedAt;
+  final String incidentId;
+  final String actionType;
+  final DateTime? decisionDate;
+  final DateTime? startDate;
+  final DateTime? endDate;
+  final String? notes;
+  final String executionStatus;
+  final String? followUpNotes;
+  const DisciplinaryAction({
+    required this.id,
+    required this.createdAt,
+    required this.updatedAt,
+    this.createdBy,
+    this.updatedBy,
+    required this.isDeleted,
+    this.deletedAt,
+    required this.incidentId,
+    required this.actionType,
+    this.decisionDate,
+    this.startDate,
+    this.endDate,
+    this.notes,
+    required this.executionStatus,
+    this.followUpNotes,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    if (!nullToAbsent || createdBy != null) {
+      map['created_by'] = Variable<String>(createdBy);
+    }
+    if (!nullToAbsent || updatedBy != null) {
+      map['updated_by'] = Variable<String>(updatedBy);
+    }
+    map['is_deleted'] = Variable<bool>(isDeleted);
+    if (!nullToAbsent || deletedAt != null) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt);
+    }
+    map['incident_id'] = Variable<String>(incidentId);
+    map['action_type'] = Variable<String>(actionType);
+    if (!nullToAbsent || decisionDate != null) {
+      map['decision_date'] = Variable<DateTime>(decisionDate);
+    }
+    if (!nullToAbsent || startDate != null) {
+      map['start_date'] = Variable<DateTime>(startDate);
+    }
+    if (!nullToAbsent || endDate != null) {
+      map['end_date'] = Variable<DateTime>(endDate);
+    }
+    if (!nullToAbsent || notes != null) {
+      map['notes'] = Variable<String>(notes);
+    }
+    map['execution_status'] = Variable<String>(executionStatus);
+    if (!nullToAbsent || followUpNotes != null) {
+      map['follow_up_notes'] = Variable<String>(followUpNotes);
+    }
+    return map;
+  }
+
+  DisciplinaryActionsCompanion toCompanion(bool nullToAbsent) {
+    return DisciplinaryActionsCompanion(
+      id: Value(id),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+      createdBy: createdBy == null && nullToAbsent
+          ? const Value.absent()
+          : Value(createdBy),
+      updatedBy: updatedBy == null && nullToAbsent
+          ? const Value.absent()
+          : Value(updatedBy),
+      isDeleted: Value(isDeleted),
+      deletedAt: deletedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deletedAt),
+      incidentId: Value(incidentId),
+      actionType: Value(actionType),
+      decisionDate: decisionDate == null && nullToAbsent
+          ? const Value.absent()
+          : Value(decisionDate),
+      startDate: startDate == null && nullToAbsent
+          ? const Value.absent()
+          : Value(startDate),
+      endDate: endDate == null && nullToAbsent
+          ? const Value.absent()
+          : Value(endDate),
+      notes: notes == null && nullToAbsent
+          ? const Value.absent()
+          : Value(notes),
+      executionStatus: Value(executionStatus),
+      followUpNotes: followUpNotes == null && nullToAbsent
+          ? const Value.absent()
+          : Value(followUpNotes),
+    );
+  }
+
+  factory DisciplinaryAction.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return DisciplinaryAction(
+      id: serializer.fromJson<String>(json['id']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      createdBy: serializer.fromJson<String?>(json['createdBy']),
+      updatedBy: serializer.fromJson<String?>(json['updatedBy']),
+      isDeleted: serializer.fromJson<bool>(json['isDeleted']),
+      deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
+      incidentId: serializer.fromJson<String>(json['incidentId']),
+      actionType: serializer.fromJson<String>(json['actionType']),
+      decisionDate: serializer.fromJson<DateTime?>(json['decisionDate']),
+      startDate: serializer.fromJson<DateTime?>(json['startDate']),
+      endDate: serializer.fromJson<DateTime?>(json['endDate']),
+      notes: serializer.fromJson<String?>(json['notes']),
+      executionStatus: serializer.fromJson<String>(json['executionStatus']),
+      followUpNotes: serializer.fromJson<String?>(json['followUpNotes']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'createdBy': serializer.toJson<String?>(createdBy),
+      'updatedBy': serializer.toJson<String?>(updatedBy),
+      'isDeleted': serializer.toJson<bool>(isDeleted),
+      'deletedAt': serializer.toJson<DateTime?>(deletedAt),
+      'incidentId': serializer.toJson<String>(incidentId),
+      'actionType': serializer.toJson<String>(actionType),
+      'decisionDate': serializer.toJson<DateTime?>(decisionDate),
+      'startDate': serializer.toJson<DateTime?>(startDate),
+      'endDate': serializer.toJson<DateTime?>(endDate),
+      'notes': serializer.toJson<String?>(notes),
+      'executionStatus': serializer.toJson<String>(executionStatus),
+      'followUpNotes': serializer.toJson<String?>(followUpNotes),
+    };
+  }
+
+  DisciplinaryAction copyWith({
+    String? id,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    Value<String?> createdBy = const Value.absent(),
+    Value<String?> updatedBy = const Value.absent(),
+    bool? isDeleted,
+    Value<DateTime?> deletedAt = const Value.absent(),
+    String? incidentId,
+    String? actionType,
+    Value<DateTime?> decisionDate = const Value.absent(),
+    Value<DateTime?> startDate = const Value.absent(),
+    Value<DateTime?> endDate = const Value.absent(),
+    Value<String?> notes = const Value.absent(),
+    String? executionStatus,
+    Value<String?> followUpNotes = const Value.absent(),
+  }) => DisciplinaryAction(
+    id: id ?? this.id,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+    createdBy: createdBy.present ? createdBy.value : this.createdBy,
+    updatedBy: updatedBy.present ? updatedBy.value : this.updatedBy,
+    isDeleted: isDeleted ?? this.isDeleted,
+    deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+    incidentId: incidentId ?? this.incidentId,
+    actionType: actionType ?? this.actionType,
+    decisionDate: decisionDate.present ? decisionDate.value : this.decisionDate,
+    startDate: startDate.present ? startDate.value : this.startDate,
+    endDate: endDate.present ? endDate.value : this.endDate,
+    notes: notes.present ? notes.value : this.notes,
+    executionStatus: executionStatus ?? this.executionStatus,
+    followUpNotes: followUpNotes.present
+        ? followUpNotes.value
+        : this.followUpNotes,
+  );
+  DisciplinaryAction copyWithCompanion(DisciplinaryActionsCompanion data) {
+    return DisciplinaryAction(
+      id: data.id.present ? data.id.value : this.id,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      createdBy: data.createdBy.present ? data.createdBy.value : this.createdBy,
+      updatedBy: data.updatedBy.present ? data.updatedBy.value : this.updatedBy,
+      isDeleted: data.isDeleted.present ? data.isDeleted.value : this.isDeleted,
+      deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
+      incidentId: data.incidentId.present
+          ? data.incidentId.value
+          : this.incidentId,
+      actionType: data.actionType.present
+          ? data.actionType.value
+          : this.actionType,
+      decisionDate: data.decisionDate.present
+          ? data.decisionDate.value
+          : this.decisionDate,
+      startDate: data.startDate.present ? data.startDate.value : this.startDate,
+      endDate: data.endDate.present ? data.endDate.value : this.endDate,
+      notes: data.notes.present ? data.notes.value : this.notes,
+      executionStatus: data.executionStatus.present
+          ? data.executionStatus.value
+          : this.executionStatus,
+      followUpNotes: data.followUpNotes.present
+          ? data.followUpNotes.value
+          : this.followUpNotes,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DisciplinaryAction(')
+          ..write('id: $id, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('createdBy: $createdBy, ')
+          ..write('updatedBy: $updatedBy, ')
+          ..write('isDeleted: $isDeleted, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('incidentId: $incidentId, ')
+          ..write('actionType: $actionType, ')
+          ..write('decisionDate: $decisionDate, ')
+          ..write('startDate: $startDate, ')
+          ..write('endDate: $endDate, ')
+          ..write('notes: $notes, ')
+          ..write('executionStatus: $executionStatus, ')
+          ..write('followUpNotes: $followUpNotes')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    createdAt,
+    updatedAt,
+    createdBy,
+    updatedBy,
+    isDeleted,
+    deletedAt,
+    incidentId,
+    actionType,
+    decisionDate,
+    startDate,
+    endDate,
+    notes,
+    executionStatus,
+    followUpNotes,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is DisciplinaryAction &&
+          other.id == this.id &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt &&
+          other.createdBy == this.createdBy &&
+          other.updatedBy == this.updatedBy &&
+          other.isDeleted == this.isDeleted &&
+          other.deletedAt == this.deletedAt &&
+          other.incidentId == this.incidentId &&
+          other.actionType == this.actionType &&
+          other.decisionDate == this.decisionDate &&
+          other.startDate == this.startDate &&
+          other.endDate == this.endDate &&
+          other.notes == this.notes &&
+          other.executionStatus == this.executionStatus &&
+          other.followUpNotes == this.followUpNotes);
+}
+
+class DisciplinaryActionsCompanion extends UpdateCompanion<DisciplinaryAction> {
+  final Value<String> id;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<String?> createdBy;
+  final Value<String?> updatedBy;
+  final Value<bool> isDeleted;
+  final Value<DateTime?> deletedAt;
+  final Value<String> incidentId;
+  final Value<String> actionType;
+  final Value<DateTime?> decisionDate;
+  final Value<DateTime?> startDate;
+  final Value<DateTime?> endDate;
+  final Value<String?> notes;
+  final Value<String> executionStatus;
+  final Value<String?> followUpNotes;
+  final Value<int> rowid;
+  const DisciplinaryActionsCompanion({
+    this.id = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.createdBy = const Value.absent(),
+    this.updatedBy = const Value.absent(),
+    this.isDeleted = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.incidentId = const Value.absent(),
+    this.actionType = const Value.absent(),
+    this.decisionDate = const Value.absent(),
+    this.startDate = const Value.absent(),
+    this.endDate = const Value.absent(),
+    this.notes = const Value.absent(),
+    this.executionStatus = const Value.absent(),
+    this.followUpNotes = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  DisciplinaryActionsCompanion.insert({
+    required String id,
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.createdBy = const Value.absent(),
+    this.updatedBy = const Value.absent(),
+    this.isDeleted = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    required String incidentId,
+    required String actionType,
+    this.decisionDate = const Value.absent(),
+    this.startDate = const Value.absent(),
+    this.endDate = const Value.absent(),
+    this.notes = const Value.absent(),
+    this.executionStatus = const Value.absent(),
+    this.followUpNotes = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       incidentId = Value(incidentId),
+       actionType = Value(actionType);
+  static Insertable<DisciplinaryAction> custom({
+    Expression<String>? id,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<String>? createdBy,
+    Expression<String>? updatedBy,
+    Expression<bool>? isDeleted,
+    Expression<DateTime>? deletedAt,
+    Expression<String>? incidentId,
+    Expression<String>? actionType,
+    Expression<DateTime>? decisionDate,
+    Expression<DateTime>? startDate,
+    Expression<DateTime>? endDate,
+    Expression<String>? notes,
+    Expression<String>? executionStatus,
+    Expression<String>? followUpNotes,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (createdBy != null) 'created_by': createdBy,
+      if (updatedBy != null) 'updated_by': updatedBy,
+      if (isDeleted != null) 'is_deleted': isDeleted,
+      if (deletedAt != null) 'deleted_at': deletedAt,
+      if (incidentId != null) 'incident_id': incidentId,
+      if (actionType != null) 'action_type': actionType,
+      if (decisionDate != null) 'decision_date': decisionDate,
+      if (startDate != null) 'start_date': startDate,
+      if (endDate != null) 'end_date': endDate,
+      if (notes != null) 'notes': notes,
+      if (executionStatus != null) 'execution_status': executionStatus,
+      if (followUpNotes != null) 'follow_up_notes': followUpNotes,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  DisciplinaryActionsCompanion copyWith({
+    Value<String>? id,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+    Value<String?>? createdBy,
+    Value<String?>? updatedBy,
+    Value<bool>? isDeleted,
+    Value<DateTime?>? deletedAt,
+    Value<String>? incidentId,
+    Value<String>? actionType,
+    Value<DateTime?>? decisionDate,
+    Value<DateTime?>? startDate,
+    Value<DateTime?>? endDate,
+    Value<String?>? notes,
+    Value<String>? executionStatus,
+    Value<String?>? followUpNotes,
+    Value<int>? rowid,
+  }) {
+    return DisciplinaryActionsCompanion(
+      id: id ?? this.id,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      createdBy: createdBy ?? this.createdBy,
+      updatedBy: updatedBy ?? this.updatedBy,
+      isDeleted: isDeleted ?? this.isDeleted,
+      deletedAt: deletedAt ?? this.deletedAt,
+      incidentId: incidentId ?? this.incidentId,
+      actionType: actionType ?? this.actionType,
+      decisionDate: decisionDate ?? this.decisionDate,
+      startDate: startDate ?? this.startDate,
+      endDate: endDate ?? this.endDate,
+      notes: notes ?? this.notes,
+      executionStatus: executionStatus ?? this.executionStatus,
+      followUpNotes: followUpNotes ?? this.followUpNotes,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (createdBy.present) {
+      map['created_by'] = Variable<String>(createdBy.value);
+    }
+    if (updatedBy.present) {
+      map['updated_by'] = Variable<String>(updatedBy.value);
+    }
+    if (isDeleted.present) {
+      map['is_deleted'] = Variable<bool>(isDeleted.value);
+    }
+    if (deletedAt.present) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt.value);
+    }
+    if (incidentId.present) {
+      map['incident_id'] = Variable<String>(incidentId.value);
+    }
+    if (actionType.present) {
+      map['action_type'] = Variable<String>(actionType.value);
+    }
+    if (decisionDate.present) {
+      map['decision_date'] = Variable<DateTime>(decisionDate.value);
+    }
+    if (startDate.present) {
+      map['start_date'] = Variable<DateTime>(startDate.value);
+    }
+    if (endDate.present) {
+      map['end_date'] = Variable<DateTime>(endDate.value);
+    }
+    if (notes.present) {
+      map['notes'] = Variable<String>(notes.value);
+    }
+    if (executionStatus.present) {
+      map['execution_status'] = Variable<String>(executionStatus.value);
+    }
+    if (followUpNotes.present) {
+      map['follow_up_notes'] = Variable<String>(followUpNotes.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DisciplinaryActionsCompanion(')
+          ..write('id: $id, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('createdBy: $createdBy, ')
+          ..write('updatedBy: $updatedBy, ')
+          ..write('isDeleted: $isDeleted, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('incidentId: $incidentId, ')
+          ..write('actionType: $actionType, ')
+          ..write('decisionDate: $decisionDate, ')
+          ..write('startDate: $startDate, ')
+          ..write('endDate: $endDate, ')
+          ..write('notes: $notes, ')
+          ..write('executionStatus: $executionStatus, ')
+          ..write('followUpNotes: $followUpNotes, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $LibraryItemsTable extends LibraryItems
+    with TableInfo<$LibraryItemsTable, LibraryItem> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $LibraryItemsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _createdByMeta = const VerificationMeta(
+    'createdBy',
+  );
+  @override
+  late final GeneratedColumn<String> createdBy = GeneratedColumn<String>(
+    'created_by',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _updatedByMeta = const VerificationMeta(
+    'updatedBy',
+  );
+  @override
+  late final GeneratedColumn<String> updatedBy = GeneratedColumn<String>(
+    'updated_by',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _isDeletedMeta = const VerificationMeta(
+    'isDeleted',
+  );
+  @override
+  late final GeneratedColumn<bool> isDeleted = GeneratedColumn<bool>(
+    'is_deleted',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_deleted" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _deletedAtMeta = const VerificationMeta(
+    'deletedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
+    'deleted_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _titleMeta = const VerificationMeta('title');
+  @override
+  late final GeneratedColumn<String> title = GeneratedColumn<String>(
+    'title',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _authorMeta = const VerificationMeta('author');
+  @override
+  late final GeneratedColumn<String> author = GeneratedColumn<String>(
+    'author',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _isbnMeta = const VerificationMeta('isbn');
+  @override
+  late final GeneratedColumn<String> isbn = GeneratedColumn<String>(
+    'isbn',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _categoryMeta = const VerificationMeta(
+    'category',
+  );
+  @override
+  late final GeneratedColumn<String> category = GeneratedColumn<String>(
+    'category',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _publisherMeta = const VerificationMeta(
+    'publisher',
+  );
+  @override
+  late final GeneratedColumn<String> publisher = GeneratedColumn<String>(
+    'publisher',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _publicationYearMeta = const VerificationMeta(
+    'publicationYear',
+  );
+  @override
+  late final GeneratedColumn<String> publicationYear = GeneratedColumn<String>(
+    'publication_year',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _descriptionMeta = const VerificationMeta(
+    'description',
+  );
+  @override
+  late final GeneratedColumn<String> description = GeneratedColumn<String>(
+    'description',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    createdAt,
+    updatedAt,
+    createdBy,
+    updatedBy,
+    isDeleted,
+    deletedAt,
+    title,
+    author,
+    isbn,
+    category,
+    publisher,
+    publicationYear,
+    description,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'library_items';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<LibraryItem> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    if (data.containsKey('created_by')) {
+      context.handle(
+        _createdByMeta,
+        createdBy.isAcceptableOrUnknown(data['created_by']!, _createdByMeta),
+      );
+    }
+    if (data.containsKey('updated_by')) {
+      context.handle(
+        _updatedByMeta,
+        updatedBy.isAcceptableOrUnknown(data['updated_by']!, _updatedByMeta),
+      );
+    }
+    if (data.containsKey('is_deleted')) {
+      context.handle(
+        _isDeletedMeta,
+        isDeleted.isAcceptableOrUnknown(data['is_deleted']!, _isDeletedMeta),
+      );
+    }
+    if (data.containsKey('deleted_at')) {
+      context.handle(
+        _deletedAtMeta,
+        deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta),
+      );
+    }
+    if (data.containsKey('title')) {
+      context.handle(
+        _titleMeta,
+        title.isAcceptableOrUnknown(data['title']!, _titleMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_titleMeta);
+    }
+    if (data.containsKey('author')) {
+      context.handle(
+        _authorMeta,
+        author.isAcceptableOrUnknown(data['author']!, _authorMeta),
+      );
+    }
+    if (data.containsKey('isbn')) {
+      context.handle(
+        _isbnMeta,
+        isbn.isAcceptableOrUnknown(data['isbn']!, _isbnMeta),
+      );
+    }
+    if (data.containsKey('category')) {
+      context.handle(
+        _categoryMeta,
+        category.isAcceptableOrUnknown(data['category']!, _categoryMeta),
+      );
+    }
+    if (data.containsKey('publisher')) {
+      context.handle(
+        _publisherMeta,
+        publisher.isAcceptableOrUnknown(data['publisher']!, _publisherMeta),
+      );
+    }
+    if (data.containsKey('publication_year')) {
+      context.handle(
+        _publicationYearMeta,
+        publicationYear.isAcceptableOrUnknown(
+          data['publication_year']!,
+          _publicationYearMeta,
+        ),
+      );
+    }
+    if (data.containsKey('description')) {
+      context.handle(
+        _descriptionMeta,
+        description.isAcceptableOrUnknown(
+          data['description']!,
+          _descriptionMeta,
+        ),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  LibraryItem map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return LibraryItem(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+      createdBy: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}created_by'],
+      ),
+      updatedBy: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}updated_by'],
+      ),
+      isDeleted: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_deleted'],
+      )!,
+      deletedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}deleted_at'],
+      ),
+      title: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}title'],
+      )!,
+      author: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}author'],
+      ),
+      isbn: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}isbn'],
+      ),
+      category: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}category'],
+      ),
+      publisher: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}publisher'],
+      ),
+      publicationYear: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}publication_year'],
+      ),
+      description: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}description'],
+      ),
+    );
+  }
+
+  @override
+  $LibraryItemsTable createAlias(String alias) {
+    return $LibraryItemsTable(attachedDatabase, alias);
+  }
+}
+
+class LibraryItem extends DataClass implements Insertable<LibraryItem> {
+  final String id;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  final String? createdBy;
+  final String? updatedBy;
+  final bool isDeleted;
+  final DateTime? deletedAt;
+  final String title;
+  final String? author;
+  final String? isbn;
+  final String? category;
+  final String? publisher;
+  final String? publicationYear;
+  final String? description;
+  const LibraryItem({
+    required this.id,
+    required this.createdAt,
+    required this.updatedAt,
+    this.createdBy,
+    this.updatedBy,
+    required this.isDeleted,
+    this.deletedAt,
+    required this.title,
+    this.author,
+    this.isbn,
+    this.category,
+    this.publisher,
+    this.publicationYear,
+    this.description,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    if (!nullToAbsent || createdBy != null) {
+      map['created_by'] = Variable<String>(createdBy);
+    }
+    if (!nullToAbsent || updatedBy != null) {
+      map['updated_by'] = Variable<String>(updatedBy);
+    }
+    map['is_deleted'] = Variable<bool>(isDeleted);
+    if (!nullToAbsent || deletedAt != null) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt);
+    }
+    map['title'] = Variable<String>(title);
+    if (!nullToAbsent || author != null) {
+      map['author'] = Variable<String>(author);
+    }
+    if (!nullToAbsent || isbn != null) {
+      map['isbn'] = Variable<String>(isbn);
+    }
+    if (!nullToAbsent || category != null) {
+      map['category'] = Variable<String>(category);
+    }
+    if (!nullToAbsent || publisher != null) {
+      map['publisher'] = Variable<String>(publisher);
+    }
+    if (!nullToAbsent || publicationYear != null) {
+      map['publication_year'] = Variable<String>(publicationYear);
+    }
+    if (!nullToAbsent || description != null) {
+      map['description'] = Variable<String>(description);
+    }
+    return map;
+  }
+
+  LibraryItemsCompanion toCompanion(bool nullToAbsent) {
+    return LibraryItemsCompanion(
+      id: Value(id),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+      createdBy: createdBy == null && nullToAbsent
+          ? const Value.absent()
+          : Value(createdBy),
+      updatedBy: updatedBy == null && nullToAbsent
+          ? const Value.absent()
+          : Value(updatedBy),
+      isDeleted: Value(isDeleted),
+      deletedAt: deletedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deletedAt),
+      title: Value(title),
+      author: author == null && nullToAbsent
+          ? const Value.absent()
+          : Value(author),
+      isbn: isbn == null && nullToAbsent ? const Value.absent() : Value(isbn),
+      category: category == null && nullToAbsent
+          ? const Value.absent()
+          : Value(category),
+      publisher: publisher == null && nullToAbsent
+          ? const Value.absent()
+          : Value(publisher),
+      publicationYear: publicationYear == null && nullToAbsent
+          ? const Value.absent()
+          : Value(publicationYear),
+      description: description == null && nullToAbsent
+          ? const Value.absent()
+          : Value(description),
+    );
+  }
+
+  factory LibraryItem.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return LibraryItem(
+      id: serializer.fromJson<String>(json['id']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      createdBy: serializer.fromJson<String?>(json['createdBy']),
+      updatedBy: serializer.fromJson<String?>(json['updatedBy']),
+      isDeleted: serializer.fromJson<bool>(json['isDeleted']),
+      deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
+      title: serializer.fromJson<String>(json['title']),
+      author: serializer.fromJson<String?>(json['author']),
+      isbn: serializer.fromJson<String?>(json['isbn']),
+      category: serializer.fromJson<String?>(json['category']),
+      publisher: serializer.fromJson<String?>(json['publisher']),
+      publicationYear: serializer.fromJson<String?>(json['publicationYear']),
+      description: serializer.fromJson<String?>(json['description']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'createdBy': serializer.toJson<String?>(createdBy),
+      'updatedBy': serializer.toJson<String?>(updatedBy),
+      'isDeleted': serializer.toJson<bool>(isDeleted),
+      'deletedAt': serializer.toJson<DateTime?>(deletedAt),
+      'title': serializer.toJson<String>(title),
+      'author': serializer.toJson<String?>(author),
+      'isbn': serializer.toJson<String?>(isbn),
+      'category': serializer.toJson<String?>(category),
+      'publisher': serializer.toJson<String?>(publisher),
+      'publicationYear': serializer.toJson<String?>(publicationYear),
+      'description': serializer.toJson<String?>(description),
+    };
+  }
+
+  LibraryItem copyWith({
+    String? id,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    Value<String?> createdBy = const Value.absent(),
+    Value<String?> updatedBy = const Value.absent(),
+    bool? isDeleted,
+    Value<DateTime?> deletedAt = const Value.absent(),
+    String? title,
+    Value<String?> author = const Value.absent(),
+    Value<String?> isbn = const Value.absent(),
+    Value<String?> category = const Value.absent(),
+    Value<String?> publisher = const Value.absent(),
+    Value<String?> publicationYear = const Value.absent(),
+    Value<String?> description = const Value.absent(),
+  }) => LibraryItem(
+    id: id ?? this.id,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+    createdBy: createdBy.present ? createdBy.value : this.createdBy,
+    updatedBy: updatedBy.present ? updatedBy.value : this.updatedBy,
+    isDeleted: isDeleted ?? this.isDeleted,
+    deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+    title: title ?? this.title,
+    author: author.present ? author.value : this.author,
+    isbn: isbn.present ? isbn.value : this.isbn,
+    category: category.present ? category.value : this.category,
+    publisher: publisher.present ? publisher.value : this.publisher,
+    publicationYear: publicationYear.present
+        ? publicationYear.value
+        : this.publicationYear,
+    description: description.present ? description.value : this.description,
+  );
+  LibraryItem copyWithCompanion(LibraryItemsCompanion data) {
+    return LibraryItem(
+      id: data.id.present ? data.id.value : this.id,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      createdBy: data.createdBy.present ? data.createdBy.value : this.createdBy,
+      updatedBy: data.updatedBy.present ? data.updatedBy.value : this.updatedBy,
+      isDeleted: data.isDeleted.present ? data.isDeleted.value : this.isDeleted,
+      deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
+      title: data.title.present ? data.title.value : this.title,
+      author: data.author.present ? data.author.value : this.author,
+      isbn: data.isbn.present ? data.isbn.value : this.isbn,
+      category: data.category.present ? data.category.value : this.category,
+      publisher: data.publisher.present ? data.publisher.value : this.publisher,
+      publicationYear: data.publicationYear.present
+          ? data.publicationYear.value
+          : this.publicationYear,
+      description: data.description.present
+          ? data.description.value
+          : this.description,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('LibraryItem(')
+          ..write('id: $id, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('createdBy: $createdBy, ')
+          ..write('updatedBy: $updatedBy, ')
+          ..write('isDeleted: $isDeleted, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('title: $title, ')
+          ..write('author: $author, ')
+          ..write('isbn: $isbn, ')
+          ..write('category: $category, ')
+          ..write('publisher: $publisher, ')
+          ..write('publicationYear: $publicationYear, ')
+          ..write('description: $description')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    createdAt,
+    updatedAt,
+    createdBy,
+    updatedBy,
+    isDeleted,
+    deletedAt,
+    title,
+    author,
+    isbn,
+    category,
+    publisher,
+    publicationYear,
+    description,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is LibraryItem &&
+          other.id == this.id &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt &&
+          other.createdBy == this.createdBy &&
+          other.updatedBy == this.updatedBy &&
+          other.isDeleted == this.isDeleted &&
+          other.deletedAt == this.deletedAt &&
+          other.title == this.title &&
+          other.author == this.author &&
+          other.isbn == this.isbn &&
+          other.category == this.category &&
+          other.publisher == this.publisher &&
+          other.publicationYear == this.publicationYear &&
+          other.description == this.description);
+}
+
+class LibraryItemsCompanion extends UpdateCompanion<LibraryItem> {
+  final Value<String> id;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<String?> createdBy;
+  final Value<String?> updatedBy;
+  final Value<bool> isDeleted;
+  final Value<DateTime?> deletedAt;
+  final Value<String> title;
+  final Value<String?> author;
+  final Value<String?> isbn;
+  final Value<String?> category;
+  final Value<String?> publisher;
+  final Value<String?> publicationYear;
+  final Value<String?> description;
+  final Value<int> rowid;
+  const LibraryItemsCompanion({
+    this.id = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.createdBy = const Value.absent(),
+    this.updatedBy = const Value.absent(),
+    this.isDeleted = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.title = const Value.absent(),
+    this.author = const Value.absent(),
+    this.isbn = const Value.absent(),
+    this.category = const Value.absent(),
+    this.publisher = const Value.absent(),
+    this.publicationYear = const Value.absent(),
+    this.description = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  LibraryItemsCompanion.insert({
+    required String id,
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.createdBy = const Value.absent(),
+    this.updatedBy = const Value.absent(),
+    this.isDeleted = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    required String title,
+    this.author = const Value.absent(),
+    this.isbn = const Value.absent(),
+    this.category = const Value.absent(),
+    this.publisher = const Value.absent(),
+    this.publicationYear = const Value.absent(),
+    this.description = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       title = Value(title);
+  static Insertable<LibraryItem> custom({
+    Expression<String>? id,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<String>? createdBy,
+    Expression<String>? updatedBy,
+    Expression<bool>? isDeleted,
+    Expression<DateTime>? deletedAt,
+    Expression<String>? title,
+    Expression<String>? author,
+    Expression<String>? isbn,
+    Expression<String>? category,
+    Expression<String>? publisher,
+    Expression<String>? publicationYear,
+    Expression<String>? description,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (createdBy != null) 'created_by': createdBy,
+      if (updatedBy != null) 'updated_by': updatedBy,
+      if (isDeleted != null) 'is_deleted': isDeleted,
+      if (deletedAt != null) 'deleted_at': deletedAt,
+      if (title != null) 'title': title,
+      if (author != null) 'author': author,
+      if (isbn != null) 'isbn': isbn,
+      if (category != null) 'category': category,
+      if (publisher != null) 'publisher': publisher,
+      if (publicationYear != null) 'publication_year': publicationYear,
+      if (description != null) 'description': description,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  LibraryItemsCompanion copyWith({
+    Value<String>? id,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+    Value<String?>? createdBy,
+    Value<String?>? updatedBy,
+    Value<bool>? isDeleted,
+    Value<DateTime?>? deletedAt,
+    Value<String>? title,
+    Value<String?>? author,
+    Value<String?>? isbn,
+    Value<String?>? category,
+    Value<String?>? publisher,
+    Value<String?>? publicationYear,
+    Value<String?>? description,
+    Value<int>? rowid,
+  }) {
+    return LibraryItemsCompanion(
+      id: id ?? this.id,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      createdBy: createdBy ?? this.createdBy,
+      updatedBy: updatedBy ?? this.updatedBy,
+      isDeleted: isDeleted ?? this.isDeleted,
+      deletedAt: deletedAt ?? this.deletedAt,
+      title: title ?? this.title,
+      author: author ?? this.author,
+      isbn: isbn ?? this.isbn,
+      category: category ?? this.category,
+      publisher: publisher ?? this.publisher,
+      publicationYear: publicationYear ?? this.publicationYear,
+      description: description ?? this.description,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (createdBy.present) {
+      map['created_by'] = Variable<String>(createdBy.value);
+    }
+    if (updatedBy.present) {
+      map['updated_by'] = Variable<String>(updatedBy.value);
+    }
+    if (isDeleted.present) {
+      map['is_deleted'] = Variable<bool>(isDeleted.value);
+    }
+    if (deletedAt.present) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt.value);
+    }
+    if (title.present) {
+      map['title'] = Variable<String>(title.value);
+    }
+    if (author.present) {
+      map['author'] = Variable<String>(author.value);
+    }
+    if (isbn.present) {
+      map['isbn'] = Variable<String>(isbn.value);
+    }
+    if (category.present) {
+      map['category'] = Variable<String>(category.value);
+    }
+    if (publisher.present) {
+      map['publisher'] = Variable<String>(publisher.value);
+    }
+    if (publicationYear.present) {
+      map['publication_year'] = Variable<String>(publicationYear.value);
+    }
+    if (description.present) {
+      map['description'] = Variable<String>(description.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('LibraryItemsCompanion(')
+          ..write('id: $id, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('createdBy: $createdBy, ')
+          ..write('updatedBy: $updatedBy, ')
+          ..write('isDeleted: $isDeleted, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('title: $title, ')
+          ..write('author: $author, ')
+          ..write('isbn: $isbn, ')
+          ..write('category: $category, ')
+          ..write('publisher: $publisher, ')
+          ..write('publicationYear: $publicationYear, ')
+          ..write('description: $description, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $LibraryCopiesTable extends LibraryCopies
+    with TableInfo<$LibraryCopiesTable, LibraryCopy> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $LibraryCopiesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _createdByMeta = const VerificationMeta(
+    'createdBy',
+  );
+  @override
+  late final GeneratedColumn<String> createdBy = GeneratedColumn<String>(
+    'created_by',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _updatedByMeta = const VerificationMeta(
+    'updatedBy',
+  );
+  @override
+  late final GeneratedColumn<String> updatedBy = GeneratedColumn<String>(
+    'updated_by',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _isDeletedMeta = const VerificationMeta(
+    'isDeleted',
+  );
+  @override
+  late final GeneratedColumn<bool> isDeleted = GeneratedColumn<bool>(
+    'is_deleted',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_deleted" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _deletedAtMeta = const VerificationMeta(
+    'deletedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
+    'deleted_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _itemIdMeta = const VerificationMeta('itemId');
+  @override
+  late final GeneratedColumn<String> itemId = GeneratedColumn<String>(
+    'item_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES library_items (id)',
+    ),
+  );
+  static const VerificationMeta _copyCodeMeta = const VerificationMeta(
+    'copyCode',
+  );
+  @override
+  late final GeneratedColumn<String> copyCode = GeneratedColumn<String>(
+    'copy_code',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _statusMeta = const VerificationMeta('status');
+  @override
+  late final GeneratedColumn<String> status = GeneratedColumn<String>(
+    'status',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('available'),
+  );
+  static const VerificationMeta _locationNoteMeta = const VerificationMeta(
+    'locationNote',
+  );
+  @override
+  late final GeneratedColumn<String> locationNote = GeneratedColumn<String>(
+    'location_note',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    createdAt,
+    updatedAt,
+    createdBy,
+    updatedBy,
+    isDeleted,
+    deletedAt,
+    itemId,
+    copyCode,
+    status,
+    locationNote,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'library_copies';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<LibraryCopy> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    if (data.containsKey('created_by')) {
+      context.handle(
+        _createdByMeta,
+        createdBy.isAcceptableOrUnknown(data['created_by']!, _createdByMeta),
+      );
+    }
+    if (data.containsKey('updated_by')) {
+      context.handle(
+        _updatedByMeta,
+        updatedBy.isAcceptableOrUnknown(data['updated_by']!, _updatedByMeta),
+      );
+    }
+    if (data.containsKey('is_deleted')) {
+      context.handle(
+        _isDeletedMeta,
+        isDeleted.isAcceptableOrUnknown(data['is_deleted']!, _isDeletedMeta),
+      );
+    }
+    if (data.containsKey('deleted_at')) {
+      context.handle(
+        _deletedAtMeta,
+        deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta),
+      );
+    }
+    if (data.containsKey('item_id')) {
+      context.handle(
+        _itemIdMeta,
+        itemId.isAcceptableOrUnknown(data['item_id']!, _itemIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_itemIdMeta);
+    }
+    if (data.containsKey('copy_code')) {
+      context.handle(
+        _copyCodeMeta,
+        copyCode.isAcceptableOrUnknown(data['copy_code']!, _copyCodeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_copyCodeMeta);
+    }
+    if (data.containsKey('status')) {
+      context.handle(
+        _statusMeta,
+        status.isAcceptableOrUnknown(data['status']!, _statusMeta),
+      );
+    }
+    if (data.containsKey('location_note')) {
+      context.handle(
+        _locationNoteMeta,
+        locationNote.isAcceptableOrUnknown(
+          data['location_note']!,
+          _locationNoteMeta,
+        ),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  LibraryCopy map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return LibraryCopy(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+      createdBy: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}created_by'],
+      ),
+      updatedBy: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}updated_by'],
+      ),
+      isDeleted: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_deleted'],
+      )!,
+      deletedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}deleted_at'],
+      ),
+      itemId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}item_id'],
+      )!,
+      copyCode: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}copy_code'],
+      )!,
+      status: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}status'],
+      )!,
+      locationNote: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}location_note'],
+      ),
+    );
+  }
+
+  @override
+  $LibraryCopiesTable createAlias(String alias) {
+    return $LibraryCopiesTable(attachedDatabase, alias);
+  }
+}
+
+class LibraryCopy extends DataClass implements Insertable<LibraryCopy> {
+  final String id;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  final String? createdBy;
+  final String? updatedBy;
+  final bool isDeleted;
+  final DateTime? deletedAt;
+  final String itemId;
+  final String copyCode;
+  final String status;
+  final String? locationNote;
+  const LibraryCopy({
+    required this.id,
+    required this.createdAt,
+    required this.updatedAt,
+    this.createdBy,
+    this.updatedBy,
+    required this.isDeleted,
+    this.deletedAt,
+    required this.itemId,
+    required this.copyCode,
+    required this.status,
+    this.locationNote,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    if (!nullToAbsent || createdBy != null) {
+      map['created_by'] = Variable<String>(createdBy);
+    }
+    if (!nullToAbsent || updatedBy != null) {
+      map['updated_by'] = Variable<String>(updatedBy);
+    }
+    map['is_deleted'] = Variable<bool>(isDeleted);
+    if (!nullToAbsent || deletedAt != null) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt);
+    }
+    map['item_id'] = Variable<String>(itemId);
+    map['copy_code'] = Variable<String>(copyCode);
+    map['status'] = Variable<String>(status);
+    if (!nullToAbsent || locationNote != null) {
+      map['location_note'] = Variable<String>(locationNote);
+    }
+    return map;
+  }
+
+  LibraryCopiesCompanion toCompanion(bool nullToAbsent) {
+    return LibraryCopiesCompanion(
+      id: Value(id),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+      createdBy: createdBy == null && nullToAbsent
+          ? const Value.absent()
+          : Value(createdBy),
+      updatedBy: updatedBy == null && nullToAbsent
+          ? const Value.absent()
+          : Value(updatedBy),
+      isDeleted: Value(isDeleted),
+      deletedAt: deletedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deletedAt),
+      itemId: Value(itemId),
+      copyCode: Value(copyCode),
+      status: Value(status),
+      locationNote: locationNote == null && nullToAbsent
+          ? const Value.absent()
+          : Value(locationNote),
+    );
+  }
+
+  factory LibraryCopy.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return LibraryCopy(
+      id: serializer.fromJson<String>(json['id']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      createdBy: serializer.fromJson<String?>(json['createdBy']),
+      updatedBy: serializer.fromJson<String?>(json['updatedBy']),
+      isDeleted: serializer.fromJson<bool>(json['isDeleted']),
+      deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
+      itemId: serializer.fromJson<String>(json['itemId']),
+      copyCode: serializer.fromJson<String>(json['copyCode']),
+      status: serializer.fromJson<String>(json['status']),
+      locationNote: serializer.fromJson<String?>(json['locationNote']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'createdBy': serializer.toJson<String?>(createdBy),
+      'updatedBy': serializer.toJson<String?>(updatedBy),
+      'isDeleted': serializer.toJson<bool>(isDeleted),
+      'deletedAt': serializer.toJson<DateTime?>(deletedAt),
+      'itemId': serializer.toJson<String>(itemId),
+      'copyCode': serializer.toJson<String>(copyCode),
+      'status': serializer.toJson<String>(status),
+      'locationNote': serializer.toJson<String?>(locationNote),
+    };
+  }
+
+  LibraryCopy copyWith({
+    String? id,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    Value<String?> createdBy = const Value.absent(),
+    Value<String?> updatedBy = const Value.absent(),
+    bool? isDeleted,
+    Value<DateTime?> deletedAt = const Value.absent(),
+    String? itemId,
+    String? copyCode,
+    String? status,
+    Value<String?> locationNote = const Value.absent(),
+  }) => LibraryCopy(
+    id: id ?? this.id,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+    createdBy: createdBy.present ? createdBy.value : this.createdBy,
+    updatedBy: updatedBy.present ? updatedBy.value : this.updatedBy,
+    isDeleted: isDeleted ?? this.isDeleted,
+    deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+    itemId: itemId ?? this.itemId,
+    copyCode: copyCode ?? this.copyCode,
+    status: status ?? this.status,
+    locationNote: locationNote.present ? locationNote.value : this.locationNote,
+  );
+  LibraryCopy copyWithCompanion(LibraryCopiesCompanion data) {
+    return LibraryCopy(
+      id: data.id.present ? data.id.value : this.id,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      createdBy: data.createdBy.present ? data.createdBy.value : this.createdBy,
+      updatedBy: data.updatedBy.present ? data.updatedBy.value : this.updatedBy,
+      isDeleted: data.isDeleted.present ? data.isDeleted.value : this.isDeleted,
+      deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
+      itemId: data.itemId.present ? data.itemId.value : this.itemId,
+      copyCode: data.copyCode.present ? data.copyCode.value : this.copyCode,
+      status: data.status.present ? data.status.value : this.status,
+      locationNote: data.locationNote.present
+          ? data.locationNote.value
+          : this.locationNote,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('LibraryCopy(')
+          ..write('id: $id, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('createdBy: $createdBy, ')
+          ..write('updatedBy: $updatedBy, ')
+          ..write('isDeleted: $isDeleted, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('itemId: $itemId, ')
+          ..write('copyCode: $copyCode, ')
+          ..write('status: $status, ')
+          ..write('locationNote: $locationNote')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    createdAt,
+    updatedAt,
+    createdBy,
+    updatedBy,
+    isDeleted,
+    deletedAt,
+    itemId,
+    copyCode,
+    status,
+    locationNote,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is LibraryCopy &&
+          other.id == this.id &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt &&
+          other.createdBy == this.createdBy &&
+          other.updatedBy == this.updatedBy &&
+          other.isDeleted == this.isDeleted &&
+          other.deletedAt == this.deletedAt &&
+          other.itemId == this.itemId &&
+          other.copyCode == this.copyCode &&
+          other.status == this.status &&
+          other.locationNote == this.locationNote);
+}
+
+class LibraryCopiesCompanion extends UpdateCompanion<LibraryCopy> {
+  final Value<String> id;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<String?> createdBy;
+  final Value<String?> updatedBy;
+  final Value<bool> isDeleted;
+  final Value<DateTime?> deletedAt;
+  final Value<String> itemId;
+  final Value<String> copyCode;
+  final Value<String> status;
+  final Value<String?> locationNote;
+  final Value<int> rowid;
+  const LibraryCopiesCompanion({
+    this.id = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.createdBy = const Value.absent(),
+    this.updatedBy = const Value.absent(),
+    this.isDeleted = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.itemId = const Value.absent(),
+    this.copyCode = const Value.absent(),
+    this.status = const Value.absent(),
+    this.locationNote = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  LibraryCopiesCompanion.insert({
+    required String id,
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.createdBy = const Value.absent(),
+    this.updatedBy = const Value.absent(),
+    this.isDeleted = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    required String itemId,
+    required String copyCode,
+    this.status = const Value.absent(),
+    this.locationNote = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       itemId = Value(itemId),
+       copyCode = Value(copyCode);
+  static Insertable<LibraryCopy> custom({
+    Expression<String>? id,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<String>? createdBy,
+    Expression<String>? updatedBy,
+    Expression<bool>? isDeleted,
+    Expression<DateTime>? deletedAt,
+    Expression<String>? itemId,
+    Expression<String>? copyCode,
+    Expression<String>? status,
+    Expression<String>? locationNote,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (createdBy != null) 'created_by': createdBy,
+      if (updatedBy != null) 'updated_by': updatedBy,
+      if (isDeleted != null) 'is_deleted': isDeleted,
+      if (deletedAt != null) 'deleted_at': deletedAt,
+      if (itemId != null) 'item_id': itemId,
+      if (copyCode != null) 'copy_code': copyCode,
+      if (status != null) 'status': status,
+      if (locationNote != null) 'location_note': locationNote,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  LibraryCopiesCompanion copyWith({
+    Value<String>? id,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+    Value<String?>? createdBy,
+    Value<String?>? updatedBy,
+    Value<bool>? isDeleted,
+    Value<DateTime?>? deletedAt,
+    Value<String>? itemId,
+    Value<String>? copyCode,
+    Value<String>? status,
+    Value<String?>? locationNote,
+    Value<int>? rowid,
+  }) {
+    return LibraryCopiesCompanion(
+      id: id ?? this.id,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      createdBy: createdBy ?? this.createdBy,
+      updatedBy: updatedBy ?? this.updatedBy,
+      isDeleted: isDeleted ?? this.isDeleted,
+      deletedAt: deletedAt ?? this.deletedAt,
+      itemId: itemId ?? this.itemId,
+      copyCode: copyCode ?? this.copyCode,
+      status: status ?? this.status,
+      locationNote: locationNote ?? this.locationNote,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (createdBy.present) {
+      map['created_by'] = Variable<String>(createdBy.value);
+    }
+    if (updatedBy.present) {
+      map['updated_by'] = Variable<String>(updatedBy.value);
+    }
+    if (isDeleted.present) {
+      map['is_deleted'] = Variable<bool>(isDeleted.value);
+    }
+    if (deletedAt.present) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt.value);
+    }
+    if (itemId.present) {
+      map['item_id'] = Variable<String>(itemId.value);
+    }
+    if (copyCode.present) {
+      map['copy_code'] = Variable<String>(copyCode.value);
+    }
+    if (status.present) {
+      map['status'] = Variable<String>(status.value);
+    }
+    if (locationNote.present) {
+      map['location_note'] = Variable<String>(locationNote.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('LibraryCopiesCompanion(')
+          ..write('id: $id, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('createdBy: $createdBy, ')
+          ..write('updatedBy: $updatedBy, ')
+          ..write('isDeleted: $isDeleted, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('itemId: $itemId, ')
+          ..write('copyCode: $copyCode, ')
+          ..write('status: $status, ')
+          ..write('locationNote: $locationNote, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $LibraryLoansTable extends LibraryLoans
+    with TableInfo<$LibraryLoansTable, LibraryLoan> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $LibraryLoansTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _createdByMeta = const VerificationMeta(
+    'createdBy',
+  );
+  @override
+  late final GeneratedColumn<String> createdBy = GeneratedColumn<String>(
+    'created_by',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _updatedByMeta = const VerificationMeta(
+    'updatedBy',
+  );
+  @override
+  late final GeneratedColumn<String> updatedBy = GeneratedColumn<String>(
+    'updated_by',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _isDeletedMeta = const VerificationMeta(
+    'isDeleted',
+  );
+  @override
+  late final GeneratedColumn<bool> isDeleted = GeneratedColumn<bool>(
+    'is_deleted',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_deleted" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _deletedAtMeta = const VerificationMeta(
+    'deletedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
+    'deleted_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _copyIdMeta = const VerificationMeta('copyId');
+  @override
+  late final GeneratedColumn<String> copyId = GeneratedColumn<String>(
+    'copy_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES library_copies (id)',
+    ),
+  );
+  static const VerificationMeta _studentIdMeta = const VerificationMeta(
+    'studentId',
+  );
+  @override
+  late final GeneratedColumn<String> studentId = GeneratedColumn<String>(
+    'student_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES students (id)',
+    ),
+  );
+  static const VerificationMeta _loanDateMeta = const VerificationMeta(
+    'loanDate',
+  );
+  @override
+  late final GeneratedColumn<DateTime> loanDate = GeneratedColumn<DateTime>(
+    'loan_date',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _dueDateMeta = const VerificationMeta(
+    'dueDate',
+  );
+  @override
+  late final GeneratedColumn<DateTime> dueDate = GeneratedColumn<DateTime>(
+    'due_date',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _returnDateMeta = const VerificationMeta(
+    'returnDate',
+  );
+  @override
+  late final GeneratedColumn<DateTime> returnDate = GeneratedColumn<DateTime>(
+    'return_date',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _statusMeta = const VerificationMeta('status');
+  @override
+  late final GeneratedColumn<String> status = GeneratedColumn<String>(
+    'status',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('active'),
+  );
+  static const VerificationMeta _notesMeta = const VerificationMeta('notes');
+  @override
+  late final GeneratedColumn<String> notes = GeneratedColumn<String>(
+    'notes',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    createdAt,
+    updatedAt,
+    createdBy,
+    updatedBy,
+    isDeleted,
+    deletedAt,
+    copyId,
+    studentId,
+    loanDate,
+    dueDate,
+    returnDate,
+    status,
+    notes,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'library_loans';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<LibraryLoan> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    if (data.containsKey('created_by')) {
+      context.handle(
+        _createdByMeta,
+        createdBy.isAcceptableOrUnknown(data['created_by']!, _createdByMeta),
+      );
+    }
+    if (data.containsKey('updated_by')) {
+      context.handle(
+        _updatedByMeta,
+        updatedBy.isAcceptableOrUnknown(data['updated_by']!, _updatedByMeta),
+      );
+    }
+    if (data.containsKey('is_deleted')) {
+      context.handle(
+        _isDeletedMeta,
+        isDeleted.isAcceptableOrUnknown(data['is_deleted']!, _isDeletedMeta),
+      );
+    }
+    if (data.containsKey('deleted_at')) {
+      context.handle(
+        _deletedAtMeta,
+        deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta),
+      );
+    }
+    if (data.containsKey('copy_id')) {
+      context.handle(
+        _copyIdMeta,
+        copyId.isAcceptableOrUnknown(data['copy_id']!, _copyIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_copyIdMeta);
+    }
+    if (data.containsKey('student_id')) {
+      context.handle(
+        _studentIdMeta,
+        studentId.isAcceptableOrUnknown(data['student_id']!, _studentIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_studentIdMeta);
+    }
+    if (data.containsKey('loan_date')) {
+      context.handle(
+        _loanDateMeta,
+        loanDate.isAcceptableOrUnknown(data['loan_date']!, _loanDateMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_loanDateMeta);
+    }
+    if (data.containsKey('due_date')) {
+      context.handle(
+        _dueDateMeta,
+        dueDate.isAcceptableOrUnknown(data['due_date']!, _dueDateMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_dueDateMeta);
+    }
+    if (data.containsKey('return_date')) {
+      context.handle(
+        _returnDateMeta,
+        returnDate.isAcceptableOrUnknown(data['return_date']!, _returnDateMeta),
+      );
+    }
+    if (data.containsKey('status')) {
+      context.handle(
+        _statusMeta,
+        status.isAcceptableOrUnknown(data['status']!, _statusMeta),
+      );
+    }
+    if (data.containsKey('notes')) {
+      context.handle(
+        _notesMeta,
+        notes.isAcceptableOrUnknown(data['notes']!, _notesMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  LibraryLoan map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return LibraryLoan(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+      createdBy: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}created_by'],
+      ),
+      updatedBy: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}updated_by'],
+      ),
+      isDeleted: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_deleted'],
+      )!,
+      deletedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}deleted_at'],
+      ),
+      copyId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}copy_id'],
+      )!,
+      studentId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}student_id'],
+      )!,
+      loanDate: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}loan_date'],
+      )!,
+      dueDate: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}due_date'],
+      )!,
+      returnDate: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}return_date'],
+      ),
+      status: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}status'],
+      )!,
+      notes: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}notes'],
+      ),
+    );
+  }
+
+  @override
+  $LibraryLoansTable createAlias(String alias) {
+    return $LibraryLoansTable(attachedDatabase, alias);
+  }
+}
+
+class LibraryLoan extends DataClass implements Insertable<LibraryLoan> {
+  final String id;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  final String? createdBy;
+  final String? updatedBy;
+  final bool isDeleted;
+  final DateTime? deletedAt;
+  final String copyId;
+  final String studentId;
+  final DateTime loanDate;
+  final DateTime dueDate;
+  final DateTime? returnDate;
+  final String status;
+  final String? notes;
+  const LibraryLoan({
+    required this.id,
+    required this.createdAt,
+    required this.updatedAt,
+    this.createdBy,
+    this.updatedBy,
+    required this.isDeleted,
+    this.deletedAt,
+    required this.copyId,
+    required this.studentId,
+    required this.loanDate,
+    required this.dueDate,
+    this.returnDate,
+    required this.status,
+    this.notes,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    if (!nullToAbsent || createdBy != null) {
+      map['created_by'] = Variable<String>(createdBy);
+    }
+    if (!nullToAbsent || updatedBy != null) {
+      map['updated_by'] = Variable<String>(updatedBy);
+    }
+    map['is_deleted'] = Variable<bool>(isDeleted);
+    if (!nullToAbsent || deletedAt != null) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt);
+    }
+    map['copy_id'] = Variable<String>(copyId);
+    map['student_id'] = Variable<String>(studentId);
+    map['loan_date'] = Variable<DateTime>(loanDate);
+    map['due_date'] = Variable<DateTime>(dueDate);
+    if (!nullToAbsent || returnDate != null) {
+      map['return_date'] = Variable<DateTime>(returnDate);
+    }
+    map['status'] = Variable<String>(status);
+    if (!nullToAbsent || notes != null) {
+      map['notes'] = Variable<String>(notes);
+    }
+    return map;
+  }
+
+  LibraryLoansCompanion toCompanion(bool nullToAbsent) {
+    return LibraryLoansCompanion(
+      id: Value(id),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+      createdBy: createdBy == null && nullToAbsent
+          ? const Value.absent()
+          : Value(createdBy),
+      updatedBy: updatedBy == null && nullToAbsent
+          ? const Value.absent()
+          : Value(updatedBy),
+      isDeleted: Value(isDeleted),
+      deletedAt: deletedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deletedAt),
+      copyId: Value(copyId),
+      studentId: Value(studentId),
+      loanDate: Value(loanDate),
+      dueDate: Value(dueDate),
+      returnDate: returnDate == null && nullToAbsent
+          ? const Value.absent()
+          : Value(returnDate),
+      status: Value(status),
+      notes: notes == null && nullToAbsent
+          ? const Value.absent()
+          : Value(notes),
+    );
+  }
+
+  factory LibraryLoan.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return LibraryLoan(
+      id: serializer.fromJson<String>(json['id']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      createdBy: serializer.fromJson<String?>(json['createdBy']),
+      updatedBy: serializer.fromJson<String?>(json['updatedBy']),
+      isDeleted: serializer.fromJson<bool>(json['isDeleted']),
+      deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
+      copyId: serializer.fromJson<String>(json['copyId']),
+      studentId: serializer.fromJson<String>(json['studentId']),
+      loanDate: serializer.fromJson<DateTime>(json['loanDate']),
+      dueDate: serializer.fromJson<DateTime>(json['dueDate']),
+      returnDate: serializer.fromJson<DateTime?>(json['returnDate']),
+      status: serializer.fromJson<String>(json['status']),
+      notes: serializer.fromJson<String?>(json['notes']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'createdBy': serializer.toJson<String?>(createdBy),
+      'updatedBy': serializer.toJson<String?>(updatedBy),
+      'isDeleted': serializer.toJson<bool>(isDeleted),
+      'deletedAt': serializer.toJson<DateTime?>(deletedAt),
+      'copyId': serializer.toJson<String>(copyId),
+      'studentId': serializer.toJson<String>(studentId),
+      'loanDate': serializer.toJson<DateTime>(loanDate),
+      'dueDate': serializer.toJson<DateTime>(dueDate),
+      'returnDate': serializer.toJson<DateTime?>(returnDate),
+      'status': serializer.toJson<String>(status),
+      'notes': serializer.toJson<String?>(notes),
+    };
+  }
+
+  LibraryLoan copyWith({
+    String? id,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    Value<String?> createdBy = const Value.absent(),
+    Value<String?> updatedBy = const Value.absent(),
+    bool? isDeleted,
+    Value<DateTime?> deletedAt = const Value.absent(),
+    String? copyId,
+    String? studentId,
+    DateTime? loanDate,
+    DateTime? dueDate,
+    Value<DateTime?> returnDate = const Value.absent(),
+    String? status,
+    Value<String?> notes = const Value.absent(),
+  }) => LibraryLoan(
+    id: id ?? this.id,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+    createdBy: createdBy.present ? createdBy.value : this.createdBy,
+    updatedBy: updatedBy.present ? updatedBy.value : this.updatedBy,
+    isDeleted: isDeleted ?? this.isDeleted,
+    deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+    copyId: copyId ?? this.copyId,
+    studentId: studentId ?? this.studentId,
+    loanDate: loanDate ?? this.loanDate,
+    dueDate: dueDate ?? this.dueDate,
+    returnDate: returnDate.present ? returnDate.value : this.returnDate,
+    status: status ?? this.status,
+    notes: notes.present ? notes.value : this.notes,
+  );
+  LibraryLoan copyWithCompanion(LibraryLoansCompanion data) {
+    return LibraryLoan(
+      id: data.id.present ? data.id.value : this.id,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      createdBy: data.createdBy.present ? data.createdBy.value : this.createdBy,
+      updatedBy: data.updatedBy.present ? data.updatedBy.value : this.updatedBy,
+      isDeleted: data.isDeleted.present ? data.isDeleted.value : this.isDeleted,
+      deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
+      copyId: data.copyId.present ? data.copyId.value : this.copyId,
+      studentId: data.studentId.present ? data.studentId.value : this.studentId,
+      loanDate: data.loanDate.present ? data.loanDate.value : this.loanDate,
+      dueDate: data.dueDate.present ? data.dueDate.value : this.dueDate,
+      returnDate: data.returnDate.present
+          ? data.returnDate.value
+          : this.returnDate,
+      status: data.status.present ? data.status.value : this.status,
+      notes: data.notes.present ? data.notes.value : this.notes,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('LibraryLoan(')
+          ..write('id: $id, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('createdBy: $createdBy, ')
+          ..write('updatedBy: $updatedBy, ')
+          ..write('isDeleted: $isDeleted, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('copyId: $copyId, ')
+          ..write('studentId: $studentId, ')
+          ..write('loanDate: $loanDate, ')
+          ..write('dueDate: $dueDate, ')
+          ..write('returnDate: $returnDate, ')
+          ..write('status: $status, ')
+          ..write('notes: $notes')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    createdAt,
+    updatedAt,
+    createdBy,
+    updatedBy,
+    isDeleted,
+    deletedAt,
+    copyId,
+    studentId,
+    loanDate,
+    dueDate,
+    returnDate,
+    status,
+    notes,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is LibraryLoan &&
+          other.id == this.id &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt &&
+          other.createdBy == this.createdBy &&
+          other.updatedBy == this.updatedBy &&
+          other.isDeleted == this.isDeleted &&
+          other.deletedAt == this.deletedAt &&
+          other.copyId == this.copyId &&
+          other.studentId == this.studentId &&
+          other.loanDate == this.loanDate &&
+          other.dueDate == this.dueDate &&
+          other.returnDate == this.returnDate &&
+          other.status == this.status &&
+          other.notes == this.notes);
+}
+
+class LibraryLoansCompanion extends UpdateCompanion<LibraryLoan> {
+  final Value<String> id;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<String?> createdBy;
+  final Value<String?> updatedBy;
+  final Value<bool> isDeleted;
+  final Value<DateTime?> deletedAt;
+  final Value<String> copyId;
+  final Value<String> studentId;
+  final Value<DateTime> loanDate;
+  final Value<DateTime> dueDate;
+  final Value<DateTime?> returnDate;
+  final Value<String> status;
+  final Value<String?> notes;
+  final Value<int> rowid;
+  const LibraryLoansCompanion({
+    this.id = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.createdBy = const Value.absent(),
+    this.updatedBy = const Value.absent(),
+    this.isDeleted = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.copyId = const Value.absent(),
+    this.studentId = const Value.absent(),
+    this.loanDate = const Value.absent(),
+    this.dueDate = const Value.absent(),
+    this.returnDate = const Value.absent(),
+    this.status = const Value.absent(),
+    this.notes = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  LibraryLoansCompanion.insert({
+    required String id,
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.createdBy = const Value.absent(),
+    this.updatedBy = const Value.absent(),
+    this.isDeleted = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    required String copyId,
+    required String studentId,
+    required DateTime loanDate,
+    required DateTime dueDate,
+    this.returnDate = const Value.absent(),
+    this.status = const Value.absent(),
+    this.notes = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       copyId = Value(copyId),
+       studentId = Value(studentId),
+       loanDate = Value(loanDate),
+       dueDate = Value(dueDate);
+  static Insertable<LibraryLoan> custom({
+    Expression<String>? id,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<String>? createdBy,
+    Expression<String>? updatedBy,
+    Expression<bool>? isDeleted,
+    Expression<DateTime>? deletedAt,
+    Expression<String>? copyId,
+    Expression<String>? studentId,
+    Expression<DateTime>? loanDate,
+    Expression<DateTime>? dueDate,
+    Expression<DateTime>? returnDate,
+    Expression<String>? status,
+    Expression<String>? notes,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (createdBy != null) 'created_by': createdBy,
+      if (updatedBy != null) 'updated_by': updatedBy,
+      if (isDeleted != null) 'is_deleted': isDeleted,
+      if (deletedAt != null) 'deleted_at': deletedAt,
+      if (copyId != null) 'copy_id': copyId,
+      if (studentId != null) 'student_id': studentId,
+      if (loanDate != null) 'loan_date': loanDate,
+      if (dueDate != null) 'due_date': dueDate,
+      if (returnDate != null) 'return_date': returnDate,
+      if (status != null) 'status': status,
+      if (notes != null) 'notes': notes,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  LibraryLoansCompanion copyWith({
+    Value<String>? id,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+    Value<String?>? createdBy,
+    Value<String?>? updatedBy,
+    Value<bool>? isDeleted,
+    Value<DateTime?>? deletedAt,
+    Value<String>? copyId,
+    Value<String>? studentId,
+    Value<DateTime>? loanDate,
+    Value<DateTime>? dueDate,
+    Value<DateTime?>? returnDate,
+    Value<String>? status,
+    Value<String?>? notes,
+    Value<int>? rowid,
+  }) {
+    return LibraryLoansCompanion(
+      id: id ?? this.id,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      createdBy: createdBy ?? this.createdBy,
+      updatedBy: updatedBy ?? this.updatedBy,
+      isDeleted: isDeleted ?? this.isDeleted,
+      deletedAt: deletedAt ?? this.deletedAt,
+      copyId: copyId ?? this.copyId,
+      studentId: studentId ?? this.studentId,
+      loanDate: loanDate ?? this.loanDate,
+      dueDate: dueDate ?? this.dueDate,
+      returnDate: returnDate ?? this.returnDate,
+      status: status ?? this.status,
+      notes: notes ?? this.notes,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (createdBy.present) {
+      map['created_by'] = Variable<String>(createdBy.value);
+    }
+    if (updatedBy.present) {
+      map['updated_by'] = Variable<String>(updatedBy.value);
+    }
+    if (isDeleted.present) {
+      map['is_deleted'] = Variable<bool>(isDeleted.value);
+    }
+    if (deletedAt.present) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt.value);
+    }
+    if (copyId.present) {
+      map['copy_id'] = Variable<String>(copyId.value);
+    }
+    if (studentId.present) {
+      map['student_id'] = Variable<String>(studentId.value);
+    }
+    if (loanDate.present) {
+      map['loan_date'] = Variable<DateTime>(loanDate.value);
+    }
+    if (dueDate.present) {
+      map['due_date'] = Variable<DateTime>(dueDate.value);
+    }
+    if (returnDate.present) {
+      map['return_date'] = Variable<DateTime>(returnDate.value);
+    }
+    if (status.present) {
+      map['status'] = Variable<String>(status.value);
+    }
+    if (notes.present) {
+      map['notes'] = Variable<String>(notes.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('LibraryLoansCompanion(')
+          ..write('id: $id, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('createdBy: $createdBy, ')
+          ..write('updatedBy: $updatedBy, ')
+          ..write('isDeleted: $isDeleted, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('copyId: $copyId, ')
+          ..write('studentId: $studentId, ')
+          ..write('loanDate: $loanDate, ')
+          ..write('dueDate: $dueDate, ')
+          ..write('returnDate: $returnDate, ')
+          ..write('status: $status, ')
+          ..write('notes: $notes, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -21238,6 +25257,13 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $TeacherAssignmentsTable teacherAssignments =
       $TeacherAssignmentsTable(this);
   late final $StaffMembersTable staffMembers = $StaffMembersTable(this);
+  late final $DisciplinaryIncidentsTable disciplinaryIncidents =
+      $DisciplinaryIncidentsTable(this);
+  late final $DisciplinaryActionsTable disciplinaryActions =
+      $DisciplinaryActionsTable(this);
+  late final $LibraryItemsTable libraryItems = $LibraryItemsTable(this);
+  late final $LibraryCopiesTable libraryCopies = $LibraryCopiesTable(this);
+  late final $LibraryLoansTable libraryLoans = $LibraryLoansTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -21273,6 +25299,11 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     councilDecisions,
     teacherAssignments,
     staffMembers,
+    disciplinaryIncidents,
+    disciplinaryActions,
+    libraryItems,
+    libraryCopies,
+    libraryLoans,
   ];
 }
 
@@ -28817,6 +32848,52 @@ final class $$StudentsTableReferences
       manager.$state.copyWith(prefetchedData: cache),
     );
   }
+
+  static MultiTypedResultKey<
+    $DisciplinaryIncidentsTable,
+    List<DisciplinaryIncident>
+  >
+  _disciplinaryIncidentsRefsTable(_$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(
+        db.disciplinaryIncidents,
+        aliasName: $_aliasNameGenerator(
+          db.students.id,
+          db.disciplinaryIncidents.studentId,
+        ),
+      );
+
+  $$DisciplinaryIncidentsTableProcessedTableManager
+  get disciplinaryIncidentsRefs {
+    final manager = $$DisciplinaryIncidentsTableTableManager(
+      $_db,
+      $_db.disciplinaryIncidents,
+    ).filter((f) => f.studentId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _disciplinaryIncidentsRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<$LibraryLoansTable, List<LibraryLoan>>
+  _libraryLoansRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.libraryLoans,
+    aliasName: $_aliasNameGenerator(db.students.id, db.libraryLoans.studentId),
+  );
+
+  $$LibraryLoansTableProcessedTableManager get libraryLoansRefs {
+    final manager = $$LibraryLoansTableTableManager(
+      $_db,
+      $_db.libraryLoans,
+    ).filter((f) => f.studentId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_libraryLoansRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
 }
 
 class $$StudentsTableFilterComposer
@@ -29074,6 +33151,57 @@ class $$StudentsTableFilterComposer
           }) => $$CouncilDecisionsTableFilterComposer(
             $db: $db,
             $table: $db.councilDecisions,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> disciplinaryIncidentsRefs(
+    Expression<bool> Function($$DisciplinaryIncidentsTableFilterComposer f) f,
+  ) {
+    final $$DisciplinaryIncidentsTableFilterComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.disciplinaryIncidents,
+          getReferencedColumn: (t) => t.studentId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$DisciplinaryIncidentsTableFilterComposer(
+                $db: $db,
+                $table: $db.disciplinaryIncidents,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
+
+  Expression<bool> libraryLoansRefs(
+    Expression<bool> Function($$LibraryLoansTableFilterComposer f) f,
+  ) {
+    final $$LibraryLoansTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.libraryLoans,
+      getReferencedColumn: (t) => t.studentId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$LibraryLoansTableFilterComposer(
+            $db: $db,
+            $table: $db.libraryLoans,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -29408,6 +33536,57 @@ class $$StudentsTableAnnotationComposer
     );
     return f(composer);
   }
+
+  Expression<T> disciplinaryIncidentsRefs<T extends Object>(
+    Expression<T> Function($$DisciplinaryIncidentsTableAnnotationComposer a) f,
+  ) {
+    final $$DisciplinaryIncidentsTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.disciplinaryIncidents,
+          getReferencedColumn: (t) => t.studentId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$DisciplinaryIncidentsTableAnnotationComposer(
+                $db: $db,
+                $table: $db.disciplinaryIncidents,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
+
+  Expression<T> libraryLoansRefs<T extends Object>(
+    Expression<T> Function($$LibraryLoansTableAnnotationComposer a) f,
+  ) {
+    final $$LibraryLoansTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.libraryLoans,
+      getReferencedColumn: (t) => t.studentId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$LibraryLoansTableAnnotationComposer(
+            $db: $db,
+            $table: $db.libraryLoans,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$StudentsTableTableManager
@@ -29431,6 +33610,8 @@ class $$StudentsTableTableManager
             bool attendanceRecordsRefs,
             bool gradesRefs,
             bool councilDecisionsRefs,
+            bool disciplinaryIncidentsRefs,
+            bool libraryLoansRefs,
           })
         > {
   $$StudentsTableTableManager(_$AppDatabase db, $StudentsTable table)
@@ -29537,6 +33718,8 @@ class $$StudentsTableTableManager
                 attendanceRecordsRefs = false,
                 gradesRefs = false,
                 councilDecisionsRefs = false,
+                disciplinaryIncidentsRefs = false,
+                libraryLoansRefs = false,
               }) {
                 return PrefetchHooks(
                   db: db,
@@ -29548,6 +33731,8 @@ class $$StudentsTableTableManager
                     if (attendanceRecordsRefs) db.attendanceRecords,
                     if (gradesRefs) db.grades,
                     if (councilDecisionsRefs) db.councilDecisions,
+                    if (disciplinaryIncidentsRefs) db.disciplinaryIncidents,
+                    if (libraryLoansRefs) db.libraryLoans,
                   ],
                   addJoins: null,
                   getPrefetchedDataCallback: (items) async {
@@ -29699,6 +33884,48 @@ class $$StudentsTableTableManager
                               ),
                           typedResults: items,
                         ),
+                      if (disciplinaryIncidentsRefs)
+                        await $_getPrefetchedData<
+                          Student,
+                          $StudentsTable,
+                          DisciplinaryIncident
+                        >(
+                          currentTable: table,
+                          referencedTable: $$StudentsTableReferences
+                              ._disciplinaryIncidentsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$StudentsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).disciplinaryIncidentsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.studentId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (libraryLoansRefs)
+                        await $_getPrefetchedData<
+                          Student,
+                          $StudentsTable,
+                          LibraryLoan
+                        >(
+                          currentTable: table,
+                          referencedTable: $$StudentsTableReferences
+                              ._libraryLoansRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$StudentsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).libraryLoansRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.studentId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
                     ];
                   },
                 );
@@ -29727,6 +33954,8 @@ typedef $$StudentsTableProcessedTableManager =
         bool attendanceRecordsRefs,
         bool gradesRefs,
         bool councilDecisionsRefs,
+        bool disciplinaryIncidentsRefs,
+        bool libraryLoansRefs,
       })
     >;
 typedef $$GuardiansTableCreateCompanionBuilder =
@@ -40094,6 +44323,2787 @@ typedef $$StaffMembersTableProcessedTableManager =
       StaffMember,
       PrefetchHooks Function({bool userId})
     >;
+typedef $$DisciplinaryIncidentsTableCreateCompanionBuilder =
+    DisciplinaryIncidentsCompanion Function({
+      required String id,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<String?> createdBy,
+      Value<String?> updatedBy,
+      Value<bool> isDeleted,
+      Value<DateTime?> deletedAt,
+      required String studentId,
+      required DateTime incidentDate,
+      required String incidentType,
+      required String description,
+      Value<String?> location,
+      Value<String?> reportedBy,
+      Value<String> status,
+      Value<bool> isConfidential,
+      Value<int> rowid,
+    });
+typedef $$DisciplinaryIncidentsTableUpdateCompanionBuilder =
+    DisciplinaryIncidentsCompanion Function({
+      Value<String> id,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<String?> createdBy,
+      Value<String?> updatedBy,
+      Value<bool> isDeleted,
+      Value<DateTime?> deletedAt,
+      Value<String> studentId,
+      Value<DateTime> incidentDate,
+      Value<String> incidentType,
+      Value<String> description,
+      Value<String?> location,
+      Value<String?> reportedBy,
+      Value<String> status,
+      Value<bool> isConfidential,
+      Value<int> rowid,
+    });
+
+final class $$DisciplinaryIncidentsTableReferences
+    extends
+        BaseReferences<
+          _$AppDatabase,
+          $DisciplinaryIncidentsTable,
+          DisciplinaryIncident
+        > {
+  $$DisciplinaryIncidentsTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $StudentsTable _studentIdTable(_$AppDatabase db) =>
+      db.students.createAlias(
+        $_aliasNameGenerator(
+          db.disciplinaryIncidents.studentId,
+          db.students.id,
+        ),
+      );
+
+  $$StudentsTableProcessedTableManager get studentId {
+    final $_column = $_itemColumn<String>('student_id')!;
+
+    final manager = $$StudentsTableTableManager(
+      $_db,
+      $_db.students,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_studentIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static MultiTypedResultKey<
+    $DisciplinaryActionsTable,
+    List<DisciplinaryAction>
+  >
+  _disciplinaryActionsRefsTable(_$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(
+        db.disciplinaryActions,
+        aliasName: $_aliasNameGenerator(
+          db.disciplinaryIncidents.id,
+          db.disciplinaryActions.incidentId,
+        ),
+      );
+
+  $$DisciplinaryActionsTableProcessedTableManager get disciplinaryActionsRefs {
+    final manager = $$DisciplinaryActionsTableTableManager(
+      $_db,
+      $_db.disciplinaryActions,
+    ).filter((f) => f.incidentId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _disciplinaryActionsRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+}
+
+class $$DisciplinaryIncidentsTableFilterComposer
+    extends Composer<_$AppDatabase, $DisciplinaryIncidentsTable> {
+  $$DisciplinaryIncidentsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get createdBy => $composableBuilder(
+    column: $table.createdBy,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get updatedBy => $composableBuilder(
+    column: $table.updatedBy,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isDeleted => $composableBuilder(
+    column: $table.isDeleted,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get incidentDate => $composableBuilder(
+    column: $table.incidentDate,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get incidentType => $composableBuilder(
+    column: $table.incidentType,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get location => $composableBuilder(
+    column: $table.location,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get reportedBy => $composableBuilder(
+    column: $table.reportedBy,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isConfidential => $composableBuilder(
+    column: $table.isConfidential,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$StudentsTableFilterComposer get studentId {
+    final $$StudentsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.studentId,
+      referencedTable: $db.students,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$StudentsTableFilterComposer(
+            $db: $db,
+            $table: $db.students,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  Expression<bool> disciplinaryActionsRefs(
+    Expression<bool> Function($$DisciplinaryActionsTableFilterComposer f) f,
+  ) {
+    final $$DisciplinaryActionsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.disciplinaryActions,
+      getReferencedColumn: (t) => t.incidentId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$DisciplinaryActionsTableFilterComposer(
+            $db: $db,
+            $table: $db.disciplinaryActions,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$DisciplinaryIncidentsTableOrderingComposer
+    extends Composer<_$AppDatabase, $DisciplinaryIncidentsTable> {
+  $$DisciplinaryIncidentsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get createdBy => $composableBuilder(
+    column: $table.createdBy,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get updatedBy => $composableBuilder(
+    column: $table.updatedBy,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isDeleted => $composableBuilder(
+    column: $table.isDeleted,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get incidentDate => $composableBuilder(
+    column: $table.incidentDate,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get incidentType => $composableBuilder(
+    column: $table.incidentType,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get location => $composableBuilder(
+    column: $table.location,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get reportedBy => $composableBuilder(
+    column: $table.reportedBy,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isConfidential => $composableBuilder(
+    column: $table.isConfidential,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$StudentsTableOrderingComposer get studentId {
+    final $$StudentsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.studentId,
+      referencedTable: $db.students,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$StudentsTableOrderingComposer(
+            $db: $db,
+            $table: $db.students,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$DisciplinaryIncidentsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $DisciplinaryIncidentsTable> {
+  $$DisciplinaryIncidentsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<String> get createdBy =>
+      $composableBuilder(column: $table.createdBy, builder: (column) => column);
+
+  GeneratedColumn<String> get updatedBy =>
+      $composableBuilder(column: $table.updatedBy, builder: (column) => column);
+
+  GeneratedColumn<bool> get isDeleted =>
+      $composableBuilder(column: $table.isDeleted, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get deletedAt =>
+      $composableBuilder(column: $table.deletedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get incidentDate => $composableBuilder(
+    column: $table.incidentDate,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get incidentType => $composableBuilder(
+    column: $table.incidentType,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get location =>
+      $composableBuilder(column: $table.location, builder: (column) => column);
+
+  GeneratedColumn<String> get reportedBy => $composableBuilder(
+    column: $table.reportedBy,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get status =>
+      $composableBuilder(column: $table.status, builder: (column) => column);
+
+  GeneratedColumn<bool> get isConfidential => $composableBuilder(
+    column: $table.isConfidential,
+    builder: (column) => column,
+  );
+
+  $$StudentsTableAnnotationComposer get studentId {
+    final $$StudentsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.studentId,
+      referencedTable: $db.students,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$StudentsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.students,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  Expression<T> disciplinaryActionsRefs<T extends Object>(
+    Expression<T> Function($$DisciplinaryActionsTableAnnotationComposer a) f,
+  ) {
+    final $$DisciplinaryActionsTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.id,
+          referencedTable: $db.disciplinaryActions,
+          getReferencedColumn: (t) => t.incidentId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$DisciplinaryActionsTableAnnotationComposer(
+                $db: $db,
+                $table: $db.disciplinaryActions,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
+}
+
+class $$DisciplinaryIncidentsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $DisciplinaryIncidentsTable,
+          DisciplinaryIncident,
+          $$DisciplinaryIncidentsTableFilterComposer,
+          $$DisciplinaryIncidentsTableOrderingComposer,
+          $$DisciplinaryIncidentsTableAnnotationComposer,
+          $$DisciplinaryIncidentsTableCreateCompanionBuilder,
+          $$DisciplinaryIncidentsTableUpdateCompanionBuilder,
+          (DisciplinaryIncident, $$DisciplinaryIncidentsTableReferences),
+          DisciplinaryIncident,
+          PrefetchHooks Function({bool studentId, bool disciplinaryActionsRefs})
+        > {
+  $$DisciplinaryIncidentsTableTableManager(
+    _$AppDatabase db,
+    $DisciplinaryIncidentsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$DisciplinaryIncidentsTableFilterComposer(
+                $db: db,
+                $table: table,
+              ),
+          createOrderingComposer: () =>
+              $$DisciplinaryIncidentsTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$DisciplinaryIncidentsTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<String?> createdBy = const Value.absent(),
+                Value<String?> updatedBy = const Value.absent(),
+                Value<bool> isDeleted = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<String> studentId = const Value.absent(),
+                Value<DateTime> incidentDate = const Value.absent(),
+                Value<String> incidentType = const Value.absent(),
+                Value<String> description = const Value.absent(),
+                Value<String?> location = const Value.absent(),
+                Value<String?> reportedBy = const Value.absent(),
+                Value<String> status = const Value.absent(),
+                Value<bool> isConfidential = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => DisciplinaryIncidentsCompanion(
+                id: id,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                createdBy: createdBy,
+                updatedBy: updatedBy,
+                isDeleted: isDeleted,
+                deletedAt: deletedAt,
+                studentId: studentId,
+                incidentDate: incidentDate,
+                incidentType: incidentType,
+                description: description,
+                location: location,
+                reportedBy: reportedBy,
+                status: status,
+                isConfidential: isConfidential,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<String?> createdBy = const Value.absent(),
+                Value<String?> updatedBy = const Value.absent(),
+                Value<bool> isDeleted = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                required String studentId,
+                required DateTime incidentDate,
+                required String incidentType,
+                required String description,
+                Value<String?> location = const Value.absent(),
+                Value<String?> reportedBy = const Value.absent(),
+                Value<String> status = const Value.absent(),
+                Value<bool> isConfidential = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => DisciplinaryIncidentsCompanion.insert(
+                id: id,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                createdBy: createdBy,
+                updatedBy: updatedBy,
+                isDeleted: isDeleted,
+                deletedAt: deletedAt,
+                studentId: studentId,
+                incidentDate: incidentDate,
+                incidentType: incidentType,
+                description: description,
+                location: location,
+                reportedBy: reportedBy,
+                status: status,
+                isConfidential: isConfidential,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$DisciplinaryIncidentsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback:
+              ({studentId = false, disciplinaryActionsRefs = false}) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [
+                    if (disciplinaryActionsRefs) db.disciplinaryActions,
+                  ],
+                  addJoins:
+                      <
+                        T extends TableManagerState<
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic
+                        >
+                      >(state) {
+                        if (studentId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.studentId,
+                                    referencedTable:
+                                        $$DisciplinaryIncidentsTableReferences
+                                            ._studentIdTable(db),
+                                    referencedColumn:
+                                        $$DisciplinaryIncidentsTableReferences
+                                            ._studentIdTable(db)
+                                            .id,
+                                  )
+                                  as T;
+                        }
+
+                        return state;
+                      },
+                  getPrefetchedDataCallback: (items) async {
+                    return [
+                      if (disciplinaryActionsRefs)
+                        await $_getPrefetchedData<
+                          DisciplinaryIncident,
+                          $DisciplinaryIncidentsTable,
+                          DisciplinaryAction
+                        >(
+                          currentTable: table,
+                          referencedTable:
+                              $$DisciplinaryIncidentsTableReferences
+                                  ._disciplinaryActionsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$DisciplinaryIncidentsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).disciplinaryActionsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.incidentId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                    ];
+                  },
+                );
+              },
+        ),
+      );
+}
+
+typedef $$DisciplinaryIncidentsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $DisciplinaryIncidentsTable,
+      DisciplinaryIncident,
+      $$DisciplinaryIncidentsTableFilterComposer,
+      $$DisciplinaryIncidentsTableOrderingComposer,
+      $$DisciplinaryIncidentsTableAnnotationComposer,
+      $$DisciplinaryIncidentsTableCreateCompanionBuilder,
+      $$DisciplinaryIncidentsTableUpdateCompanionBuilder,
+      (DisciplinaryIncident, $$DisciplinaryIncidentsTableReferences),
+      DisciplinaryIncident,
+      PrefetchHooks Function({bool studentId, bool disciplinaryActionsRefs})
+    >;
+typedef $$DisciplinaryActionsTableCreateCompanionBuilder =
+    DisciplinaryActionsCompanion Function({
+      required String id,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<String?> createdBy,
+      Value<String?> updatedBy,
+      Value<bool> isDeleted,
+      Value<DateTime?> deletedAt,
+      required String incidentId,
+      required String actionType,
+      Value<DateTime?> decisionDate,
+      Value<DateTime?> startDate,
+      Value<DateTime?> endDate,
+      Value<String?> notes,
+      Value<String> executionStatus,
+      Value<String?> followUpNotes,
+      Value<int> rowid,
+    });
+typedef $$DisciplinaryActionsTableUpdateCompanionBuilder =
+    DisciplinaryActionsCompanion Function({
+      Value<String> id,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<String?> createdBy,
+      Value<String?> updatedBy,
+      Value<bool> isDeleted,
+      Value<DateTime?> deletedAt,
+      Value<String> incidentId,
+      Value<String> actionType,
+      Value<DateTime?> decisionDate,
+      Value<DateTime?> startDate,
+      Value<DateTime?> endDate,
+      Value<String?> notes,
+      Value<String> executionStatus,
+      Value<String?> followUpNotes,
+      Value<int> rowid,
+    });
+
+final class $$DisciplinaryActionsTableReferences
+    extends
+        BaseReferences<
+          _$AppDatabase,
+          $DisciplinaryActionsTable,
+          DisciplinaryAction
+        > {
+  $$DisciplinaryActionsTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $DisciplinaryIncidentsTable _incidentIdTable(_$AppDatabase db) =>
+      db.disciplinaryIncidents.createAlias(
+        $_aliasNameGenerator(
+          db.disciplinaryActions.incidentId,
+          db.disciplinaryIncidents.id,
+        ),
+      );
+
+  $$DisciplinaryIncidentsTableProcessedTableManager get incidentId {
+    final $_column = $_itemColumn<String>('incident_id')!;
+
+    final manager = $$DisciplinaryIncidentsTableTableManager(
+      $_db,
+      $_db.disciplinaryIncidents,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_incidentIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$DisciplinaryActionsTableFilterComposer
+    extends Composer<_$AppDatabase, $DisciplinaryActionsTable> {
+  $$DisciplinaryActionsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get createdBy => $composableBuilder(
+    column: $table.createdBy,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get updatedBy => $composableBuilder(
+    column: $table.updatedBy,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isDeleted => $composableBuilder(
+    column: $table.isDeleted,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get actionType => $composableBuilder(
+    column: $table.actionType,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get decisionDate => $composableBuilder(
+    column: $table.decisionDate,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get startDate => $composableBuilder(
+    column: $table.startDate,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get endDate => $composableBuilder(
+    column: $table.endDate,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get notes => $composableBuilder(
+    column: $table.notes,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get executionStatus => $composableBuilder(
+    column: $table.executionStatus,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get followUpNotes => $composableBuilder(
+    column: $table.followUpNotes,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$DisciplinaryIncidentsTableFilterComposer get incidentId {
+    final $$DisciplinaryIncidentsTableFilterComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.incidentId,
+          referencedTable: $db.disciplinaryIncidents,
+          getReferencedColumn: (t) => t.id,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$DisciplinaryIncidentsTableFilterComposer(
+                $db: $db,
+                $table: $db.disciplinaryIncidents,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return composer;
+  }
+}
+
+class $$DisciplinaryActionsTableOrderingComposer
+    extends Composer<_$AppDatabase, $DisciplinaryActionsTable> {
+  $$DisciplinaryActionsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get createdBy => $composableBuilder(
+    column: $table.createdBy,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get updatedBy => $composableBuilder(
+    column: $table.updatedBy,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isDeleted => $composableBuilder(
+    column: $table.isDeleted,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get actionType => $composableBuilder(
+    column: $table.actionType,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get decisionDate => $composableBuilder(
+    column: $table.decisionDate,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get startDate => $composableBuilder(
+    column: $table.startDate,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get endDate => $composableBuilder(
+    column: $table.endDate,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get notes => $composableBuilder(
+    column: $table.notes,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get executionStatus => $composableBuilder(
+    column: $table.executionStatus,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get followUpNotes => $composableBuilder(
+    column: $table.followUpNotes,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$DisciplinaryIncidentsTableOrderingComposer get incidentId {
+    final $$DisciplinaryIncidentsTableOrderingComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.incidentId,
+          referencedTable: $db.disciplinaryIncidents,
+          getReferencedColumn: (t) => t.id,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$DisciplinaryIncidentsTableOrderingComposer(
+                $db: $db,
+                $table: $db.disciplinaryIncidents,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return composer;
+  }
+}
+
+class $$DisciplinaryActionsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $DisciplinaryActionsTable> {
+  $$DisciplinaryActionsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<String> get createdBy =>
+      $composableBuilder(column: $table.createdBy, builder: (column) => column);
+
+  GeneratedColumn<String> get updatedBy =>
+      $composableBuilder(column: $table.updatedBy, builder: (column) => column);
+
+  GeneratedColumn<bool> get isDeleted =>
+      $composableBuilder(column: $table.isDeleted, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get deletedAt =>
+      $composableBuilder(column: $table.deletedAt, builder: (column) => column);
+
+  GeneratedColumn<String> get actionType => $composableBuilder(
+    column: $table.actionType,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get decisionDate => $composableBuilder(
+    column: $table.decisionDate,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get startDate =>
+      $composableBuilder(column: $table.startDate, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get endDate =>
+      $composableBuilder(column: $table.endDate, builder: (column) => column);
+
+  GeneratedColumn<String> get notes =>
+      $composableBuilder(column: $table.notes, builder: (column) => column);
+
+  GeneratedColumn<String> get executionStatus => $composableBuilder(
+    column: $table.executionStatus,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get followUpNotes => $composableBuilder(
+    column: $table.followUpNotes,
+    builder: (column) => column,
+  );
+
+  $$DisciplinaryIncidentsTableAnnotationComposer get incidentId {
+    final $$DisciplinaryIncidentsTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.incidentId,
+          referencedTable: $db.disciplinaryIncidents,
+          getReferencedColumn: (t) => t.id,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$DisciplinaryIncidentsTableAnnotationComposer(
+                $db: $db,
+                $table: $db.disciplinaryIncidents,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return composer;
+  }
+}
+
+class $$DisciplinaryActionsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $DisciplinaryActionsTable,
+          DisciplinaryAction,
+          $$DisciplinaryActionsTableFilterComposer,
+          $$DisciplinaryActionsTableOrderingComposer,
+          $$DisciplinaryActionsTableAnnotationComposer,
+          $$DisciplinaryActionsTableCreateCompanionBuilder,
+          $$DisciplinaryActionsTableUpdateCompanionBuilder,
+          (DisciplinaryAction, $$DisciplinaryActionsTableReferences),
+          DisciplinaryAction,
+          PrefetchHooks Function({bool incidentId})
+        > {
+  $$DisciplinaryActionsTableTableManager(
+    _$AppDatabase db,
+    $DisciplinaryActionsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$DisciplinaryActionsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$DisciplinaryActionsTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$DisciplinaryActionsTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<String?> createdBy = const Value.absent(),
+                Value<String?> updatedBy = const Value.absent(),
+                Value<bool> isDeleted = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<String> incidentId = const Value.absent(),
+                Value<String> actionType = const Value.absent(),
+                Value<DateTime?> decisionDate = const Value.absent(),
+                Value<DateTime?> startDate = const Value.absent(),
+                Value<DateTime?> endDate = const Value.absent(),
+                Value<String?> notes = const Value.absent(),
+                Value<String> executionStatus = const Value.absent(),
+                Value<String?> followUpNotes = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => DisciplinaryActionsCompanion(
+                id: id,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                createdBy: createdBy,
+                updatedBy: updatedBy,
+                isDeleted: isDeleted,
+                deletedAt: deletedAt,
+                incidentId: incidentId,
+                actionType: actionType,
+                decisionDate: decisionDate,
+                startDate: startDate,
+                endDate: endDate,
+                notes: notes,
+                executionStatus: executionStatus,
+                followUpNotes: followUpNotes,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<String?> createdBy = const Value.absent(),
+                Value<String?> updatedBy = const Value.absent(),
+                Value<bool> isDeleted = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                required String incidentId,
+                required String actionType,
+                Value<DateTime?> decisionDate = const Value.absent(),
+                Value<DateTime?> startDate = const Value.absent(),
+                Value<DateTime?> endDate = const Value.absent(),
+                Value<String?> notes = const Value.absent(),
+                Value<String> executionStatus = const Value.absent(),
+                Value<String?> followUpNotes = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => DisciplinaryActionsCompanion.insert(
+                id: id,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                createdBy: createdBy,
+                updatedBy: updatedBy,
+                isDeleted: isDeleted,
+                deletedAt: deletedAt,
+                incidentId: incidentId,
+                actionType: actionType,
+                decisionDate: decisionDate,
+                startDate: startDate,
+                endDate: endDate,
+                notes: notes,
+                executionStatus: executionStatus,
+                followUpNotes: followUpNotes,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$DisciplinaryActionsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({incidentId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (incidentId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.incidentId,
+                                referencedTable:
+                                    $$DisciplinaryActionsTableReferences
+                                        ._incidentIdTable(db),
+                                referencedColumn:
+                                    $$DisciplinaryActionsTableReferences
+                                        ._incidentIdTable(db)
+                                        .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$DisciplinaryActionsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $DisciplinaryActionsTable,
+      DisciplinaryAction,
+      $$DisciplinaryActionsTableFilterComposer,
+      $$DisciplinaryActionsTableOrderingComposer,
+      $$DisciplinaryActionsTableAnnotationComposer,
+      $$DisciplinaryActionsTableCreateCompanionBuilder,
+      $$DisciplinaryActionsTableUpdateCompanionBuilder,
+      (DisciplinaryAction, $$DisciplinaryActionsTableReferences),
+      DisciplinaryAction,
+      PrefetchHooks Function({bool incidentId})
+    >;
+typedef $$LibraryItemsTableCreateCompanionBuilder =
+    LibraryItemsCompanion Function({
+      required String id,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<String?> createdBy,
+      Value<String?> updatedBy,
+      Value<bool> isDeleted,
+      Value<DateTime?> deletedAt,
+      required String title,
+      Value<String?> author,
+      Value<String?> isbn,
+      Value<String?> category,
+      Value<String?> publisher,
+      Value<String?> publicationYear,
+      Value<String?> description,
+      Value<int> rowid,
+    });
+typedef $$LibraryItemsTableUpdateCompanionBuilder =
+    LibraryItemsCompanion Function({
+      Value<String> id,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<String?> createdBy,
+      Value<String?> updatedBy,
+      Value<bool> isDeleted,
+      Value<DateTime?> deletedAt,
+      Value<String> title,
+      Value<String?> author,
+      Value<String?> isbn,
+      Value<String?> category,
+      Value<String?> publisher,
+      Value<String?> publicationYear,
+      Value<String?> description,
+      Value<int> rowid,
+    });
+
+final class $$LibraryItemsTableReferences
+    extends BaseReferences<_$AppDatabase, $LibraryItemsTable, LibraryItem> {
+  $$LibraryItemsTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static MultiTypedResultKey<$LibraryCopiesTable, List<LibraryCopy>>
+  _libraryCopiesRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.libraryCopies,
+    aliasName: $_aliasNameGenerator(
+      db.libraryItems.id,
+      db.libraryCopies.itemId,
+    ),
+  );
+
+  $$LibraryCopiesTableProcessedTableManager get libraryCopiesRefs {
+    final manager = $$LibraryCopiesTableTableManager(
+      $_db,
+      $_db.libraryCopies,
+    ).filter((f) => f.itemId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_libraryCopiesRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+}
+
+class $$LibraryItemsTableFilterComposer
+    extends Composer<_$AppDatabase, $LibraryItemsTable> {
+  $$LibraryItemsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get createdBy => $composableBuilder(
+    column: $table.createdBy,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get updatedBy => $composableBuilder(
+    column: $table.updatedBy,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isDeleted => $composableBuilder(
+    column: $table.isDeleted,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get author => $composableBuilder(
+    column: $table.author,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get isbn => $composableBuilder(
+    column: $table.isbn,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get category => $composableBuilder(
+    column: $table.category,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get publisher => $composableBuilder(
+    column: $table.publisher,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get publicationYear => $composableBuilder(
+    column: $table.publicationYear,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  Expression<bool> libraryCopiesRefs(
+    Expression<bool> Function($$LibraryCopiesTableFilterComposer f) f,
+  ) {
+    final $$LibraryCopiesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.libraryCopies,
+      getReferencedColumn: (t) => t.itemId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$LibraryCopiesTableFilterComposer(
+            $db: $db,
+            $table: $db.libraryCopies,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$LibraryItemsTableOrderingComposer
+    extends Composer<_$AppDatabase, $LibraryItemsTable> {
+  $$LibraryItemsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get createdBy => $composableBuilder(
+    column: $table.createdBy,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get updatedBy => $composableBuilder(
+    column: $table.updatedBy,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isDeleted => $composableBuilder(
+    column: $table.isDeleted,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get author => $composableBuilder(
+    column: $table.author,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get isbn => $composableBuilder(
+    column: $table.isbn,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get category => $composableBuilder(
+    column: $table.category,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get publisher => $composableBuilder(
+    column: $table.publisher,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get publicationYear => $composableBuilder(
+    column: $table.publicationYear,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$LibraryItemsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $LibraryItemsTable> {
+  $$LibraryItemsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<String> get createdBy =>
+      $composableBuilder(column: $table.createdBy, builder: (column) => column);
+
+  GeneratedColumn<String> get updatedBy =>
+      $composableBuilder(column: $table.updatedBy, builder: (column) => column);
+
+  GeneratedColumn<bool> get isDeleted =>
+      $composableBuilder(column: $table.isDeleted, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get deletedAt =>
+      $composableBuilder(column: $table.deletedAt, builder: (column) => column);
+
+  GeneratedColumn<String> get title =>
+      $composableBuilder(column: $table.title, builder: (column) => column);
+
+  GeneratedColumn<String> get author =>
+      $composableBuilder(column: $table.author, builder: (column) => column);
+
+  GeneratedColumn<String> get isbn =>
+      $composableBuilder(column: $table.isbn, builder: (column) => column);
+
+  GeneratedColumn<String> get category =>
+      $composableBuilder(column: $table.category, builder: (column) => column);
+
+  GeneratedColumn<String> get publisher =>
+      $composableBuilder(column: $table.publisher, builder: (column) => column);
+
+  GeneratedColumn<String> get publicationYear => $composableBuilder(
+    column: $table.publicationYear,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => column,
+  );
+
+  Expression<T> libraryCopiesRefs<T extends Object>(
+    Expression<T> Function($$LibraryCopiesTableAnnotationComposer a) f,
+  ) {
+    final $$LibraryCopiesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.libraryCopies,
+      getReferencedColumn: (t) => t.itemId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$LibraryCopiesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.libraryCopies,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$LibraryItemsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $LibraryItemsTable,
+          LibraryItem,
+          $$LibraryItemsTableFilterComposer,
+          $$LibraryItemsTableOrderingComposer,
+          $$LibraryItemsTableAnnotationComposer,
+          $$LibraryItemsTableCreateCompanionBuilder,
+          $$LibraryItemsTableUpdateCompanionBuilder,
+          (LibraryItem, $$LibraryItemsTableReferences),
+          LibraryItem,
+          PrefetchHooks Function({bool libraryCopiesRefs})
+        > {
+  $$LibraryItemsTableTableManager(_$AppDatabase db, $LibraryItemsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$LibraryItemsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$LibraryItemsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$LibraryItemsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<String?> createdBy = const Value.absent(),
+                Value<String?> updatedBy = const Value.absent(),
+                Value<bool> isDeleted = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<String> title = const Value.absent(),
+                Value<String?> author = const Value.absent(),
+                Value<String?> isbn = const Value.absent(),
+                Value<String?> category = const Value.absent(),
+                Value<String?> publisher = const Value.absent(),
+                Value<String?> publicationYear = const Value.absent(),
+                Value<String?> description = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => LibraryItemsCompanion(
+                id: id,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                createdBy: createdBy,
+                updatedBy: updatedBy,
+                isDeleted: isDeleted,
+                deletedAt: deletedAt,
+                title: title,
+                author: author,
+                isbn: isbn,
+                category: category,
+                publisher: publisher,
+                publicationYear: publicationYear,
+                description: description,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<String?> createdBy = const Value.absent(),
+                Value<String?> updatedBy = const Value.absent(),
+                Value<bool> isDeleted = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                required String title,
+                Value<String?> author = const Value.absent(),
+                Value<String?> isbn = const Value.absent(),
+                Value<String?> category = const Value.absent(),
+                Value<String?> publisher = const Value.absent(),
+                Value<String?> publicationYear = const Value.absent(),
+                Value<String?> description = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => LibraryItemsCompanion.insert(
+                id: id,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                createdBy: createdBy,
+                updatedBy: updatedBy,
+                isDeleted: isDeleted,
+                deletedAt: deletedAt,
+                title: title,
+                author: author,
+                isbn: isbn,
+                category: category,
+                publisher: publisher,
+                publicationYear: publicationYear,
+                description: description,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$LibraryItemsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({libraryCopiesRefs = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [
+                if (libraryCopiesRefs) db.libraryCopies,
+              ],
+              addJoins: null,
+              getPrefetchedDataCallback: (items) async {
+                return [
+                  if (libraryCopiesRefs)
+                    await $_getPrefetchedData<
+                      LibraryItem,
+                      $LibraryItemsTable,
+                      LibraryCopy
+                    >(
+                      currentTable: table,
+                      referencedTable: $$LibraryItemsTableReferences
+                          ._libraryCopiesRefsTable(db),
+                      managerFromTypedResult: (p0) =>
+                          $$LibraryItemsTableReferences(
+                            db,
+                            table,
+                            p0,
+                          ).libraryCopiesRefs,
+                      referencedItemsForCurrentItem: (item, referencedItems) =>
+                          referencedItems.where((e) => e.itemId == item.id),
+                      typedResults: items,
+                    ),
+                ];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$LibraryItemsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $LibraryItemsTable,
+      LibraryItem,
+      $$LibraryItemsTableFilterComposer,
+      $$LibraryItemsTableOrderingComposer,
+      $$LibraryItemsTableAnnotationComposer,
+      $$LibraryItemsTableCreateCompanionBuilder,
+      $$LibraryItemsTableUpdateCompanionBuilder,
+      (LibraryItem, $$LibraryItemsTableReferences),
+      LibraryItem,
+      PrefetchHooks Function({bool libraryCopiesRefs})
+    >;
+typedef $$LibraryCopiesTableCreateCompanionBuilder =
+    LibraryCopiesCompanion Function({
+      required String id,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<String?> createdBy,
+      Value<String?> updatedBy,
+      Value<bool> isDeleted,
+      Value<DateTime?> deletedAt,
+      required String itemId,
+      required String copyCode,
+      Value<String> status,
+      Value<String?> locationNote,
+      Value<int> rowid,
+    });
+typedef $$LibraryCopiesTableUpdateCompanionBuilder =
+    LibraryCopiesCompanion Function({
+      Value<String> id,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<String?> createdBy,
+      Value<String?> updatedBy,
+      Value<bool> isDeleted,
+      Value<DateTime?> deletedAt,
+      Value<String> itemId,
+      Value<String> copyCode,
+      Value<String> status,
+      Value<String?> locationNote,
+      Value<int> rowid,
+    });
+
+final class $$LibraryCopiesTableReferences
+    extends BaseReferences<_$AppDatabase, $LibraryCopiesTable, LibraryCopy> {
+  $$LibraryCopiesTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $LibraryItemsTable _itemIdTable(_$AppDatabase db) =>
+      db.libraryItems.createAlias(
+        $_aliasNameGenerator(db.libraryCopies.itemId, db.libraryItems.id),
+      );
+
+  $$LibraryItemsTableProcessedTableManager get itemId {
+    final $_column = $_itemColumn<String>('item_id')!;
+
+    final manager = $$LibraryItemsTableTableManager(
+      $_db,
+      $_db.libraryItems,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_itemIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static MultiTypedResultKey<$LibraryLoansTable, List<LibraryLoan>>
+  _libraryLoansRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.libraryLoans,
+    aliasName: $_aliasNameGenerator(
+      db.libraryCopies.id,
+      db.libraryLoans.copyId,
+    ),
+  );
+
+  $$LibraryLoansTableProcessedTableManager get libraryLoansRefs {
+    final manager = $$LibraryLoansTableTableManager(
+      $_db,
+      $_db.libraryLoans,
+    ).filter((f) => f.copyId.id.sqlEquals($_itemColumn<String>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_libraryLoansRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+}
+
+class $$LibraryCopiesTableFilterComposer
+    extends Composer<_$AppDatabase, $LibraryCopiesTable> {
+  $$LibraryCopiesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get createdBy => $composableBuilder(
+    column: $table.createdBy,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get updatedBy => $composableBuilder(
+    column: $table.updatedBy,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isDeleted => $composableBuilder(
+    column: $table.isDeleted,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get copyCode => $composableBuilder(
+    column: $table.copyCode,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get locationNote => $composableBuilder(
+    column: $table.locationNote,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$LibraryItemsTableFilterComposer get itemId {
+    final $$LibraryItemsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.itemId,
+      referencedTable: $db.libraryItems,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$LibraryItemsTableFilterComposer(
+            $db: $db,
+            $table: $db.libraryItems,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  Expression<bool> libraryLoansRefs(
+    Expression<bool> Function($$LibraryLoansTableFilterComposer f) f,
+  ) {
+    final $$LibraryLoansTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.libraryLoans,
+      getReferencedColumn: (t) => t.copyId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$LibraryLoansTableFilterComposer(
+            $db: $db,
+            $table: $db.libraryLoans,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$LibraryCopiesTableOrderingComposer
+    extends Composer<_$AppDatabase, $LibraryCopiesTable> {
+  $$LibraryCopiesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get createdBy => $composableBuilder(
+    column: $table.createdBy,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get updatedBy => $composableBuilder(
+    column: $table.updatedBy,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isDeleted => $composableBuilder(
+    column: $table.isDeleted,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get copyCode => $composableBuilder(
+    column: $table.copyCode,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get locationNote => $composableBuilder(
+    column: $table.locationNote,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$LibraryItemsTableOrderingComposer get itemId {
+    final $$LibraryItemsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.itemId,
+      referencedTable: $db.libraryItems,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$LibraryItemsTableOrderingComposer(
+            $db: $db,
+            $table: $db.libraryItems,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$LibraryCopiesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $LibraryCopiesTable> {
+  $$LibraryCopiesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<String> get createdBy =>
+      $composableBuilder(column: $table.createdBy, builder: (column) => column);
+
+  GeneratedColumn<String> get updatedBy =>
+      $composableBuilder(column: $table.updatedBy, builder: (column) => column);
+
+  GeneratedColumn<bool> get isDeleted =>
+      $composableBuilder(column: $table.isDeleted, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get deletedAt =>
+      $composableBuilder(column: $table.deletedAt, builder: (column) => column);
+
+  GeneratedColumn<String> get copyCode =>
+      $composableBuilder(column: $table.copyCode, builder: (column) => column);
+
+  GeneratedColumn<String> get status =>
+      $composableBuilder(column: $table.status, builder: (column) => column);
+
+  GeneratedColumn<String> get locationNote => $composableBuilder(
+    column: $table.locationNote,
+    builder: (column) => column,
+  );
+
+  $$LibraryItemsTableAnnotationComposer get itemId {
+    final $$LibraryItemsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.itemId,
+      referencedTable: $db.libraryItems,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$LibraryItemsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.libraryItems,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  Expression<T> libraryLoansRefs<T extends Object>(
+    Expression<T> Function($$LibraryLoansTableAnnotationComposer a) f,
+  ) {
+    final $$LibraryLoansTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.libraryLoans,
+      getReferencedColumn: (t) => t.copyId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$LibraryLoansTableAnnotationComposer(
+            $db: $db,
+            $table: $db.libraryLoans,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$LibraryCopiesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $LibraryCopiesTable,
+          LibraryCopy,
+          $$LibraryCopiesTableFilterComposer,
+          $$LibraryCopiesTableOrderingComposer,
+          $$LibraryCopiesTableAnnotationComposer,
+          $$LibraryCopiesTableCreateCompanionBuilder,
+          $$LibraryCopiesTableUpdateCompanionBuilder,
+          (LibraryCopy, $$LibraryCopiesTableReferences),
+          LibraryCopy,
+          PrefetchHooks Function({bool itemId, bool libraryLoansRefs})
+        > {
+  $$LibraryCopiesTableTableManager(_$AppDatabase db, $LibraryCopiesTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$LibraryCopiesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$LibraryCopiesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$LibraryCopiesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<String?> createdBy = const Value.absent(),
+                Value<String?> updatedBy = const Value.absent(),
+                Value<bool> isDeleted = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<String> itemId = const Value.absent(),
+                Value<String> copyCode = const Value.absent(),
+                Value<String> status = const Value.absent(),
+                Value<String?> locationNote = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => LibraryCopiesCompanion(
+                id: id,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                createdBy: createdBy,
+                updatedBy: updatedBy,
+                isDeleted: isDeleted,
+                deletedAt: deletedAt,
+                itemId: itemId,
+                copyCode: copyCode,
+                status: status,
+                locationNote: locationNote,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<String?> createdBy = const Value.absent(),
+                Value<String?> updatedBy = const Value.absent(),
+                Value<bool> isDeleted = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                required String itemId,
+                required String copyCode,
+                Value<String> status = const Value.absent(),
+                Value<String?> locationNote = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => LibraryCopiesCompanion.insert(
+                id: id,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                createdBy: createdBy,
+                updatedBy: updatedBy,
+                isDeleted: isDeleted,
+                deletedAt: deletedAt,
+                itemId: itemId,
+                copyCode: copyCode,
+                status: status,
+                locationNote: locationNote,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$LibraryCopiesTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({itemId = false, libraryLoansRefs = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [if (libraryLoansRefs) db.libraryLoans],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (itemId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.itemId,
+                                referencedTable: $$LibraryCopiesTableReferences
+                                    ._itemIdTable(db),
+                                referencedColumn: $$LibraryCopiesTableReferences
+                                    ._itemIdTable(db)
+                                    .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [
+                  if (libraryLoansRefs)
+                    await $_getPrefetchedData<
+                      LibraryCopy,
+                      $LibraryCopiesTable,
+                      LibraryLoan
+                    >(
+                      currentTable: table,
+                      referencedTable: $$LibraryCopiesTableReferences
+                          ._libraryLoansRefsTable(db),
+                      managerFromTypedResult: (p0) =>
+                          $$LibraryCopiesTableReferences(
+                            db,
+                            table,
+                            p0,
+                          ).libraryLoansRefs,
+                      referencedItemsForCurrentItem: (item, referencedItems) =>
+                          referencedItems.where((e) => e.copyId == item.id),
+                      typedResults: items,
+                    ),
+                ];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$LibraryCopiesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $LibraryCopiesTable,
+      LibraryCopy,
+      $$LibraryCopiesTableFilterComposer,
+      $$LibraryCopiesTableOrderingComposer,
+      $$LibraryCopiesTableAnnotationComposer,
+      $$LibraryCopiesTableCreateCompanionBuilder,
+      $$LibraryCopiesTableUpdateCompanionBuilder,
+      (LibraryCopy, $$LibraryCopiesTableReferences),
+      LibraryCopy,
+      PrefetchHooks Function({bool itemId, bool libraryLoansRefs})
+    >;
+typedef $$LibraryLoansTableCreateCompanionBuilder =
+    LibraryLoansCompanion Function({
+      required String id,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<String?> createdBy,
+      Value<String?> updatedBy,
+      Value<bool> isDeleted,
+      Value<DateTime?> deletedAt,
+      required String copyId,
+      required String studentId,
+      required DateTime loanDate,
+      required DateTime dueDate,
+      Value<DateTime?> returnDate,
+      Value<String> status,
+      Value<String?> notes,
+      Value<int> rowid,
+    });
+typedef $$LibraryLoansTableUpdateCompanionBuilder =
+    LibraryLoansCompanion Function({
+      Value<String> id,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<String?> createdBy,
+      Value<String?> updatedBy,
+      Value<bool> isDeleted,
+      Value<DateTime?> deletedAt,
+      Value<String> copyId,
+      Value<String> studentId,
+      Value<DateTime> loanDate,
+      Value<DateTime> dueDate,
+      Value<DateTime?> returnDate,
+      Value<String> status,
+      Value<String?> notes,
+      Value<int> rowid,
+    });
+
+final class $$LibraryLoansTableReferences
+    extends BaseReferences<_$AppDatabase, $LibraryLoansTable, LibraryLoan> {
+  $$LibraryLoansTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $LibraryCopiesTable _copyIdTable(_$AppDatabase db) =>
+      db.libraryCopies.createAlias(
+        $_aliasNameGenerator(db.libraryLoans.copyId, db.libraryCopies.id),
+      );
+
+  $$LibraryCopiesTableProcessedTableManager get copyId {
+    final $_column = $_itemColumn<String>('copy_id')!;
+
+    final manager = $$LibraryCopiesTableTableManager(
+      $_db,
+      $_db.libraryCopies,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_copyIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static $StudentsTable _studentIdTable(_$AppDatabase db) =>
+      db.students.createAlias(
+        $_aliasNameGenerator(db.libraryLoans.studentId, db.students.id),
+      );
+
+  $$StudentsTableProcessedTableManager get studentId {
+    final $_column = $_itemColumn<String>('student_id')!;
+
+    final manager = $$StudentsTableTableManager(
+      $_db,
+      $_db.students,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_studentIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$LibraryLoansTableFilterComposer
+    extends Composer<_$AppDatabase, $LibraryLoansTable> {
+  $$LibraryLoansTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get createdBy => $composableBuilder(
+    column: $table.createdBy,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get updatedBy => $composableBuilder(
+    column: $table.updatedBy,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isDeleted => $composableBuilder(
+    column: $table.isDeleted,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get loanDate => $composableBuilder(
+    column: $table.loanDate,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get dueDate => $composableBuilder(
+    column: $table.dueDate,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get returnDate => $composableBuilder(
+    column: $table.returnDate,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get notes => $composableBuilder(
+    column: $table.notes,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$LibraryCopiesTableFilterComposer get copyId {
+    final $$LibraryCopiesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.copyId,
+      referencedTable: $db.libraryCopies,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$LibraryCopiesTableFilterComposer(
+            $db: $db,
+            $table: $db.libraryCopies,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$StudentsTableFilterComposer get studentId {
+    final $$StudentsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.studentId,
+      referencedTable: $db.students,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$StudentsTableFilterComposer(
+            $db: $db,
+            $table: $db.students,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$LibraryLoansTableOrderingComposer
+    extends Composer<_$AppDatabase, $LibraryLoansTable> {
+  $$LibraryLoansTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get createdBy => $composableBuilder(
+    column: $table.createdBy,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get updatedBy => $composableBuilder(
+    column: $table.updatedBy,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isDeleted => $composableBuilder(
+    column: $table.isDeleted,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get loanDate => $composableBuilder(
+    column: $table.loanDate,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get dueDate => $composableBuilder(
+    column: $table.dueDate,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get returnDate => $composableBuilder(
+    column: $table.returnDate,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get notes => $composableBuilder(
+    column: $table.notes,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$LibraryCopiesTableOrderingComposer get copyId {
+    final $$LibraryCopiesTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.copyId,
+      referencedTable: $db.libraryCopies,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$LibraryCopiesTableOrderingComposer(
+            $db: $db,
+            $table: $db.libraryCopies,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$StudentsTableOrderingComposer get studentId {
+    final $$StudentsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.studentId,
+      referencedTable: $db.students,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$StudentsTableOrderingComposer(
+            $db: $db,
+            $table: $db.students,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$LibraryLoansTableAnnotationComposer
+    extends Composer<_$AppDatabase, $LibraryLoansTable> {
+  $$LibraryLoansTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<String> get createdBy =>
+      $composableBuilder(column: $table.createdBy, builder: (column) => column);
+
+  GeneratedColumn<String> get updatedBy =>
+      $composableBuilder(column: $table.updatedBy, builder: (column) => column);
+
+  GeneratedColumn<bool> get isDeleted =>
+      $composableBuilder(column: $table.isDeleted, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get deletedAt =>
+      $composableBuilder(column: $table.deletedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get loanDate =>
+      $composableBuilder(column: $table.loanDate, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get dueDate =>
+      $composableBuilder(column: $table.dueDate, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get returnDate => $composableBuilder(
+    column: $table.returnDate,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get status =>
+      $composableBuilder(column: $table.status, builder: (column) => column);
+
+  GeneratedColumn<String> get notes =>
+      $composableBuilder(column: $table.notes, builder: (column) => column);
+
+  $$LibraryCopiesTableAnnotationComposer get copyId {
+    final $$LibraryCopiesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.copyId,
+      referencedTable: $db.libraryCopies,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$LibraryCopiesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.libraryCopies,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$StudentsTableAnnotationComposer get studentId {
+    final $$StudentsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.studentId,
+      referencedTable: $db.students,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$StudentsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.students,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$LibraryLoansTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $LibraryLoansTable,
+          LibraryLoan,
+          $$LibraryLoansTableFilterComposer,
+          $$LibraryLoansTableOrderingComposer,
+          $$LibraryLoansTableAnnotationComposer,
+          $$LibraryLoansTableCreateCompanionBuilder,
+          $$LibraryLoansTableUpdateCompanionBuilder,
+          (LibraryLoan, $$LibraryLoansTableReferences),
+          LibraryLoan,
+          PrefetchHooks Function({bool copyId, bool studentId})
+        > {
+  $$LibraryLoansTableTableManager(_$AppDatabase db, $LibraryLoansTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$LibraryLoansTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$LibraryLoansTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$LibraryLoansTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<String?> createdBy = const Value.absent(),
+                Value<String?> updatedBy = const Value.absent(),
+                Value<bool> isDeleted = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<String> copyId = const Value.absent(),
+                Value<String> studentId = const Value.absent(),
+                Value<DateTime> loanDate = const Value.absent(),
+                Value<DateTime> dueDate = const Value.absent(),
+                Value<DateTime?> returnDate = const Value.absent(),
+                Value<String> status = const Value.absent(),
+                Value<String?> notes = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => LibraryLoansCompanion(
+                id: id,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                createdBy: createdBy,
+                updatedBy: updatedBy,
+                isDeleted: isDeleted,
+                deletedAt: deletedAt,
+                copyId: copyId,
+                studentId: studentId,
+                loanDate: loanDate,
+                dueDate: dueDate,
+                returnDate: returnDate,
+                status: status,
+                notes: notes,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<String?> createdBy = const Value.absent(),
+                Value<String?> updatedBy = const Value.absent(),
+                Value<bool> isDeleted = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                required String copyId,
+                required String studentId,
+                required DateTime loanDate,
+                required DateTime dueDate,
+                Value<DateTime?> returnDate = const Value.absent(),
+                Value<String> status = const Value.absent(),
+                Value<String?> notes = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => LibraryLoansCompanion.insert(
+                id: id,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                createdBy: createdBy,
+                updatedBy: updatedBy,
+                isDeleted: isDeleted,
+                deletedAt: deletedAt,
+                copyId: copyId,
+                studentId: studentId,
+                loanDate: loanDate,
+                dueDate: dueDate,
+                returnDate: returnDate,
+                status: status,
+                notes: notes,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$LibraryLoansTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({copyId = false, studentId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (copyId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.copyId,
+                                referencedTable: $$LibraryLoansTableReferences
+                                    ._copyIdTable(db),
+                                referencedColumn: $$LibraryLoansTableReferences
+                                    ._copyIdTable(db)
+                                    .id,
+                              )
+                              as T;
+                    }
+                    if (studentId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.studentId,
+                                referencedTable: $$LibraryLoansTableReferences
+                                    ._studentIdTable(db),
+                                referencedColumn: $$LibraryLoansTableReferences
+                                    ._studentIdTable(db)
+                                    .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$LibraryLoansTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $LibraryLoansTable,
+      LibraryLoan,
+      $$LibraryLoansTableFilterComposer,
+      $$LibraryLoansTableOrderingComposer,
+      $$LibraryLoansTableAnnotationComposer,
+      $$LibraryLoansTableCreateCompanionBuilder,
+      $$LibraryLoansTableUpdateCompanionBuilder,
+      (LibraryLoan, $$LibraryLoansTableReferences),
+      LibraryLoan,
+      PrefetchHooks Function({bool copyId, bool studentId})
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -40158,4 +47168,14 @@ class $AppDatabaseManager {
       $$TeacherAssignmentsTableTableManager(_db, _db.teacherAssignments);
   $$StaffMembersTableTableManager get staffMembers =>
       $$StaffMembersTableTableManager(_db, _db.staffMembers);
+  $$DisciplinaryIncidentsTableTableManager get disciplinaryIncidents =>
+      $$DisciplinaryIncidentsTableTableManager(_db, _db.disciplinaryIncidents);
+  $$DisciplinaryActionsTableTableManager get disciplinaryActions =>
+      $$DisciplinaryActionsTableTableManager(_db, _db.disciplinaryActions);
+  $$LibraryItemsTableTableManager get libraryItems =>
+      $$LibraryItemsTableTableManager(_db, _db.libraryItems);
+  $$LibraryCopiesTableTableManager get libraryCopies =>
+      $$LibraryCopiesTableTableManager(_db, _db.libraryCopies);
+  $$LibraryLoansTableTableManager get libraryLoans =>
+      $$LibraryLoansTableTableManager(_db, _db.libraryLoans);
 }
