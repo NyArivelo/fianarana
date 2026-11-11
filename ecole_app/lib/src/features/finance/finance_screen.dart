@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:collection/collection.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -444,6 +447,22 @@ class _AdjustmentsTab extends ConsumerWidget {
       Row(children: [
         Text('Remises, avoirs et bourses', style: Theme.of(context).textTheme.titleMedium),
         const Spacer(),
+        OutlinedButton.icon(onPressed: () async {
+          final list = ref.read(adjustmentsProvider).valueOrNull ?? [];
+          final students = {for (final s in (ref.read(studentsProvider).valueOrNull ?? <Student>[])) s.id: s};
+          final fmt = DateFormat('yyyy-MM-dd');
+          final sb = StringBuffer('date,eleve,matricule,type,montant,statut,motif,note\n');
+          for (final a in list) {
+            String esc(String? v) => '"${(v ?? '').replaceAll('"', '""')}"';
+            final st = students[a.studentId];
+            sb.writeln('${fmt.format(a.date)},${esc(st!=null?'${st.lastName} ${st.firstName}':a.studentId)},${esc(st?.matricule)},${esc(a.type)},${a.amount.toStringAsFixed(2)},${esc(a.status)},${esc(a.reason)},${esc(a.note)}');
+          }
+          final path = await FilePicker.platform.saveFile(dialogTitle: 'Exporter ajustements (CSV)', fileName: 'ajustements_financiers.csv', type: FileType.custom, allowedExtensions: ['csv']);
+          if (path == null) return;
+          await File(path).writeAsString(sb.toString());
+          if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Exporté: $path')));
+        }, icon: const Icon(Icons.download), label: const Text('Exporter CSV')),
+        const SizedBox(width: 8),
         FilledButton.icon(onPressed: () => _edit(context, ref), icon: const Icon(Icons.add), label: const Text('Ajouter')),
       ]),
       const SizedBox(height: 8),
@@ -532,7 +551,23 @@ class _ArrearsTab extends ConsumerWidget {
     final overdueInst = allInst.where((i)=>i.status=='overdue').toList();
     return Padding(padding: const EdgeInsets.all(16), child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Expanded(flex: 3, child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text('Impayés & soldes par élève', style: Theme.of(context).textTheme.titleMedium),
+        Row(children:[
+          Expanded(child: Text('Impayés & soldes par élève', style: Theme.of(context).textTheme.titleMedium)),
+          OutlinedButton.icon(onPressed: () async {
+            final rows = ref.read(studentFinanceSummaryProvider).valueOrNull ?? [];
+            final withDue = rows.where((r)=>r.balance > 0.01 || r.overdueCount > 0).toList();
+            final sb = StringBuffer('matricule,eleve,planifie,ajustements,paye,solde,echeances_retard\n');
+            for (final r in withDue) {
+              String esc(String v) => '"${v.replaceAll('"', '""')}"';
+              final name = '${r.student.lastName} ${r.student.firstName}';
+              sb.writeln('${esc(r.student.matricule)},${esc(name)},${r.planned.toStringAsFixed(2)},${r.adjustments.toStringAsFixed(2)},${r.paid.toStringAsFixed(2)},${r.balance.toStringAsFixed(2)},${r.overdueCount}');
+            }
+            final path = await FilePicker.platform.saveFile(dialogTitle: 'Exporter impayés (CSV)', fileName: 'impayes_soldes.csv', type: FileType.custom, allowedExtensions: ['csv']);
+            if (path == null) return;
+            await File(path).writeAsString(sb.toString());
+            if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Exporté: $path')));
+          }, icon: const Icon(Icons.download), label: const Text('Exporter CSV')),
+        ]),
         const SizedBox(height: 8),
         const Text('Solde = (total planifié - remises/avoirs/bourses actifs) - paiements validés. Un solde positif indique un reste à payer.'),
         const SizedBox(height: 12),

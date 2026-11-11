@@ -85,7 +85,21 @@ class ScheduleRepository {
         conflicts.add(Conflict('teacher', 'Conflit enseignant avec "${s.title ?? 'séance'}" (${_fmt(s)})'));
       }
     }
+    if (roomId != null) {
+      final res = await (db.select(db.roomReservations)
+            ..where((t) => t.isDeleted.equals(false) & t.roomId.equals(roomId) & t.status.equals('reserved') & t.startAt.isSmallerThanValue(endAt) & t.endAt.isBiggerThanValue(startAt)))
+          .get();
+      for (final r in res) {
+        conflicts.add(Conflict('room', 'Salle réservée: "${r.title}" (${_fmtRange(r.startAt, r.endAt)})'));
+      }
+    }
     return conflicts;
+  }
+
+  String _fmtRange(DateTime a, DateTime b) {
+    final t1 = '${a.hour.toString().padLeft(2, '0')}:${a.minute.toString().padLeft(2, '0')}';
+    final t2 = '${b.hour.toString().padLeft(2, '0')}:${b.minute.toString().padLeft(2, '0')}';
+    return '$t1-$t2';
   }
 
   String _fmt(CourseSession s) {

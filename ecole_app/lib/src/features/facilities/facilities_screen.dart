@@ -1,3 +1,6 @@
+import 'dart:io';
+
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -86,6 +89,20 @@ class _EquipmentTab extends ConsumerWidget {
       Row(children: [
         Text('Équipements & inventaire', style: Theme.of(context).textTheme.titleMedium),
         const Spacer(),
+        OutlinedButton.icon(onPressed: () async {
+          final list = ref.read(equipmentProvider).valueOrNull ?? [];
+          final rooms = {for (final r in (ref.read(facilitiesRoomsProvider).valueOrNull ?? <Room>[])) r.id: r.name};
+          final sb = StringBuffer('nom,categorie,numero_serie,quantite,statut,salle,notes\n');
+          for (final e in list) {
+            String esc(String? v) => '"${(v ?? '').replaceAll('"', '""')}"';
+            sb.writeln('${esc(e.name)},${esc(e.category)},${esc(e.serialNumber)},${e.quantity},${esc(e.status)},${esc(e.roomId!=null?rooms[e.roomId]:null)},${esc(e.notes)}');
+          }
+          final path = await FilePicker.platform.saveFile(dialogTitle: 'Exporter inventaire (CSV)', fileName: 'inventaire_equipements.csv', type: FileType.custom, allowedExtensions: ['csv']);
+          if (path == null) return;
+          await File(path).writeAsString(sb.toString());
+          if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Exporté: $path')));
+        }, icon: const Icon(Icons.download), label: const Text('Exporter CSV')),
+        const SizedBox(width: 8),
         FilledButton.icon(onPressed: () => _edit(context, ref), icon: const Icon(Icons.add), label: const Text('Ajouter')),
       ]),
       const SizedBox(height: 12),
@@ -166,6 +183,21 @@ class _ReservationsTab extends ConsumerWidget {
       Row(children: [
         Text('Réservations de salles', style: Theme.of(context).textTheme.titleMedium),
         const Spacer(),
+        OutlinedButton.icon(onPressed: () async {
+          final list = ref.read(reservationsProvider).valueOrNull ?? [];
+          final rooms = {for (final r in (ref.read(facilitiesRoomsProvider).valueOrNull ?? <Room>[])) r.id: r.name};
+          final fmt = DateFormat('yyyy-MM-dd HH:mm');
+          final sb = StringBuffer('salle,titre,reserve_pour,debut,fin,statut,notes\n');
+          for (final r in list) {
+            String esc(String? v) => '"${(v ?? '').replaceAll('"', '""')}"';
+            sb.writeln('${esc(rooms[r.roomId] ?? r.roomId)},${esc(r.title)},${esc(r.reservedFor)},${fmt.format(r.startAt)},${fmt.format(r.endAt)},${esc(r.status)},${esc(r.notes)}');
+          }
+          final path = await FilePicker.platform.saveFile(dialogTitle: 'Exporter réservations (CSV)', fileName: 'reservations_salles.csv', type: FileType.custom, allowedExtensions: ['csv']);
+          if (path == null) return;
+          await File(path).writeAsString(sb.toString());
+          if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Exporté: $path')));
+        }, icon: const Icon(Icons.download), label: const Text('Exporter CSV')),
+        const SizedBox(width: 8),
         FilledButton.icon(onPressed: () => _edit(context, ref), icon: const Icon(Icons.add), label: const Text('Nouvelle réservation')),
       ]),
       const SizedBox(height: 12),

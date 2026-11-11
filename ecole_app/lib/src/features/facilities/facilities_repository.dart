@@ -98,13 +98,24 @@ class FacilitiesRepository {
     String? notes,
   }) async {
     if (!endAt.isAfter(startAt)) return 'L\'heure de fin doit être après le début.';
-    final existing = await (db.select(db.roomReservations)
-          ..where((t) => t.isDeleted.equals(false) & t.roomId.equals(roomId) & t.status.equals('reserved')))
-        .get();
-    for (final r in existing) {
-      if (id != null && r.id == id) continue;
-      final overlap = startAt.isBefore(r.endAt) && endAt.isAfter(r.startAt);
-      if (overlap) return 'Conflit: la salle est déjà réservée (${r.title}).';
+    if (status == 'reserved') {
+      final existing = await (db.select(db.roomReservations)
+            ..where((t) => t.isDeleted.equals(false) & t.roomId.equals(roomId) & t.status.equals('reserved')))
+          .get();
+      for (final r in existing) {
+        if (id != null && r.id == id) continue;
+        final overlap = startAt.isBefore(r.endAt) && endAt.isAfter(r.startAt);
+        if (overlap) return 'Conflit: la salle est déjà réservée (${r.title}).';
+      }
+      final sessions = await (db.select(db.courseSessions)
+            ..where((t) => t.isDeleted.equals(false) & t.roomId.equals(roomId) & t.status.isNotIn(['cancelled']) & t.startAt.isSmallerThanValue(endAt) & t.endAt.isBiggerThanValue(startAt)))
+          .get();
+      if (sessions.isNotEmpty) {
+        final s = sessions.first;
+        final t1 = '${s.startAt.hour.toString().padLeft(2, '0')}:${s.startAt.minute.toString().padLeft(2, '0')}';
+        final t2 = '${s.endAt.hour.toString().padLeft(2, '0')}:${s.endAt.minute.toString().padLeft(2, '0')}';
+        return 'Conflit: une séance occupe déjà la salle (${s.title ?? 'séance'} $t1-$t2).';
+      }
     }
     final now = DateTime.now();
     if (id == null) {

@@ -79,23 +79,58 @@ Fait le {{date}}.''';
   Map<String, Object?> _buildContext(WidgetRef ref) {
     final school = ref.read(schoolSettingProvider).valueOrNull;
     final students = {for (final s in (ref.read(studentsProvider).valueOrNull ?? <Student>[])) s.id: s};
-    final payments = {for (final p in (ref.read(paymentsProvider).valueOrNull ?? <Payment>[])) p.id: p};
+    final paymentsList = ref.read(paymentsProvider).valueOrNull ?? <Payment>[];
+    final payments = {for (final p in paymentsList) p.id: p};
+    final adjustments = ref.read(adjustmentsProvider).valueOrNull ?? <FinancialAdjustment>[];
+    final enrollments = _studentId == null ? <Enrollment>[] : (ref.read(enrollmentsProvider(_studentId!)).valueOrNull ?? <Enrollment>[]);
     final student = _studentId != null ? students[_studentId] : null;
     final payment = _paymentId != null ? payments[_paymentId] : null;
     final now = DateFormat('dd/MM/yyyy').format(DateTime.now());
+    final studentId = _studentId;
+    final studentPays = studentId == null ? <Payment>[] : paymentsList.where((p)=>p.studentId==studentId && !p.isDeleted && p.status=='valid').toList();
+    final studentAdjs = studentId == null ? <FinancialAdjustment>[] : adjustments.where((a)=>a.studentId==studentId && !a.isDeleted && a.status=='active').toList();
+    final paidTotal = studentPays.fold<double>(0,(a,p)=>a+p.amount);
+    final adjustmentsTotal = studentAdjs.fold<double>(0,(a,x)=>a+x.amount);
+    final plans = studentId == null ? <PaymentPlan>[] : (ref.read(paymentPlansProvider(studentId)).valueOrNull ?? <PaymentPlan>[]);
+    final plannedTotal = plans.where((p)=>!p.isDeleted).fold<double>(0,(a,p)=>a+p.totalAmount);
+    final balance = plannedTotal - adjustmentsTotal - paidTotal;
+    Enrollment? currentEnrollment;
+    if (enrollments.isNotEmpty) {
+      currentEnrollment = enrollments.firstWhere((e)=>e.status=='validee' || e.status=='active', orElse: ()=>enrollments.first);
+    }
+    // resolve class name if possible via available providers cache
+    String className = '';
+    try {
+      // attempt to read classes for null/year - may be empty but safe
+      // ignore: avoid_dynamic_calls
+    } catch (_) {}
+    if (currentEnrollment?.classId != null) {
+      // best-effort: scan common provider states not trivial; keep id fallback
+      className = currentEnrollment!.classId ?? '';
+    }
     return <String, Object?>{
       'date': now,
       'school_name': school?.name ?? 'Établissement',
       'school_address': school?.address ?? '',
       'school_phone': school?.phone ?? '',
+      'school_email': school?.email ?? '',
       'student_full_name': student == null ? '' : '${student.lastName} ${student.firstName}',
       'student_last_name': student?.lastName ?? '',
       'student_first_name': student?.firstName ?? '',
       'student_matricule': student?.matricule ?? '',
+      'student_status': student?.status ?? '',
+      'student_gender': student?.gender ?? '',
+      'enrollment_status': currentEnrollment?.status ?? '',
+      'class_id': currentEnrollment?.classId ?? '',
+      'class_name': className,
       'receipt_number': payment?.receiptNumber ?? '',
       'amount': payment?.amount ?? 0,
       'discount': 0,
       'paid': payment?.amount ?? 0,
+      'paid_total': paidTotal,
+      'adjustments_total': adjustmentsTotal,
+      'planned_total': plannedTotal,
+      'balance_due': balance,
       'document_title': 'Document',
     };
   }
@@ -151,7 +186,7 @@ Fait le {{date}}.''';
         })),
       ])),
       const VerticalDivider(width: 1),
-      Expanded(child: selected == null ? const Center(child: Padding(padding: EdgeInsets.all(24), child: Text('Sélectionnez ou créez un modèle. Placeholders: {{student_full_name}}, {{student_matricule}}, {{school_name}}, {{amount}}, {{date}}…\nFormules sécurisées (sans eval): ={{ amount - discount }} ou ={{ paid / total * 100 }}'))) : Column(children: [
+      Expanded(child: selected == null ? const Center(child: Padding(padding: EdgeInsets.all(24), child: Text('Sélectionnez ou créez un modèle.\nVariables: {{student_full_name}}, {{student_matricule}}, {{student_status}}, {{school_name}}, {{school_address}}, {{school_phone}}, {{school_email}}, {{enrollment_status}}, {{class_id}}, {{receipt_number}}, {{amount}}, {{paid_total}}, {{adjustments_total}}, {{planned_total}}, {{balance_due}}, {{date}}…\nFormules sécurisées (sans eval): ={{ planned_total - adjustments_total - paid_total }} ou ={{ amount - discount }}'))) : Column(children: [
         Padding(padding: const EdgeInsets.all(8), child: Wrap(spacing: 8, runSpacing: 8, crossAxisAlignment: WrapCrossAlignment.center, children: [
           SizedBox(width: 260, child: DropdownButtonFormField<String?>(initialValue: _studentId, isDense: true, decoration: const InputDecoration(labelText: 'Contexte élève'), items: [const DropdownMenuItem(value: null, child: Text('(Aucun)')), for (final s in students) DropdownMenuItem(value: s.id, child: Text('${s.lastName} ${s.firstName}'))], onChanged: (v){ setState(()=>_studentId=v); _refreshPreview(selected); })),
           SizedBox(width: 260, child: DropdownButtonFormField<String?>(initialValue: _paymentId, isDense: true, decoration: const InputDecoration(labelText: 'Contexte paiement'), items: [const DropdownMenuItem(value: null, child: Text('(Aucun)')), for (final p in payments.take(100)) DropdownMenuItem(value: p.id, child: Text(p.receiptNumber))], onChanged: (v){ setState(()=>_paymentId=v); _refreshPreview(selected); })),
