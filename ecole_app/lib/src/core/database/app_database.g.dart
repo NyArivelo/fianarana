@@ -1039,6 +1039,16 @@ class $RolesTable extends Roles with TableInfo<$RolesTable, Role> {
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _scopeMeta = const VerificationMeta('scope');
+  @override
+  late final GeneratedColumn<String> scope = GeneratedColumn<String>(
+    'scope',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('global'),
+  );
   static const VerificationMeta _isSystemMeta = const VerificationMeta(
     'isSystem',
   );
@@ -1065,6 +1075,7 @@ class $RolesTable extends Roles with TableInfo<$RolesTable, Role> {
     deletedAt,
     name,
     description,
+    scope,
     isSystem,
   ];
   @override
@@ -1137,6 +1148,12 @@ class $RolesTable extends Roles with TableInfo<$RolesTable, Role> {
         ),
       );
     }
+    if (data.containsKey('scope')) {
+      context.handle(
+        _scopeMeta,
+        scope.isAcceptableOrUnknown(data['scope']!, _scopeMeta),
+      );
+    }
     if (data.containsKey('is_system')) {
       context.handle(
         _isSystemMeta,
@@ -1188,6 +1205,10 @@ class $RolesTable extends Roles with TableInfo<$RolesTable, Role> {
         DriftSqlType.string,
         data['${effectivePrefix}description'],
       ),
+      scope: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}scope'],
+      )!,
       isSystem: attachedDatabase.typeMapping.read(
         DriftSqlType.bool,
         data['${effectivePrefix}is_system'],
@@ -1211,6 +1232,7 @@ class Role extends DataClass implements Insertable<Role> {
   final DateTime? deletedAt;
   final String name;
   final String? description;
+  final String scope;
   final bool isSystem;
   const Role({
     required this.id,
@@ -1222,6 +1244,7 @@ class Role extends DataClass implements Insertable<Role> {
     this.deletedAt,
     required this.name,
     this.description,
+    required this.scope,
     required this.isSystem,
   });
   @override
@@ -1244,6 +1267,7 @@ class Role extends DataClass implements Insertable<Role> {
     if (!nullToAbsent || description != null) {
       map['description'] = Variable<String>(description);
     }
+    map['scope'] = Variable<String>(scope);
     map['is_system'] = Variable<bool>(isSystem);
     return map;
   }
@@ -1267,6 +1291,7 @@ class Role extends DataClass implements Insertable<Role> {
       description: description == null && nullToAbsent
           ? const Value.absent()
           : Value(description),
+      scope: Value(scope),
       isSystem: Value(isSystem),
     );
   }
@@ -1286,6 +1311,7 @@ class Role extends DataClass implements Insertable<Role> {
       deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
       name: serializer.fromJson<String>(json['name']),
       description: serializer.fromJson<String?>(json['description']),
+      scope: serializer.fromJson<String>(json['scope']),
       isSystem: serializer.fromJson<bool>(json['isSystem']),
     );
   }
@@ -1302,6 +1328,7 @@ class Role extends DataClass implements Insertable<Role> {
       'deletedAt': serializer.toJson<DateTime?>(deletedAt),
       'name': serializer.toJson<String>(name),
       'description': serializer.toJson<String?>(description),
+      'scope': serializer.toJson<String>(scope),
       'isSystem': serializer.toJson<bool>(isSystem),
     };
   }
@@ -1316,6 +1343,7 @@ class Role extends DataClass implements Insertable<Role> {
     Value<DateTime?> deletedAt = const Value.absent(),
     String? name,
     Value<String?> description = const Value.absent(),
+    String? scope,
     bool? isSystem,
   }) => Role(
     id: id ?? this.id,
@@ -1327,6 +1355,7 @@ class Role extends DataClass implements Insertable<Role> {
     deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
     name: name ?? this.name,
     description: description.present ? description.value : this.description,
+    scope: scope ?? this.scope,
     isSystem: isSystem ?? this.isSystem,
   );
   Role copyWithCompanion(RolesCompanion data) {
@@ -1342,6 +1371,7 @@ class Role extends DataClass implements Insertable<Role> {
       description: data.description.present
           ? data.description.value
           : this.description,
+      scope: data.scope.present ? data.scope.value : this.scope,
       isSystem: data.isSystem.present ? data.isSystem.value : this.isSystem,
     );
   }
@@ -1358,6 +1388,7 @@ class Role extends DataClass implements Insertable<Role> {
           ..write('deletedAt: $deletedAt, ')
           ..write('name: $name, ')
           ..write('description: $description, ')
+          ..write('scope: $scope, ')
           ..write('isSystem: $isSystem')
           ..write(')'))
         .toString();
@@ -1374,6 +1405,7 @@ class Role extends DataClass implements Insertable<Role> {
     deletedAt,
     name,
     description,
+    scope,
     isSystem,
   );
   @override
@@ -1389,6 +1421,7 @@ class Role extends DataClass implements Insertable<Role> {
           other.deletedAt == this.deletedAt &&
           other.name == this.name &&
           other.description == this.description &&
+          other.scope == this.scope &&
           other.isSystem == this.isSystem);
 }
 
@@ -1402,6 +1435,7 @@ class RolesCompanion extends UpdateCompanion<Role> {
   final Value<DateTime?> deletedAt;
   final Value<String> name;
   final Value<String?> description;
+  final Value<String> scope;
   final Value<bool> isSystem;
   final Value<int> rowid;
   const RolesCompanion({
@@ -1414,6 +1448,7 @@ class RolesCompanion extends UpdateCompanion<Role> {
     this.deletedAt = const Value.absent(),
     this.name = const Value.absent(),
     this.description = const Value.absent(),
+    this.scope = const Value.absent(),
     this.isSystem = const Value.absent(),
     this.rowid = const Value.absent(),
   });
@@ -1427,6 +1462,7 @@ class RolesCompanion extends UpdateCompanion<Role> {
     this.deletedAt = const Value.absent(),
     required String name,
     this.description = const Value.absent(),
+    this.scope = const Value.absent(),
     this.isSystem = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
@@ -1441,6 +1477,7 @@ class RolesCompanion extends UpdateCompanion<Role> {
     Expression<DateTime>? deletedAt,
     Expression<String>? name,
     Expression<String>? description,
+    Expression<String>? scope,
     Expression<bool>? isSystem,
     Expression<int>? rowid,
   }) {
@@ -1454,6 +1491,7 @@ class RolesCompanion extends UpdateCompanion<Role> {
       if (deletedAt != null) 'deleted_at': deletedAt,
       if (name != null) 'name': name,
       if (description != null) 'description': description,
+      if (scope != null) 'scope': scope,
       if (isSystem != null) 'is_system': isSystem,
       if (rowid != null) 'rowid': rowid,
     });
@@ -1469,6 +1507,7 @@ class RolesCompanion extends UpdateCompanion<Role> {
     Value<DateTime?>? deletedAt,
     Value<String>? name,
     Value<String?>? description,
+    Value<String>? scope,
     Value<bool>? isSystem,
     Value<int>? rowid,
   }) {
@@ -1482,6 +1521,7 @@ class RolesCompanion extends UpdateCompanion<Role> {
       deletedAt: deletedAt ?? this.deletedAt,
       name: name ?? this.name,
       description: description ?? this.description,
+      scope: scope ?? this.scope,
       isSystem: isSystem ?? this.isSystem,
       rowid: rowid ?? this.rowid,
     );
@@ -1517,6 +1557,9 @@ class RolesCompanion extends UpdateCompanion<Role> {
     if (description.present) {
       map['description'] = Variable<String>(description.value);
     }
+    if (scope.present) {
+      map['scope'] = Variable<String>(scope.value);
+    }
     if (isSystem.present) {
       map['is_system'] = Variable<bool>(isSystem.value);
     }
@@ -1538,6 +1581,7 @@ class RolesCompanion extends UpdateCompanion<Role> {
           ..write('deletedAt: $deletedAt, ')
           ..write('name: $name, ')
           ..write('description: $description, ')
+          ..write('scope: $scope, ')
           ..write('isSystem: $isSystem, ')
           ..write('rowid: $rowid')
           ..write(')'))
@@ -20155,6 +20199,7 @@ typedef $$RolesTableCreateCompanionBuilder =
       Value<DateTime?> deletedAt,
       required String name,
       Value<String?> description,
+      Value<String> scope,
       Value<bool> isSystem,
       Value<int> rowid,
     });
@@ -20169,6 +20214,7 @@ typedef $$RolesTableUpdateCompanionBuilder =
       Value<DateTime?> deletedAt,
       Value<String> name,
       Value<String?> description,
+      Value<String> scope,
       Value<bool> isSystem,
       Value<int> rowid,
     });
@@ -20266,6 +20312,11 @@ class $$RolesTableFilterComposer extends Composer<_$AppDatabase, $RolesTable> {
 
   ColumnFilters<String> get description => $composableBuilder(
     column: $table.description,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get scope => $composableBuilder(
+    column: $table.scope,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -20379,6 +20430,11 @@ class $$RolesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get scope => $composableBuilder(
+    column: $table.scope,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<bool> get isSystem => $composableBuilder(
     column: $table.isSystem,
     builder: (column) => ColumnOrderings(column),
@@ -20422,6 +20478,9 @@ class $$RolesTableAnnotationComposer
     column: $table.description,
     builder: (column) => column,
   );
+
+  GeneratedColumn<String> get scope =>
+      $composableBuilder(column: $table.scope, builder: (column) => column);
 
   GeneratedColumn<bool> get isSystem =>
       $composableBuilder(column: $table.isSystem, builder: (column) => column);
@@ -20514,6 +20573,7 @@ class $$RolesTableTableManager
                 Value<DateTime?> deletedAt = const Value.absent(),
                 Value<String> name = const Value.absent(),
                 Value<String?> description = const Value.absent(),
+                Value<String> scope = const Value.absent(),
                 Value<bool> isSystem = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => RolesCompanion(
@@ -20526,6 +20586,7 @@ class $$RolesTableTableManager
                 deletedAt: deletedAt,
                 name: name,
                 description: description,
+                scope: scope,
                 isSystem: isSystem,
                 rowid: rowid,
               ),
@@ -20540,6 +20601,7 @@ class $$RolesTableTableManager
                 Value<DateTime?> deletedAt = const Value.absent(),
                 required String name,
                 Value<String?> description = const Value.absent(),
+                Value<String> scope = const Value.absent(),
                 Value<bool> isSystem = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => RolesCompanion.insert(
@@ -20552,6 +20614,7 @@ class $$RolesTableTableManager
                 deletedAt: deletedAt,
                 name: name,
                 description: description,
+                scope: scope,
                 isSystem: isSystem,
                 rowid: rowid,
               ),

@@ -18,6 +18,7 @@ class Users extends Table with UuidPrimaryKey, AuditColumns {
 class Roles extends Table with UuidPrimaryKey, AuditColumns {
   TextColumn get name => text().unique()();
   TextColumn get description => text().nullable()();
+  TextColumn get scope => text().withDefault(const Constant('global'))(); // global, restricted, caisse
   BoolColumn get isSystem => boolean().withDefault(const Constant(false))();
 }
 
