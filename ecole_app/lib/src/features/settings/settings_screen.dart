@@ -198,6 +198,17 @@ class _SchoolSettingsTabState extends ConsumerState<_SchoolSettingsTab> {
                         onChanged: (v) => ref.read(appPreferencesProvider).setUiScale(v),
                       ),
                       const Text('Ajustez pour le confort visuel (petits écrans ou grands écrans 4K).'),
+                      const SizedBox(height: 16),
+                      Text('Verrouillage automatique après inactivité: ${prefs.inactivityLockMinutes <= 0 ? 'désactivé' : '${prefs.inactivityLockMinutes} min'}'),
+                      Slider(
+                        value: prefs.inactivityLockMinutes.toDouble().clamp(0, 30),
+                        min: 0,
+                        max: 30,
+                        divisions: 30,
+                        label: prefs.inactivityLockMinutes <= 0 ? 'Off' : '${prefs.inactivityLockMinutes} min',
+                        onChanged: (v) => ref.read(appPreferencesProvider).setInactivityLockMinutes(v.round()),
+                      ),
+                      const Text('0 = désactivé. Verrouillage rapide: Ctrl+L. Déverrouillage par mot de passe ou PIN (si défini).'),
                     ]);
                   }),
                 ],

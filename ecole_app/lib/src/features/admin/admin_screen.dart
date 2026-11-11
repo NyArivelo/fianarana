@@ -11,6 +11,7 @@ import 'package:collection/collection.dart';
 import '../../core/database/app_database.dart';
 import '../academics/academics_providers.dart';
 import '../settings/settings_providers.dart';
+import '../auth/auth_controller.dart';
 import 'admin_providers.dart';
 
 class AdminSecurityTab extends ConsumerStatefulWidget {
@@ -99,10 +100,27 @@ class _UsersTab extends ConsumerWidget {
 
   static Future<void> _resetPwd(BuildContext context, WidgetRef ref, User u) async {
     final p = TextEditingController();
+    final pin = TextEditingController();
     await showDialog(context: context, builder: (ctx)=>AlertDialog(
-      title: Text('Réinitialiser mot de passe - ${u.username}'),
-      content: TextField(controller: p, decoration: const InputDecoration(labelText:'Nouveau mot de passe'), obscureText: true),
-      actions:[TextButton(onPressed:()=>Navigator.pop(ctx), child: const Text('Annuler')), FilledButton(onPressed:() async { if(p.text.length<8) return; await ref.read(adminRepositoryProvider).resetPassword(u.id, p.text); if(ctx.mounted) Navigator.pop(ctx); }, child: const Text('Réinitialiser'))],
+      title: Text('Identifiants / PIN - ${u.username}'),
+      content: SizedBox(width: 420, child: Column(mainAxisSize: MainAxisSize.min, children: [
+        TextField(controller: p, decoration: const InputDecoration(labelText:'Nouveau mot de passe (min 8, laisser vide pour ne pas changer)'), obscureText: true),
+        const SizedBox(height: 8),
+        TextField(controller: pin, decoration: const InputDecoration(labelText:'Code PIN (4-6 chiffres, vide pour effacer)'), keyboardType: TextInputType.number, obscureText: true),
+        const SizedBox(height: 8),
+        const Text('Le PIN permet le déverrouillage rapide et le changement d’utilisateur (Ctrl+L / Quick Switch).'),
+      ])),
+      actions:[TextButton(onPressed:()=>Navigator.pop(ctx), child: const Text('Annuler')), FilledButton(onPressed:() async {
+        if (p.text.isNotEmpty) {
+          if (p.text.length < 8) return;
+          await ref.read(adminRepositoryProvider).resetPassword(u.id, p.text);
+        }
+        final pinVal = pin.text.trim();
+        if (pinVal.isEmpty || (RegExp(r'^\d{4,6}$').hasMatch(pinVal))) {
+          await ref.read(authServiceProvider).setPin(u.id, pinVal.isEmpty ? null : pinVal);
+        }
+        if(ctx.mounted) Navigator.pop(ctx);
+      }, child: const Text('Enregistrer'))],
     ));
   }
 

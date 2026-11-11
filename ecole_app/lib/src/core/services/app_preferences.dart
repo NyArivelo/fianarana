@@ -8,6 +8,7 @@ import 'package:path_provider/path_provider.dart';
 
 class AppPreferences extends ChangeNotifier {
   double uiScale = 1.0;
+  int inactivityLockMinutes = 5; // 0 = disabled
 
   Future<File> _file() async {
     final dir = await getApplicationSupportDirectory();
@@ -22,17 +23,28 @@ class AppPreferences extends ChangeNotifier {
       if (!await f.exists()) return;
       final data = jsonDecode(await f.readAsString()) as Map<String, dynamic>;
       uiScale = ((data['uiScale'] as num?)?.toDouble() ?? 1.0).clamp(0.8, 1.6);
+      inactivityLockMinutes = ((data['inactivityLockMinutes'] as num?)?.toInt() ?? 5).clamp(0, 120);
       notifyListeners();
+    } catch (_) {}
+  }
+
+  Future<void> _save() async {
+    try {
+      final f = await _file();
+      await f.writeAsString(const JsonEncoder.withIndent('  ').convert({'uiScale': uiScale, 'inactivityLockMinutes': inactivityLockMinutes}));
     } catch (_) {}
   }
 
   Future<void> setUiScale(double value) async {
     uiScale = value.clamp(0.8, 1.6);
     notifyListeners();
-    try {
-      final f = await _file();
-      await f.writeAsString(const JsonEncoder.withIndent('  ').convert({'uiScale': uiScale}));
-    } catch (_) {}
+    await _save();
+  }
+
+  Future<void> setInactivityLockMinutes(int minutes) async {
+    inactivityLockMinutes = minutes.clamp(0, 120);
+    notifyListeners();
+    await _save();
   }
 }
 

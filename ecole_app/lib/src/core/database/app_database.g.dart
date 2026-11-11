@@ -194,6 +194,17 @@ class $UsersTable extends Users with TableInfo<$UsersTable, User> {
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _pinHashMeta = const VerificationMeta(
+    'pinHash',
+  );
+  @override
+  late final GeneratedColumn<String> pinHash = GeneratedColumn<String>(
+    'pin_hash',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -212,6 +223,7 @@ class $UsersTable extends Users with TableInfo<$UsersTable, User> {
     lastLoginAt,
     failedLoginAttempts,
     lockedUntil,
+    pinHash,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -344,6 +356,12 @@ class $UsersTable extends Users with TableInfo<$UsersTable, User> {
         ),
       );
     }
+    if (data.containsKey('pin_hash')) {
+      context.handle(
+        _pinHashMeta,
+        pinHash.isAcceptableOrUnknown(data['pin_hash']!, _pinHashMeta),
+      );
+    }
     return context;
   }
 
@@ -417,6 +435,10 @@ class $UsersTable extends Users with TableInfo<$UsersTable, User> {
         DriftSqlType.dateTime,
         data['${effectivePrefix}locked_until'],
       ),
+      pinHash: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}pin_hash'],
+      ),
     );
   }
 
@@ -443,6 +465,7 @@ class User extends DataClass implements Insertable<User> {
   final DateTime? lastLoginAt;
   final int failedLoginAttempts;
   final DateTime? lockedUntil;
+  final String? pinHash;
   const User({
     required this.id,
     required this.createdAt,
@@ -460,6 +483,7 @@ class User extends DataClass implements Insertable<User> {
     this.lastLoginAt,
     required this.failedLoginAttempts,
     this.lockedUntil,
+    this.pinHash,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -491,6 +515,9 @@ class User extends DataClass implements Insertable<User> {
     map['failed_login_attempts'] = Variable<int>(failedLoginAttempts);
     if (!nullToAbsent || lockedUntil != null) {
       map['locked_until'] = Variable<DateTime>(lockedUntil);
+    }
+    if (!nullToAbsent || pinHash != null) {
+      map['pin_hash'] = Variable<String>(pinHash);
     }
     return map;
   }
@@ -525,6 +552,9 @@ class User extends DataClass implements Insertable<User> {
       lockedUntil: lockedUntil == null && nullToAbsent
           ? const Value.absent()
           : Value(lockedUntil),
+      pinHash: pinHash == null && nullToAbsent
+          ? const Value.absent()
+          : Value(pinHash),
     );
   }
 
@@ -552,6 +582,7 @@ class User extends DataClass implements Insertable<User> {
         json['failedLoginAttempts'],
       ),
       lockedUntil: serializer.fromJson<DateTime?>(json['lockedUntil']),
+      pinHash: serializer.fromJson<String?>(json['pinHash']),
     );
   }
   @override
@@ -574,6 +605,7 @@ class User extends DataClass implements Insertable<User> {
       'lastLoginAt': serializer.toJson<DateTime?>(lastLoginAt),
       'failedLoginAttempts': serializer.toJson<int>(failedLoginAttempts),
       'lockedUntil': serializer.toJson<DateTime?>(lockedUntil),
+      'pinHash': serializer.toJson<String?>(pinHash),
     };
   }
 
@@ -594,6 +626,7 @@ class User extends DataClass implements Insertable<User> {
     Value<DateTime?> lastLoginAt = const Value.absent(),
     int? failedLoginAttempts,
     Value<DateTime?> lockedUntil = const Value.absent(),
+    Value<String?> pinHash = const Value.absent(),
   }) => User(
     id: id ?? this.id,
     createdAt: createdAt ?? this.createdAt,
@@ -611,6 +644,7 @@ class User extends DataClass implements Insertable<User> {
     lastLoginAt: lastLoginAt.present ? lastLoginAt.value : this.lastLoginAt,
     failedLoginAttempts: failedLoginAttempts ?? this.failedLoginAttempts,
     lockedUntil: lockedUntil.present ? lockedUntil.value : this.lockedUntil,
+    pinHash: pinHash.present ? pinHash.value : this.pinHash,
   );
   User copyWithCompanion(UsersCompanion data) {
     return User(
@@ -642,6 +676,7 @@ class User extends DataClass implements Insertable<User> {
       lockedUntil: data.lockedUntil.present
           ? data.lockedUntil.value
           : this.lockedUntil,
+      pinHash: data.pinHash.present ? data.pinHash.value : this.pinHash,
     );
   }
 
@@ -663,7 +698,8 @@ class User extends DataClass implements Insertable<User> {
           ..write('mustChangePassword: $mustChangePassword, ')
           ..write('lastLoginAt: $lastLoginAt, ')
           ..write('failedLoginAttempts: $failedLoginAttempts, ')
-          ..write('lockedUntil: $lockedUntil')
+          ..write('lockedUntil: $lockedUntil, ')
+          ..write('pinHash: $pinHash')
           ..write(')'))
         .toString();
   }
@@ -686,6 +722,7 @@ class User extends DataClass implements Insertable<User> {
     lastLoginAt,
     failedLoginAttempts,
     lockedUntil,
+    pinHash,
   );
   @override
   bool operator ==(Object other) =>
@@ -706,7 +743,8 @@ class User extends DataClass implements Insertable<User> {
           other.mustChangePassword == this.mustChangePassword &&
           other.lastLoginAt == this.lastLoginAt &&
           other.failedLoginAttempts == this.failedLoginAttempts &&
-          other.lockedUntil == this.lockedUntil);
+          other.lockedUntil == this.lockedUntil &&
+          other.pinHash == this.pinHash);
 }
 
 class UsersCompanion extends UpdateCompanion<User> {
@@ -726,6 +764,7 @@ class UsersCompanion extends UpdateCompanion<User> {
   final Value<DateTime?> lastLoginAt;
   final Value<int> failedLoginAttempts;
   final Value<DateTime?> lockedUntil;
+  final Value<String?> pinHash;
   final Value<int> rowid;
   const UsersCompanion({
     this.id = const Value.absent(),
@@ -744,6 +783,7 @@ class UsersCompanion extends UpdateCompanion<User> {
     this.lastLoginAt = const Value.absent(),
     this.failedLoginAttempts = const Value.absent(),
     this.lockedUntil = const Value.absent(),
+    this.pinHash = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   UsersCompanion.insert({
@@ -763,6 +803,7 @@ class UsersCompanion extends UpdateCompanion<User> {
     this.lastLoginAt = const Value.absent(),
     this.failedLoginAttempts = const Value.absent(),
     this.lockedUntil = const Value.absent(),
+    this.pinHash = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        username = Value(username),
@@ -785,6 +826,7 @@ class UsersCompanion extends UpdateCompanion<User> {
     Expression<DateTime>? lastLoginAt,
     Expression<int>? failedLoginAttempts,
     Expression<DateTime>? lockedUntil,
+    Expression<String>? pinHash,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -806,6 +848,7 @@ class UsersCompanion extends UpdateCompanion<User> {
       if (failedLoginAttempts != null)
         'failed_login_attempts': failedLoginAttempts,
       if (lockedUntil != null) 'locked_until': lockedUntil,
+      if (pinHash != null) 'pin_hash': pinHash,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -827,6 +870,7 @@ class UsersCompanion extends UpdateCompanion<User> {
     Value<DateTime?>? lastLoginAt,
     Value<int>? failedLoginAttempts,
     Value<DateTime?>? lockedUntil,
+    Value<String?>? pinHash,
     Value<int>? rowid,
   }) {
     return UsersCompanion(
@@ -846,6 +890,7 @@ class UsersCompanion extends UpdateCompanion<User> {
       lastLoginAt: lastLoginAt ?? this.lastLoginAt,
       failedLoginAttempts: failedLoginAttempts ?? this.failedLoginAttempts,
       lockedUntil: lockedUntil ?? this.lockedUntil,
+      pinHash: pinHash ?? this.pinHash,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -901,6 +946,9 @@ class UsersCompanion extends UpdateCompanion<User> {
     if (lockedUntil.present) {
       map['locked_until'] = Variable<DateTime>(lockedUntil.value);
     }
+    if (pinHash.present) {
+      map['pin_hash'] = Variable<String>(pinHash.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -926,6 +974,7 @@ class UsersCompanion extends UpdateCompanion<User> {
           ..write('lastLoginAt: $lastLoginAt, ')
           ..write('failedLoginAttempts: $failedLoginAttempts, ')
           ..write('lockedUntil: $lockedUntil, ')
+          ..write('pinHash: $pinHash, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -20176,6 +20225,7 @@ typedef $$UsersTableCreateCompanionBuilder =
       Value<DateTime?> lastLoginAt,
       Value<int> failedLoginAttempts,
       Value<DateTime?> lockedUntil,
+      Value<String?> pinHash,
       Value<int> rowid,
     });
 typedef $$UsersTableUpdateCompanionBuilder =
@@ -20196,6 +20246,7 @@ typedef $$UsersTableUpdateCompanionBuilder =
       Value<DateTime?> lastLoginAt,
       Value<int> failedLoginAttempts,
       Value<DateTime?> lockedUntil,
+      Value<String?> pinHash,
       Value<int> rowid,
     });
 
@@ -20368,6 +20419,11 @@ class $$UsersTableFilterComposer extends Composer<_$AppDatabase, $UsersTable> {
 
   ColumnFilters<DateTime> get lockedUntil => $composableBuilder(
     column: $table.lockedUntil,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get pinHash => $composableBuilder(
+    column: $table.pinHash,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -20560,6 +20616,11 @@ class $$UsersTableOrderingComposer
     column: $table.lockedUntil,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<String> get pinHash => $composableBuilder(
+    column: $table.pinHash,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$UsersTableAnnotationComposer
@@ -20630,6 +20691,9 @@ class $$UsersTableAnnotationComposer
     column: $table.lockedUntil,
     builder: (column) => column,
   );
+
+  GeneratedColumn<String> get pinHash =>
+      $composableBuilder(column: $table.pinHash, builder: (column) => column);
 
   Expression<T> userRolesRefs<T extends Object>(
     Expression<T> Function($$UserRolesTableAnnotationComposer a) f,
@@ -20782,6 +20846,7 @@ class $$UsersTableTableManager
                 Value<DateTime?> lastLoginAt = const Value.absent(),
                 Value<int> failedLoginAttempts = const Value.absent(),
                 Value<DateTime?> lockedUntil = const Value.absent(),
+                Value<String?> pinHash = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => UsersCompanion(
                 id: id,
@@ -20800,6 +20865,7 @@ class $$UsersTableTableManager
                 lastLoginAt: lastLoginAt,
                 failedLoginAttempts: failedLoginAttempts,
                 lockedUntil: lockedUntil,
+                pinHash: pinHash,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -20820,6 +20886,7 @@ class $$UsersTableTableManager
                 Value<DateTime?> lastLoginAt = const Value.absent(),
                 Value<int> failedLoginAttempts = const Value.absent(),
                 Value<DateTime?> lockedUntil = const Value.absent(),
+                Value<String?> pinHash = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => UsersCompanion.insert(
                 id: id,
@@ -20838,6 +20905,7 @@ class $$UsersTableTableManager
                 lastLoginAt: lastLoginAt,
                 failedLoginAttempts: failedLoginAttempts,
                 lockedUntil: lockedUntil,
+                pinHash: pinHash,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0

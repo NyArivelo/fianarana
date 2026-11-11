@@ -13,6 +13,7 @@ class Users extends Table with UuidPrimaryKey, AuditColumns {
   DateTimeColumn get lastLoginAt => dateTime().nullable()();
   IntColumn get failedLoginAttempts => integer().withDefault(const Constant(0))();
   DateTimeColumn get lockedUntil => dateTime().nullable()();
+  TextColumn get pinHash => text().nullable()();
 }
 
 class Roles extends Table with UuidPrimaryKey, AuditColumns {

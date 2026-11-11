@@ -137,6 +137,46 @@ class AuthService {
     return AuthResult.ok(fresh);
   }
 
+  Future<bool> verifyPassword(String userId, String password) async {
+    final user = await (db.select(db.users)..where((u) => u.id.equals(userId))).getSingleOrNull();
+    if (user == null) return false;
+    return PasswordHasher.verify(password, user.passwordHash);
+  }
+
+  Future<bool> verifyPin(String userId, String pin) async {
+    final user = await (db.select(db.users)..where((u) => u.id.equals(userId))).getSingleOrNull();
+    if (user == null || user.pinHash == null || user.pinHash!.isEmpty) return false;
+    return PasswordHasher.verify(pin, user.pinHash!);
+  }
+
+  Future<void> setPin(String userId, String? pin) async {
+    await (db.update(db.users)..where((u) => u.id.equals(userId))).write(
+      UsersCompanion(pinHash: Value(pin == null || pin.isEmpty ? null : PasswordHasher.hash(pin)), updatedAt: Value(DateTime.now())),
+    );
+  }
+
+  Future<AuthResult> loginWithPin(String username, String pin) async {
+    final user = await (db.select(db.users)..where((u) => u.username.equals(username))).getSingleOrNull();
+    if (user == null) return AuthResult.fail('Utilisateur introuvable.');
+    if (!user.isActive) return AuthResult.fail('Ce compte est désactivé.');
+    if (user.pinHash == null || user.pinHash!.isEmpty) return AuthResult.fail('Aucun code PIN défini pour ce compte.');
+    final ok = PasswordHasher.verify(pin, user.pinHash!);
+    if (!ok) {
+      await _audit(userId: user.id, username: user.username, module: 'auth', action: 'quick_switch_failed', targetType: 'user', targetId: user.id, result: 'failure');
+      return AuthResult.fail('Code PIN invalide.');
+    }
+    await (db.update(db.users)..where((u) => u.id.equals(user.id))).write(
+      UsersCompanion(lastLoginAt: Value(DateTime.now()), updatedAt: Value(DateTime.now()), failedLoginAttempts: const Value(0), lockedUntil: const Value(null)),
+    );
+    await _audit(userId: user.id, username: user.username, module: 'auth', action: 'quick_switch_success', targetType: 'user', targetId: user.id);
+    final fresh = await (db.select(db.users)..where((u) => u.id.equals(user.id))).getSingle();
+    return AuthResult.ok(fresh);
+  }
+
+  Future<List<User>> usersWithPin() async {
+    return (db.select(db.users)..where((u) => u.isDeleted.equals(false) & u.isActive.equals(true) & u.pinHash.isNotNull())).get();
+  }
+
   Future<void> _audit({
     String? userId,
     String? username,
