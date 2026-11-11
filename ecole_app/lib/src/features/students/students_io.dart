@@ -3,41 +3,31 @@ import 'dart:io';
 
 import 'package:csv/csv.dart';
 import 'package:excel/excel.dart';
-import 'package:intl/intl.dart';
-
-import '../../core/database/app_database.dart';
 
 class StudentsIO {
-  static const headers = ['matricule', 'lastName', 'firstName', 'gender', 'birthDate', 'birthPlace', 'status', 'notes'];
+  static const headers = [
+    'matricule', 'lastName', 'firstName', 'gender', 'birthDate', 'birthPlace', 'status', 'notes',
+    'academicYear', 'className', 'enrollmentStatus',
+    'guardianLastName', 'guardianFirstName', 'guardianPhone', 'guardianRelation', 'guardianEmail',
+  ];
 
-  static String toCsv(List<Student> students) {
+  static const baseHeaders = ['matricule', 'lastName', 'firstName', 'gender', 'birthDate', 'birthPlace', 'status', 'notes'];
+
+  static String toCsvFromRows(List<Map<String, String>> rowsData) {
     final rows = <List<dynamic>>[headers];
-    final fmt = DateFormat('yyyy-MM-dd');
-    for (final s in students) {
-      rows.add([
-        s.matricule, s.lastName, s.firstName, s.gender ?? '', s.birthDate != null ? fmt.format(s.birthDate!) : '', s.birthPlace ?? '', s.status, s.notes ?? '',
-      ]);
+    for (final r in rowsData) {
+      rows.add([for (final h in headers) r[h] ?? '']);
     }
     return const ListToCsvConverter().convert(rows);
   }
 
-  static List<int> toXlsx(List<Student> students) {
+  static List<int> toXlsxFromRows(List<Map<String, String>> rowsData) {
     final excel = Excel.createExcel();
     final sheet = excel['Eleves'];
     excel.setDefaultSheet('Eleves');
     sheet.appendRow(headers.map((h) => TextCellValue(h)).toList());
-    final fmt = DateFormat('yyyy-MM-dd');
-    for (final s in students) {
-      sheet.appendRow([
-        TextCellValue(s.matricule),
-        TextCellValue(s.lastName),
-        TextCellValue(s.firstName),
-        TextCellValue(s.gender ?? ''),
-        TextCellValue(s.birthDate != null ? fmt.format(s.birthDate!) : ''),
-        TextCellValue(s.birthPlace ?? ''),
-        TextCellValue(s.status),
-        TextCellValue(s.notes ?? ''),
-      ]);
+    for (final r in rowsData) {
+      sheet.appendRow([for (final h in headers) TextCellValue(r[h] ?? '')]);
     }
     return excel.encode() ?? [];
   }

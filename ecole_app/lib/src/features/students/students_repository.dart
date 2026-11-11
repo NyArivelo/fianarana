@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
@@ -8,12 +9,23 @@ class StudentsRepository {
   final _uuid = const Uuid();
   StudentsRepository(this.db);
 
-  Stream<List<Student>> watchStudents({String query = '', List<String>? allowedClassIds, String? academicYearId}) {
-    if (allowedClassIds != null) {
-      if (allowedClassIds.isEmpty) return Stream.value(<Student>[]);
+  Stream<List<Student>> watchStudents({
+    String query = '',
+    List<String>? allowedClassIds,
+    String? academicYearId,
+    String? status,
+    String? classId,
+    String? gender,
+  }) {
+    if (allowedClassIds != null || (classId != null && classId.isNotEmpty)) {
+      if (allowedClassIds != null && allowedClassIds.isEmpty) return Stream.value(<Student>[]);
       final jq = db.select(db.students).join([innerJoin(db.enrollments, db.enrollments.studentId.equalsExp(db.students.id))]);
-      var where = db.students.isDeleted.equals(false) & db.enrollments.isDeleted.equals(false) & db.enrollments.classId.isIn(allowedClassIds);
+      var where = db.students.isDeleted.equals(false) & db.enrollments.isDeleted.equals(false);
       if (academicYearId != null) where = where & db.enrollments.academicYearId.equals(academicYearId);
+      if (allowedClassIds != null) where = where & db.enrollments.classId.isIn(allowedClassIds);
+      if (classId != null && classId.isNotEmpty) where = where & db.enrollments.classId.equals(classId);
+      if (status != null && status.isNotEmpty) where = where & db.students.status.equals(status);
+      if (gender != null && gender.isNotEmpty) where = where & db.students.gender.equals(gender);
       if (query.trim().isNotEmpty) {
         final like = '%${query.trim()}%';
         where = where & (db.students.firstName.like(like) | db.students.lastName.like(like) | db.students.matricule.like(like));
@@ -27,6 +39,8 @@ class StudentsRepository {
       });
     }
     final q = db.select(db.students)..where((t) => t.isDeleted.equals(false));
+    if (status != null && status.isNotEmpty) q.where((t) => t.status.equals(status));
+    if (gender != null && gender.isNotEmpty) q.where((t) => t.gender.equals(gender));
     if (query.trim().isNotEmpty) {
       final like = '%${query.trim()}%';
       q.where((t) =>
@@ -181,8 +195,29 @@ class StudentsRepository {
       EnrollmentsCompanion(status: Value(status), updatedAt: Value(DateTime.now())));
   }
 
-  Future<List<Student>> allStudents() async {
+  Future<List<Student>> allStudents({List<String>? allowedClassIds, String? academicYearId}) async {
+    if (allowedClassIds != null) {
+      if (allowedClassIds.isEmpty) return [];
+      final jq = db.select(db.students).join([innerJoin(db.enrollments, db.enrollments.studentId.equalsExp(db.students.id))]);
+      var where = db.students.isDeleted.equals(false) & db.enrollments.isDeleted.equals(false) & db.enrollments.classId.isIn(allowedClassIds);
+      if (academicYearId != null) where = where & db.enrollments.academicYearId.equals(academicYearId);
+      jq.where(where);
+      jq.orderBy([OrderingTerm.asc(db.students.lastName), OrderingTerm.asc(db.students.firstName)]);
+      final rows = await jq.get();
+      final map = <String, Student>{};
+      for (final r in rows) { final s = r.readTable(db.students); map[s.id] = s; }
+      return map.values.toList();
+    }
     return (db.select(db.students)..where((t) => t.isDeleted.equals(false))..orderBy([(t)=>OrderingTerm.asc(t.lastName),(t)=>OrderingTerm.asc(t.firstName)])).get();
+  }
+
+  Future<Student?> findByMatricule(String matricule) async {
+    final m = matricule.trim().toLowerCase();
+    final rows = await (db.select(db.students)..where((t) => t.isDeleted.equals(false))).get();
+    for (final s in rows) {
+      if (s.matricule.trim().toLowerCase() == m) return s;
+    }
+    return null;
   }
 
   Future<Set<String>> existingMatricules() async {
@@ -190,13 +225,13 @@ class StudentsRepository {
     return rows.map((s) => s.matricule.trim().toLowerCase()).toSet();
   }
 
-  Future<int> importStudents(List<Map<String, String>> rows) async {
-    int count = 0;
+  Future<Map<String, dynamic>> importStudentsAdvanced(List<Map<String, String>> rows, {bool updateExisting = false, String? defaultAcademicYearId}) async {
+    int created = 0, updated = 0, guardiansLinked = 0, enrollments = 0, skipped = 0;
     for (final r in rows) {
       final matricule = (r['matricule'] ?? '').trim();
       final first = (r['firstName'] ?? r['prenom'] ?? '').trim();
       final last = (r['lastName'] ?? r['nom'] ?? '').trim();
-      if (matricule.isEmpty || first.isEmpty || last.isEmpty) continue;
+      if (matricule.isEmpty || first.isEmpty || last.isEmpty) { skipped++; continue; }
       DateTime? birthDate;
       final bd = (r['birthDate'] ?? r['date_naissance'] ?? '').trim();
       if (bd.isNotEmpty) {
@@ -208,18 +243,107 @@ class StudentsRepository {
           }
         }
       }
-      await upsertStudent(
-        matricule: matricule,
-        firstName: first,
-        lastName: last,
-        gender: (r['gender'] ?? r['genre'] ?? '').trim().isEmpty ? null : (r['gender'] ?? r['genre'])!.trim(),
-        birthDate: birthDate,
-        birthPlace: (r['birthPlace'] ?? r['lieu_naissance'] ?? '').trim().isEmpty ? null : (r['birthPlace'] ?? r['lieu_naissance'])!.trim(),
-        status: (r['status'] ?? r['statut'] ?? 'active').trim(),
-        notes: (r['notes'] ?? '').trim().isEmpty ? null : r['notes']!.trim(),
-      );
-      count++;
+      final existing = await findByMatricule(matricule);
+      String studentId;
+      if (existing != null) {
+        if (!updateExisting) { skipped++; continue; }
+        studentId = await upsertStudent(
+          id: existing.id,
+          matricule: matricule,
+          firstName: first,
+          lastName: last,
+          gender: (r['gender'] ?? r['genre'] ?? '').trim().isEmpty ? existing.gender : (r['gender'] ?? r['genre'])!.trim(),
+          birthDate: birthDate ?? existing.birthDate,
+          birthPlace: (r['birthPlace'] ?? r['lieu_naissance'] ?? '').trim().isEmpty ? existing.birthPlace : (r['birthPlace'] ?? r['lieu_naissance'])!.trim(),
+          status: (r['status'] ?? r['statut'] ?? existing.status).trim(),
+          notes: (r['notes'] ?? '').trim().isEmpty ? existing.notes : r['notes']!.trim(),
+        );
+        updated++;
+      } else {
+        studentId = await upsertStudent(
+          matricule: matricule,
+          firstName: first,
+          lastName: last,
+          gender: (r['gender'] ?? r['genre'] ?? '').trim().isEmpty ? null : (r['gender'] ?? r['genre'])!.trim(),
+          birthDate: birthDate,
+          birthPlace: (r['birthPlace'] ?? r['lieu_naissance'] ?? '').trim().isEmpty ? null : (r['birthPlace'] ?? r['lieu_naissance'])!.trim(),
+          status: (r['status'] ?? r['statut'] ?? 'active').trim(),
+          notes: (r['notes'] ?? '').trim().isEmpty ? null : r['notes']!.trim(),
+        );
+        created++;
+      }
+
+      // Guardian (optional)
+      final gFirst = (r['guardianFirstName'] ?? r['responsable_prenom'] ?? r['guardian_first_name'] ?? '').trim();
+      final gLast = (r['guardianLastName'] ?? r['responsable_nom'] ?? r['guardian_last_name'] ?? '').trim();
+      if (gFirst.isNotEmpty && gLast.isNotEmpty) {
+        final gPhone = (r['guardianPhone'] ?? r['responsable_telephone'] ?? r['guardian_phone'] ?? '').trim();
+        final gRelation = (r['guardianRelation'] ?? r['responsable_lien'] ?? r['guardian_relation'] ?? '').trim();
+        final gEmail = (r['guardianEmail'] ?? r['responsable_email'] ?? r['guardian_email'] ?? '').trim();
+        final gid = await upsertGuardian(firstName: gFirst, lastName: gLast, phone: gPhone.isEmpty ? null : gPhone, relation: gRelation.isEmpty ? null : gRelation, email: gEmail.isEmpty ? null : gEmail);
+        await linkGuardian(studentId, gid, primary: true);
+        guardiansLinked++;
+      }
+
+      // Enrollment (optional)
+      final className = (r['className'] ?? r['classe'] ?? '').trim();
+      final yearLabel = (r['academicYear'] ?? r['annee'] ?? '').trim();
+      if (className.isNotEmpty || yearLabel.isNotEmpty) {
+        String? yearId = defaultAcademicYearId;
+        if (yearLabel.isNotEmpty) {
+          final ys = await (db.select(db.academicYears)..where((t) => t.isDeleted.equals(false))).get();
+          for (final y in ys) { if (y.label.toLowerCase() == yearLabel.toLowerCase()) { yearId = y.id; break; } }
+        }
+        if (yearId != null) {
+          String? classId;
+          if (className.isNotEmpty) {
+            final cs = await (db.select(db.classes)..where((t) => t.isDeleted.equals(false) & t.academicYearId.equals(yearId!))).get();
+            for (final c in cs) { if (c.name.toLowerCase() == className.toLowerCase()) { classId = c.id; break; } }
+          }
+          await upsertEnrollment(studentId: studentId, academicYearId: yearId, classId: classId, status: (r['enrollmentStatus'] ?? r['statut_inscription'] ?? 'preinscription').trim());
+          enrollments++;
+        }
+      }
     }
-    return count;
+    return {'created': created, 'updated': updated, 'guardiansLinked': guardiansLinked, 'enrollments': enrollments, 'skipped': skipped};
+  }
+
+  Future<int> importStudents(List<Map<String, String>> rows) async {
+    final res = await importStudentsAdvanced(rows);
+    return (res['created'] as int) + (res['updated'] as int);
+  }
+
+  /// Returns export rows including enrollment (year/class) and primary guardian when available.
+  Future<List<Map<String, String>>> exportRows({List<String>? allowedClassIds, String? academicYearId}) async {
+    final students = await allStudents(allowedClassIds: allowedClassIds, academicYearId: academicYearId);
+    final years = {for (final y in await (db.select(db.academicYears)..where((t)=>t.isDeleted.equals(false))).get()) y.id: y.label};
+    final classes = {for (final c in await (db.select(db.classes)..where((t)=>t.isDeleted.equals(false))).get()) c.id: c.name};
+    final out = <Map<String, String>>[];
+    String fmt(DateTime d) => '${d.year.toString().padLeft(4,'0')}-${d.month.toString().padLeft(2,'0')}-${d.day.toString().padLeft(2,'0')}';
+    for (final s in students) {
+      final enrolls = await (db.select(db.enrollments)..where((t)=>t.studentId.equals(s.id) & t.isDeleted.equals(false))..orderBy([(t)=>OrderingTerm.desc(t.enrolledAt)])).get();
+      final e = academicYearId != null ? enrolls.where((x)=>x.academicYearId==academicYearId).firstOrNull ?? (enrolls.isNotEmpty?enrolls.first:null) : (enrolls.isNotEmpty?enrolls.first:null);
+      final guardians = await guardiansForStudent(s.id);
+      final g = guardians.isNotEmpty ? guardians.first : null;
+      out.add({
+        'matricule': s.matricule,
+        'lastName': s.lastName,
+        'firstName': s.firstName,
+        'gender': s.gender ?? '',
+        'birthDate': s.birthDate != null ? fmt(s.birthDate!) : '',
+        'birthPlace': s.birthPlace ?? '',
+        'status': s.status,
+        'notes': s.notes ?? '',
+        'academicYear': e != null ? (years[e.academicYearId] ?? '') : '',
+        'className': e?.classId != null ? (classes[e!.classId!] ?? '') : '',
+        'enrollmentStatus': e?.status ?? '',
+        'guardianLastName': g?.lastName ?? '',
+        'guardianFirstName': g?.firstName ?? '',
+        'guardianPhone': g?.phone ?? '',
+        'guardianRelation': g?.relation ?? '',
+        'guardianEmail': g?.email ?? '',
+      });
+    }
+    return out;
   }
 }
