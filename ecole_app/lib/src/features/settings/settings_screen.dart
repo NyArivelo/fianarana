@@ -7,6 +7,7 @@ import '../../core/security/current_user_scope.dart';
 import '../../core/services/app_preferences.dart';
 import '../academics/academics_structure_screen.dart';
 import '../admin/admin_screen.dart';
+import '../admin/trash_tab.dart';
 import 'backup_tab.dart';
 import 'settings_providers.dart';
 
@@ -28,6 +29,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       const Tab(text: 'Structure pédagogique'),
       if (isGlobal) const Tab(text: 'Sécurité & Administration'),
       if (isGlobal) const Tab(text: 'Sauvegarde & Restauration'),
+      if (isGlobal) const Tab(text: 'Corbeille'),
     ];
     final views = <Widget>[
       const _SchoolSettingsTab(),
@@ -35,6 +37,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       const AcademicsStructureTab(),
       if (isGlobal) const AdminSecurityTab(),
       if (isGlobal) const BackupRestoreTab(),
+      if (isGlobal) const TrashTab(),
     ];
     return DefaultTabController(
       length: tabs.length,
