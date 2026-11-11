@@ -5,6 +5,7 @@ import '../attendance/attendance_screen.dart';
 import '../auth/auth_controller.dart';
 import '../documents/documents_screen.dart';
 import '../finance/finance_screen.dart';
+import '../grades/grades_screen.dart';
 import '../schedule/schedule_screen.dart';
 import '../settings/settings_screen.dart';
 import '../students/students_screen.dart';
@@ -122,6 +123,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                     1 => const StudentsScreen(),
                     3 => const ScheduleScreen(),
                     4 => const AttendanceScreen(),
+                    5 => const GradesScreen(),
                     6 => const FinanceScreen(),
                     8 => const DocumentsScreen(),
                     9 => const SettingsScreen(),

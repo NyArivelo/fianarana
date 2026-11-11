@@ -100,6 +100,60 @@ class DocumentService {
     return doc.save();
   }
 
+  Future<Uint8List> buildBulletin({
+    required Student student,
+    required SchoolSetting? school,
+    required List<Map<String, dynamic>> lines, // {subject, average, coef}
+    String periodLabel = 'Période',
+  }) async {
+    final doc = pw.Document();
+    final schoolName = school?.name ?? 'Établissement scolaire';
+    final dateStr = DateFormat('dd/MM/yyyy').format(DateTime.now());
+    double total = 0;
+    double coefSum = 0;
+    for (final l in lines) {
+      final avg = (l['average'] as num).toDouble();
+      final coef = (l['coef'] as num?)?.toDouble() ?? 1.0;
+      total += avg * coef;
+      coefSum += coef;
+    }
+    final general = coefSum > 0 ? total / coefSum : null;
+
+    doc.addPage(
+      pw.MultiPage(
+        pageFormat: PdfPageFormat.a4,
+        margin: const pw.EdgeInsets.all(32),
+        build: (ctx) => [
+          pw.Text(schoolName, style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold)),
+          if (school?.address != null) pw.Text(school!.address!),
+          pw.SizedBox(height: 12),
+          pw.Center(child: pw.Text('BULLETIN DE NOTES - $periodLabel', style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold))),
+          pw.SizedBox(height: 12),
+          pw.Text('Élève: ${student.lastName} ${student.firstName}   Matricule: ${student.matricule}'),
+          pw.SizedBox(height: 12),
+          pw.TableHelper.fromTextArray(
+            headers: ['Matière', 'Moyenne /20', 'Coef'],
+            data: [
+              for (final l in lines)
+                [l['subject'].toString(), ((l['average'] as num).toDouble()).toStringAsFixed(2), (l['coef'] ?? 1).toString()],
+            ],
+          ),
+          pw.SizedBox(height: 12),
+          if (general != null)
+            pw.Container(
+              padding: const pw.EdgeInsets.all(8),
+              decoration: pw.BoxDecoration(border: pw.Border.all()),
+              child: pw.Text('Moyenne générale: ${general.toStringAsFixed(2)} /20', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+            ),
+          if (lines.isEmpty) pw.Text('Aucune note saisie pour la période sélectionnée.'),
+          pw.SizedBox(height: 24),
+          pw.Text('Édité le $dateStr', style: const pw.TextStyle(fontSize: 9)),
+        ],
+      ),
+    );
+    return doc.save();
+  }
+
   pw.Widget _row(String label, String value) => pw.Padding(
         padding: const pw.EdgeInsets.symmetric(vertical: 2),
         child: pw.Row(crossAxisAlignment: pw.CrossAxisAlignment.start, children: [

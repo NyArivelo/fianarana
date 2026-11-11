@@ -36,6 +36,8 @@ part 'app_database.g.dart';
     Rooms,
     CourseSessions,
     AttendanceRecords,
+    Evaluations,
+    Grades,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -44,7 +46,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -61,6 +63,10 @@ class AppDatabase extends _$AppDatabase {
             await m.createTable(rooms);
             await m.createTable(courseSessions);
             await m.createTable(attendanceRecords);
+          }
+          if (from < 4) {
+            await m.createTable(evaluations);
+            await m.createTable(grades);
           }
         },
         beforeOpen: (details) async {
