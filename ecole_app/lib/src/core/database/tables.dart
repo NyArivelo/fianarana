@@ -169,6 +169,8 @@ class Payments extends Table with UuidPrimaryKey, AuditColumns {
   TextColumn get studentId => text().references(Students, #id)();
   TextColumn get enrollmentId => text().nullable().references(Enrollments, #id)();
   TextColumn get feeTypeId => text().nullable().references(FeeTypes, #id)();
+  TextColumn get installmentId =>
+      text().nullable().references(PaymentInstallments, #id)();
   RealColumn get amount => real()();
   TextColumn get method => text().withDefault(const Constant('cash'))();
   DateTimeColumn get paidAt => dateTime()();
@@ -184,4 +186,23 @@ class CashClosures extends Table with UuidPrimaryKey, AuditColumns {
   RealColumn get countedAmount => real()();
   RealColumn get difference => real()();
   TextColumn get note => text().nullable()();
+}
+
+// --- Payment schedules / installments ---
+class PaymentPlans extends Table with UuidPrimaryKey, AuditColumns {
+  TextColumn get studentId => text().references(Students, #id)();
+  TextColumn get enrollmentId => text().nullable().references(Enrollments, #id)();
+  TextColumn get feeTypeId => text().nullable().references(FeeTypes, #id)();
+  TextColumn get name => text()();
+  RealColumn get totalAmount => real()();
+  TextColumn get status => text().withDefault(const Constant('active'))(); // active, completed, cancelled
+}
+
+class PaymentInstallments extends Table with UuidPrimaryKey, AuditColumns {
+  TextColumn get planId => text().references(PaymentPlans, #id)();
+  IntColumn get sequence => integer().withDefault(const Constant(1))();
+  DateTimeColumn get dueDate => dateTime()();
+  RealColumn get amount => real()();
+  RealColumn get paidAmount => real().withDefault(const Constant(0.0))();
+  TextColumn get status => text().withDefault(const Constant('pending'))(); // pending, partial, paid, overdue
 }

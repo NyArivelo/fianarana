@@ -52,6 +52,7 @@ class FinanceRepository {
     required String studentId,
     String? enrollmentId,
     String? feeTypeId,
+    String? installmentId,
     required double amount,
     String method = 'cash',
     DateTime? paidAt,
@@ -59,29 +60,178 @@ class FinanceRepository {
     String? note,
   }) async {
     final receipt = await _nextReceiptNumber();
-    await db.into(db.payments).insert(PaymentsCompanion.insert(
-          id: _uuid.v4(),
-          receiptNumber: receipt,
-          studentId: studentId,
-          enrollmentId: Value(enrollmentId),
-          feeTypeId: Value(feeTypeId),
-          amount: amount,
-          method: Value(method),
-          paidAt: paidAt ?? DateTime.now(),
-          cashierUserId: Value(cashierUserId),
-          note: Value(note),
-        ));
+    await db.transaction(() async {
+      await db.into(db.payments).insert(PaymentsCompanion.insert(
+            id: _uuid.v4(),
+            receiptNumber: receipt,
+            studentId: studentId,
+            enrollmentId: Value(enrollmentId),
+            feeTypeId: Value(feeTypeId),
+            installmentId: Value(installmentId),
+            amount: amount,
+            method: Value(method),
+            paidAt: paidAt ?? DateTime.now(),
+            cashierUserId: Value(cashierUserId),
+            note: Value(note),
+          ));
+      if (installmentId != null) {
+        await _applyPaymentToInstallment(installmentId, amount);
+      }
+    });
   }
 
-  Stream<double> watchTotalPaidToday() {
+  Stream<double> watchTotalPaidToday({String? cashierUserId}) {
     final start = DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day);
     final end = start.add(const Duration(days: 1));
-    final q = db.selectOnly(db.payments)
-      ..addColumns([db.payments.amount.sum()])
-      ..where(db.payments.isDeleted.equals(false) &
-          db.payments.status.equals('valid') &
-          db.payments.paidAt.isBiggerOrEqualValue(start) &
-          db.payments.paidAt.isSmallerThanValue(end));
+    final q = db.selectOnly(db.payments)..addColumns([db.payments.amount.sum()]);
+    var where = db.payments.isDeleted.equals(false) &
+        db.payments.status.equals('valid') &
+        db.payments.paidAt.isBiggerOrEqualValue(start) &
+        db.payments.paidAt.isSmallerThanValue(end);
+    if (cashierUserId != null) where = where & db.payments.cashierUserId.equals(cashierUserId);
+    q.where(where);
     return q.watchSingle().map((row) => row.read(db.payments.amount.sum()) ?? 0.0);
+  }
+
+  // --- Payment plans & installments ---
+  Stream<List<PaymentPlan>> watchPlansForStudent(String studentId) {
+    return (db.select(db.paymentPlans)
+          ..where((t) => t.studentId.equals(studentId) & t.isDeleted.equals(false))
+          ..orderBy([(t) => OrderingTerm.desc(t.createdAt)]))
+        .watch();
+  }
+
+  Stream<List<PaymentInstallment>> watchInstallments(String planId) {
+    return (db.select(db.paymentInstallments)
+          ..where((t) => t.planId.equals(planId) & t.isDeleted.equals(false))
+          ..orderBy([(t) => OrderingTerm.asc(t.sequence)]))
+        .watch();
+  }
+
+  Stream<List<PaymentInstallment>> watchAllInstallments({String status = 'all'}) {
+    final q = db.select(db.paymentInstallments)..where((t) => t.isDeleted.equals(false));
+    if (status != 'all') q.where((t) => t.status.equals(status));
+    q.orderBy([(t) => OrderingTerm.asc(t.dueDate)]);
+    return q.watch();
+  }
+
+  Future<void> createPaymentPlan({
+    required String studentId,
+    String? enrollmentId,
+    String? feeTypeId,
+    required String name,
+    required double totalAmount,
+    required int installmentsCount,
+    required DateTime firstDueDate,
+    int intervalDays = 30,
+  }) async {
+    final planId = _uuid.v4();
+    final per = (totalAmount / installmentsCount);
+    await db.transaction(() async {
+      await db.into(db.paymentPlans).insert(PaymentPlansCompanion.insert(
+            id: planId,
+            studentId: studentId,
+            enrollmentId: Value(enrollmentId),
+            feeTypeId: Value(feeTypeId),
+            name: name,
+            totalAmount: totalAmount,
+          ));
+      double allocated = 0;
+      for (var i = 1; i <= installmentsCount; i++) {
+        final isLast = i == installmentsCount;
+        final amt = isLast ? (totalAmount - allocated) : double.parse(per.toStringAsFixed(2));
+        allocated += amt;
+        final due = firstDueDate.add(Duration(days: intervalDays * (i - 1)));
+        await db.into(db.paymentInstallments).insert(PaymentInstallmentsCompanion.insert(
+              id: _uuid.v4(),
+              planId: planId,
+              sequence: Value(i),
+              dueDate: due,
+              amount: amt,
+            ));
+      }
+    });
+  }
+
+  Future<void> refreshOverdueInstallments() async {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final rows = await (db.select(db.paymentInstallments)
+          ..where((t) => t.isDeleted.equals(false) & t.status.isIn(['pending', 'partial'])))
+        .get();
+    for (final inst in rows) {
+      if (inst.dueDate.isBefore(today) && inst.paidAmount < inst.amount) {
+        await (db.update(db.paymentInstallments)..where((t) => t.id.equals(inst.id))).write(
+          const PaymentInstallmentsCompanion(status: Value('overdue')),
+        );
+      }
+    }
+  }
+
+  Future<void> _applyPaymentToInstallment(String installmentId, double amount) async {
+    final inst = await (db.select(db.paymentInstallments)..where((t) => t.id.equals(installmentId))).getSingleOrNull();
+    if (inst == null) return;
+    final newPaid = inst.paidAmount + amount;
+    String status = 'partial';
+    if (newPaid >= inst.amount - 0.001) status = 'paid';
+    await (db.update(db.paymentInstallments)..where((t) => t.id.equals(inst.id))).write(
+      PaymentInstallmentsCompanion(paidAmount: Value(newPaid), status: Value(status), updatedAt: Value(DateTime.now())),
+    );
+    // update plan status if all paid
+    final siblings = await (db.select(db.paymentInstallments)..where((t) => t.planId.equals(inst.planId))).get();
+    if (siblings.every((s) => s.id == inst.id ? status == 'paid' : s.status == 'paid')) {
+      await (db.update(db.paymentPlans)..where((t) => t.id.equals(inst.planId))).write(
+        PaymentPlansCompanion(status: const Value('completed'), updatedAt: Value(DateTime.now())),
+      );
+    }
+  }
+
+  // --- Cash closures ---
+  Stream<List<CashClosure>> watchCashClosures() {
+    return (db.select(db.cashClosures)
+          ..where((t) => t.isDeleted.equals(false))
+          ..orderBy([(t) => OrderingTerm.desc(t.closureDate)]))
+        .watch();
+  }
+
+  Future<double> expectedTotalForDate(DateTime date, {String? cashierUserId}) async {
+    final start = DateTime(date.year, date.month, date.day);
+    final end = start.add(const Duration(days: 1));
+    final q = db.selectOnly(db.payments)..addColumns([db.payments.amount.sum()]);
+    var where = db.payments.isDeleted.equals(false) &
+        db.payments.status.equals('valid') &
+        db.payments.paidAt.isBiggerOrEqualValue(start) &
+        db.payments.paidAt.isSmallerThanValue(end);
+    if (cashierUserId != null) where = where & db.payments.cashierUserId.equals(cashierUserId);
+    q.where(where);
+    final row = await q.getSingle();
+    return row.read(db.payments.amount.sum()) ?? 0.0;
+  }
+
+  Future<bool> isDayClosed(DateTime date, {String? cashierUserId}) async {
+    final start = DateTime(date.year, date.month, date.day);
+    final end = start.add(const Duration(days: 1));
+    final q = db.select(db.cashClosures)
+      ..where((t) => t.isDeleted.equals(false) & t.closureDate.isBiggerOrEqualValue(start) & t.closureDate.isSmallerThanValue(end));
+    if (cashierUserId != null) q.where((t) => t.cashierUserId.equals(cashierUserId));
+    return (await q.get()).isNotEmpty;
+  }
+
+  Future<void> createCashClosure({
+    required String cashierUserId,
+    required DateTime date,
+    required double countedAmount,
+    String? note,
+  }) async {
+    final expected = await expectedTotalForDate(date, cashierUserId: cashierUserId);
+    await db.into(db.cashClosures).insert(CashClosuresCompanion.insert(
+          id: _uuid.v4(),
+          cashierUserId: cashierUserId,
+          closureDate: DateTime(date.year, date.month, date.day),
+          expectedAmount: expected,
+          countedAmount: countedAmount,
+          difference: countedAmount - expected,
+          note: Value(note),
+        ));
   }
 }

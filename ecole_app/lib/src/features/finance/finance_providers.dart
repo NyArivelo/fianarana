@@ -19,3 +19,21 @@ final paymentsProvider = StreamProvider<List<Payment>>((ref) {
 final totalPaidTodayProvider = StreamProvider<double>((ref) {
   return ref.watch(financeRepositoryProvider).watchTotalPaidToday();
 });
+
+final paymentPlansProvider = StreamProvider.family<List<PaymentPlan>, String>((ref, studentId) {
+  return ref.watch(financeRepositoryProvider).watchPlansForStudent(studentId);
+});
+
+final installmentsProvider = StreamProvider.family<List<PaymentInstallment>, String>((ref, planId) {
+  return ref.watch(financeRepositoryProvider).watchInstallments(planId);
+});
+
+final allInstallmentsProvider = StreamProvider<List<PaymentInstallment>>((ref) {
+  // best-effort refresh overdue
+  ref.watch(financeRepositoryProvider).refreshOverdueInstallments();
+  return ref.watch(financeRepositoryProvider).watchAllInstallments();
+});
+
+final cashClosuresProvider = StreamProvider<List<CashClosure>>((ref) {
+  return ref.watch(financeRepositoryProvider).watchCashClosures();
+});

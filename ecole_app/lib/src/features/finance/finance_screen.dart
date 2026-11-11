@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -13,18 +14,22 @@ class FinanceScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return DefaultTabController(
-      length: 3,
+      length: 5,
       child: Column(
         children: [
-          const TabBar(tabs: [
+          const TabBar(isScrollable: true, tabs: [
             Tab(text: 'Encaissements / Journal'),
             Tab(text: 'Nouveau paiement'),
+            Tab(text: 'Échéanciers'),
+            Tab(text: 'Clôture de caisse'),
             Tab(text: 'Types de frais'),
           ]),
           const Expanded(
             child: TabBarView(children: [
               _PaymentsJournalTab(),
               _NewPaymentTab(),
+              _InstallmentsTab(),
+              _CashClosureTab(),
               _FeeTypesTab(),
             ]),
           ),
@@ -152,6 +157,167 @@ class _NewPaymentTabState extends ConsumerState<_NewPaymentTab> {
         const SizedBox(height: 20),
         FilledButton.icon(onPressed: _submit, icon: const Icon(Icons.save), label: const Text('Enregistrer et générer le reçu')),
       ]),
+    ));
+  }
+}
+
+class _InstallmentsTab extends ConsumerStatefulWidget {
+  const _InstallmentsTab();
+  @override
+  ConsumerState<_InstallmentsTab> createState() => _InstallmentsTabState();
+}
+
+class _InstallmentsTabState extends ConsumerState<_InstallmentsTab> {
+  String? _studentId;
+  @override
+  Widget build(BuildContext context) {
+    final students = ref.watch(studentsProvider).valueOrNull ?? [];
+    final allInst = ref.watch(allInstallmentsProvider).valueOrNull ?? [];
+    final plans = _studentId == null ? <PaymentPlan>[] : (ref.watch(paymentPlansProvider(_studentId!)).valueOrNull ?? []);
+    final money = NumberFormat('#,##0.00', 'fr');
+    final fmt = DateFormat('dd/MM/yyyy');
+    final overdue = allInst.where((i) => i.status == 'overdue').length;
+    final dueSoon = allInst.where((i) => i.status == 'pending' && i.dueDate.isBefore(DateTime.now().add(const Duration(days: 7)))).length;
+
+    return Padding(padding: const EdgeInsets.all(16), child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      SizedBox(width: 420, child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text('Échéanciers & plans de paiement', style: Theme.of(context).textTheme.titleMedium),
+        const SizedBox(height: 8),
+        Wrap(spacing: 8, children: [
+          Chip(label: Text('En retard: $overdue')),
+          Chip(label: Text('À venir (7j): $dueSoon')),
+        ]),
+        const SizedBox(height: 12),
+        DropdownButtonFormField<String>(
+          initialValue: _studentId,
+          decoration: const InputDecoration(labelText: 'Élève'),
+          items: [for (final s in students) DropdownMenuItem(value: s.id, child: Text('${s.lastName} ${s.firstName}'))],
+          onChanged: (v) => setState(() => _studentId = v),
+        ),
+        const SizedBox(height: 8),
+        FilledButton.icon(onPressed: _studentId == null ? null : () => _createPlan(context, ref, _studentId!), icon: const Icon(Icons.add), label: const Text('Nouveau plan')),
+        const SizedBox(height: 12),
+        if (_studentId != null)
+          Expanded(child: plans.isEmpty ? const Text('Aucun plan pour cet élève.') : ListView.builder(itemCount: plans.length, itemBuilder: (context, i) {
+            final p = plans[i];
+            final inst = ref.watch(installmentsProvider(p.id)).valueOrNull ?? [];
+            return Card(child: ExpansionTile(
+              title: Text(p.name),
+              subtitle: Text('Total: ${money.format(p.totalAmount)} • ${p.status}'),
+              children: [for (final e in inst) ListTile(
+                dense: true,
+                leading: Icon(e.status == 'paid' ? Icons.check_circle : e.status == 'overdue' ? Icons.warning : Icons.schedule, color: e.status == 'paid' ? Colors.green : e.status == 'overdue' ? Colors.red : null),
+                title: Text('Échéance ${e.sequence} - ${fmt.format(e.dueDate)}'),
+                subtitle: Text('${money.format(e.paidAmount)} / ${money.format(e.amount)} • ${e.status}'),
+              )],
+            ));
+          })),
+      ])),
+      const VerticalDivider(width: 24),
+      Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text('Alertes / échéances (toutes)', style: Theme.of(context).textTheme.titleMedium),
+        const SizedBox(height: 8),
+        Expanded(child: allInst.isEmpty ? const Text('Aucune échéance.') : ListView.builder(itemCount: allInst.length, itemBuilder: (context, i) {
+          final e = allInst[i];
+          return ListTile(
+            leading: Icon(e.status == 'paid' ? Icons.check_circle : e.status == 'overdue' ? Icons.error : Icons.schedule, color: e.status == 'overdue' ? Colors.red : e.status == 'paid' ? Colors.green : Colors.orange),
+            title: Text('Échéance ${e.sequence} • ${fmt.format(e.dueDate)} • ${money.format(e.amount)}'),
+            subtitle: Text('Statut: ${e.status} • Payé: ${money.format(e.paidAmount)} • Plan: ${e.planId.substring(0, 8)}'),
+          );
+        })),
+      ])),
+    ]));
+  }
+
+  static Future<void> _createPlan(BuildContext context, WidgetRef ref, String studentId) async {
+    final name = TextEditingController(text: 'Plan de paiement');
+    final total = TextEditingController();
+    final count = TextEditingController(text: '3');
+    DateTime first = DateTime.now().add(const Duration(days: 30));
+    final fmt = DateFormat('dd/MM/yyyy');
+    await showDialog(context: context, builder: (ctx) => StatefulBuilder(builder: (ctx, setState) => AlertDialog(
+      title: const Text('Nouveau plan de paiement'),
+      content: SizedBox(width: 420, child: Column(mainAxisSize: MainAxisSize.min, children: [
+        TextField(controller: name, decoration: const InputDecoration(labelText: 'Libellé')),
+        TextField(controller: total, decoration: const InputDecoration(labelText: 'Montant total'), keyboardType: TextInputType.number),
+        TextField(controller: count, decoration: const InputDecoration(labelText: 'Nombre d\'échéances'), keyboardType: TextInputType.number),
+        const SizedBox(height: 8),
+        OutlinedButton(onPressed: () async {
+          final d = await showDatePicker(context: ctx, initialDate: first, firstDate: DateTime(2020), lastDate: DateTime(2100));
+          if (d != null) setState(() => first = d);
+        }, child: Text('1ère échéance: ${fmt.format(first)}')),
+      ])),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Annuler')),
+        FilledButton(onPressed: () async {
+          final amt = double.tryParse(total.text.replaceAll(',', '.'));
+          final n = int.tryParse(count.text) ?? 1;
+          if (amt == null || amt <= 0 || n < 1) return;
+          await ref.read(financeRepositoryProvider).createPaymentPlan(studentId: studentId, name: name.text.trim(), totalAmount: amt, installmentsCount: n, firstDueDate: first);
+          if (ctx.mounted) Navigator.pop(ctx);
+        }, child: const Text('Créer')),
+      ],
+    )));
+  }
+}
+
+class _CashClosureTab extends ConsumerWidget {
+  const _CashClosureTab();
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final closures = ref.watch(cashClosuresProvider);
+    final totalToday = ref.watch(totalPaidTodayProvider).valueOrNull ?? 0.0;
+    final money = NumberFormat('#,##0.00', 'fr');
+    final fmt = DateFormat('dd/MM/yyyy');
+    final user = ref.watch(authControllerProvider).currentUser;
+    return Padding(padding: const EdgeInsets.all(16), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Row(children: [
+        Text('Clôture de caisse (Z)', style: Theme.of(context).textTheme.titleMedium),
+        const Spacer(),
+        FilledButton.icon(onPressed: user == null ? null : () => _closeDay(context, ref, user, totalToday), icon: const Icon(Icons.lock), label: const Text('Clôturer la journée')),
+      ]),
+      const SizedBox(height: 8),
+      Text('Encaissements du jour (attendu): ${money.format(totalToday)}'),
+      const SizedBox(height: 12),
+      Expanded(child: closures.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (e, _) => Center(child: Text('Erreur: $e')),
+        data: (list) => list.isEmpty ? const Text('Aucune clôture enregistrée.') : SingleChildScrollView(child: DataTable(columns: const [
+          DataColumn(label: Text('Date')), DataColumn(label: Text('Attendu')), DataColumn(label: Text('Compté')), DataColumn(label: Text('Écart')), DataColumn(label: Text('Note')),
+        ], rows: [for (final c in list) DataRow(cells: [
+          DataCell(Text(fmt.format(c.closureDate))),
+          DataCell(Text(money.format(c.expectedAmount))),
+          DataCell(Text(money.format(c.countedAmount))),
+          DataCell(Text(money.format(c.difference))),
+          DataCell(Text(c.note ?? '')),
+        ])])),
+      )),
+    ]));
+  }
+
+  static Future<void> _closeDay(BuildContext context, WidgetRef ref, User user, double expected) async {
+    final counted = TextEditingController(text: expected.toStringAsFixed(2));
+    final note = TextEditingController();
+    final money = NumberFormat('#,##0.00', 'fr');
+    await showDialog(context: context, builder: (ctx) => AlertDialog(
+      title: const Text('Clôturer la caisse du jour'),
+      content: SizedBox(width: 420, child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text('Caissier: ${user.displayName}'),
+        Text('Montant attendu (système): ${money.format(expected)}'),
+        const SizedBox(height: 8),
+        TextField(controller: counted, decoration: const InputDecoration(labelText: 'Montant compté (espèces/total)'), keyboardType: TextInputType.number),
+        TextField(controller: note, decoration: const InputDecoration(labelText: 'Note')),
+        const SizedBox(height: 8),
+        const Text('Cette clôture enregistre le Z de caisse pour la journée.'),
+      ])),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Annuler')),
+        FilledButton(onPressed: () async {
+          final amt = double.tryParse(counted.text.replaceAll(',', '.')) ?? 0;
+          await ref.read(financeRepositoryProvider).createCashClosure(cashierUserId: user.id, date: DateTime.now(), countedAmount: amt, note: note.text.trim().isEmpty ? null : note.text.trim());
+          if (ctx.mounted) Navigator.pop(ctx);
+        }, child: const Text('Valider la clôture')),
+      ],
     ));
   }
 }
