@@ -20,19 +20,34 @@ class FianaranaApp extends ConsumerStatefulWidget {
 
 class _FianaranaAppState extends ConsumerState<FianaranaApp> with WidgetsBindingObserver {
   Timer? _inactivity;
+  Timer? _autoBackup;
   static const _inactivityTimeout = Duration(minutes: 5);
+  static const _autoBackupInterval = Duration(hours: 12);
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _resetInactivity();
+    _startAutoBackup();
+  }
+
+  void _startAutoBackup() {
+    _autoBackup?.cancel();
+    _autoBackup = Timer.periodic(_autoBackupInterval, (_) {
+      final db = ref.read(appDatabaseProvider);
+      final auth = ref.read(authControllerProvider);
+      if (auth.isAuthenticated) {
+        BackupService(db).createBackup(type: 'auto-planifiee', actorUserId: auth.userId, actorUsername: auth.username);
+      }
+    });
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _inactivity?.cancel();
+    _autoBackup?.cancel();
     super.dispose();
   }
 

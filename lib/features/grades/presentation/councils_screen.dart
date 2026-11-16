@@ -115,11 +115,13 @@ class _CouncilsScreenState extends ConsumerState<CouncilsScreen> {
           const SizedBox(height: 12),
           Expanded(child: councilsAsync.when(
             data: (list) => Card(child: list.isEmpty ? const Center(child: Text('Aucun conseil (données de test: conseils_classe importables).')) : ListView(
-              children: list.map((c) => ListTile(
+              children: list.map((c) => ExpansionTile(
                 leading: const Icon(Icons.groups_outlined),
-                title: Text('Conseil ${c.status}'),
-                subtitle: Text('Classe: ${c.classId}\nPériode: ${c.periodId}\nAppréciation: ${c.globalAppreciation ?? "-"}'),
-                isThreeLine: true,
+                title: Text('Conseil ${c.status} • ${c.id.substring(0,8)}'),
+                subtitle: Text('Classe: ${c.classId} | Période: ${c.periodId}\nAppréciation: ${c.globalAppreciation ?? "-"}'),
+                children: [
+                  _DecisionsPanel(councilId: c.id),
+                ],
               )).toList(),
             )),
             loading: ()=>const Center(child: CircularProgressIndicator()),
@@ -127,6 +129,58 @@ class _CouncilsScreenState extends ConsumerState<CouncilsScreen> {
           )),
         ]),
       ),
+    );
+  }
+}
+
+class _DecisionsPanel extends ConsumerWidget {
+  final String councilId;
+  const _DecisionsPanel({required this.councilId});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final repo = ref.watch(gradesRepositoryProvider);
+    final auth = ref.watch(authControllerProvider);
+    return FutureBuilder(
+      future: repo.decisionsOf(councilId),
+      builder: (context, snap) {
+        final decisions = snap.data ?? [];
+        return Padding(
+          padding: const EdgeInsets.all(12),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Row(children: [
+              Text('Décisions individuelles', style: Theme.of(context).textTheme.titleSmall),
+              const Spacer(),
+              TextButton.icon(onPressed: () async {
+                final studentCtrl = TextEditingController();
+                final decisionCtrl = TextEditingController();
+                final appCtrl = TextEditingController();
+                final ok = await showDialog<bool>(context: context, builder: (ctx)=>AlertDialog(
+                  title: const Text('Ajouter une décision'),
+                  content: SizedBox(width: 420, child: Column(mainAxisSize: MainAxisSize.min, children: [
+                    TextField(controller: studentCtrl, decoration: const InputDecoration(labelText: 'UUID élève (données de test disponibles)')),
+                    TextField(controller: decisionCtrl, decoration: const InputDecoration(labelText: 'Décision (Passage, Redoublement, Félicitations...)')),
+                    TextField(controller: appCtrl, decoration: const InputDecoration(labelText: 'Appréciation')),
+                  ])),
+                  actions: [TextButton(onPressed: ()=>Navigator.pop(ctx,false), child: const Text('Annuler')), FilledButton(onPressed: ()=>Navigator.pop(ctx,true), child: const Text('Enregistrer'))],
+                ));
+                if (ok == true && studentCtrl.text.trim().isNotEmpty) {
+                  await repo.upsertDecision(councilId: councilId, studentId: studentCtrl.text.trim(), decision: decisionCtrl.text.trim(), appreciation: appCtrl.text.trim(), actorUserId: auth.userId, actorUsername: auth.username);
+                  (context as Element).markNeedsBuild();
+                }
+              }, icon: const Icon(Icons.add), label: const Text('Ajouter')),
+            ]),
+            if (snap.connectionState == ConnectionState.waiting) const LinearProgressIndicator(),
+            if (decisions.isEmpty) const Text('Aucune décision enregistrée (données de test: decisions_conseil).')
+            else ...decisions.map((d) => ListTile(
+              dense: true,
+              leading: const Icon(Icons.person_outline),
+              title: Text('Élève ${d.studentId.substring(0,8)} • ${d.decision ?? "-"} ${d.mention != null ? "(${d.mention})" : ""}'),
+              subtitle: Text('Moyenne: ${d.average?.toStringAsFixed(2) ?? "-"} | Rang: ${d.rank ?? "-"} | ${d.appreciation ?? ""}'),
+            )),
+          ]),
+        );
+      },
     );
   }
 }

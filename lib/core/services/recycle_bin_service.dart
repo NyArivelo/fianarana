@@ -26,6 +26,10 @@ class RecycleBinService {
     for (final p in payments) { out.add(DeletedEntry('Paiements', p.id, p.receiptNumber, p.deletedAt)); }
     final evals = await (db.select(db.evaluations)..where((t) => t.isDeleted.equals(true))).get();
     for (final e in evals) { out.add(DeletedEntry('Notes', e.id, e.label, e.deletedAt)); }
+    final enrolls = await (db.select(db.enrollments)..where((t) => t.isDeleted.equals(true))).get();
+    for (final e in enrolls) { out.add(DeletedEntry('Inscriptions', e.id, e.status, e.deletedAt)); }
+    final classes = await (db.select(db.classes)..where((t) => t.isDeleted.equals(true))).get();
+    for (final c in classes) { out.add(DeletedEntry('Classes', c.id, c.label, c.deletedAt)); }
     out.sort((a,b) => (b.deletedAt ?? DateTime(0)).compareTo(a.deletedAt ?? DateTime(0)));
     return out;
   }
@@ -42,6 +46,8 @@ class RecycleBinService {
       case 'Élèves': await upd(db.students, db.students.id, db.students.isDeleted, db.students.updatedAt, db.students.deletedAt); break;
       case 'Paiements': await upd(db.payments, db.payments.id, db.payments.isDeleted, db.payments.updatedAt, db.payments.deletedAt); break;
       case 'Notes': await upd(db.evaluations, db.evaluations.id, db.evaluations.isDeleted, db.evaluations.updatedAt, db.evaluations.deletedAt); break;
+      case 'Inscriptions': await upd(db.enrollments, db.enrollments.id, db.enrollments.isDeleted, db.enrollments.updatedAt, db.enrollments.deletedAt); break;
+      case 'Classes': await upd(db.classes, db.classes.id, db.classes.isDeleted, db.classes.updatedAt, db.classes.deletedAt); break;
     }
     await _audit.log(userId: actorUserId, username: actorUsername, module: 'Corbeille', targetObject: '$entity:$id', description: 'Restauration élément', result: 'Succès');
   }
@@ -52,6 +58,8 @@ class RecycleBinService {
     n += await (db.delete(db.students)..where((t) => t.isDeleted.equals(true) & t.deletedAt.isSmallerThanValue(cutoff))).go();
     n += await (db.delete(db.payments)..where((t) => t.isDeleted.equals(true) & t.deletedAt.isSmallerThanValue(cutoff))).go();
     n += await (db.delete(db.evaluations)..where((t) => t.isDeleted.equals(true) & t.deletedAt.isSmallerThanValue(cutoff))).go();
+    n += await (db.delete(db.enrollments)..where((t) => t.isDeleted.equals(true) & t.deletedAt.isSmallerThanValue(cutoff))).go();
+    n += await (db.delete(db.classes)..where((t) => t.isDeleted.equals(true) & t.deletedAt.isSmallerThanValue(cutoff))).go();
     return n;
   }
 }
