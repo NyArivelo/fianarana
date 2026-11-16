@@ -5,6 +5,7 @@ import 'package:fianarana/features/auth/data/auth_repository.dart';
 
 class AuthState {
   final bool isAuthenticated;
+  final bool isLocked;
   final bool isLoading;
   final String? userId;
   final String? username;
@@ -14,6 +15,7 @@ class AuthState {
 
   const AuthState({
     this.isAuthenticated = false,
+    this.isLocked = false,
     this.isLoading = false,
     this.userId,
     this.username,
@@ -24,6 +26,7 @@ class AuthState {
 
   AuthState copyWith({
     bool? isAuthenticated,
+    bool? isLocked,
     bool? isLoading,
     String? userId,
     String? username,
@@ -33,6 +36,7 @@ class AuthState {
   }) {
     return AuthState(
       isAuthenticated: isAuthenticated ?? this.isAuthenticated,
+      isLocked: isLocked ?? this.isLocked,
       isLoading: isLoading ?? this.isLoading,
       userId: userId ?? this.userId,
       username: username ?? this.username,
@@ -61,6 +65,7 @@ class AuthController extends StateNotifier<AuthState> {
       }
       state = AuthState(
         isAuthenticated: true,
+        isLocked: false,
         isLoading: false,
         userId: user.id,
         username: user.username,
@@ -78,9 +83,21 @@ class AuthController extends StateNotifier<AuthState> {
     state = const AuthState();
   }
 
+  /// Verrouillage rapide (Ctrl+L): conserve l'identité/session logique, demande déverrouillage.
   void lock() {
-    // TODO: conserver les onglets ouverts et demander PIN (Ctrl+L)
-    state = const AuthState();
+    if (state.isAuthenticated) {
+      state = state.copyWith(isLocked: true);
+    }
+  }
+
+  /// Déverrouillage par mot de passe (base). Le PIN rapide peut être ajouté côté UI/service.
+  Future<bool> unlockWithPassword(String password) async {
+    final username = state.username;
+    if (username == null) return false;
+    final user = await _repo.authenticate(username, password);
+    if (user == null) return false;
+    state = state.copyWith(isLocked: false, error: null);
+    return true;
   }
 }
 

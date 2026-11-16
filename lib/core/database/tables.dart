@@ -304,6 +304,21 @@ class Facilities extends Table with UuidPrimaryKey, AuditColumns {
   TextColumn get status => text().withDefault(const Constant('Disponible'))();
 }
 
+// --- Timetabling / Sessions (emploi du temps) ---
+class TimetableSessions extends Table with UuidPrimaryKey, AuditColumns {
+  TextColumn get classId => text().nullable().references(Classes, #id)();
+  TextColumn get subjectId => text().nullable().references(Subjects, #id)();
+  TextColumn get teacherId => text().nullable().references(StaffMembers, #id)();
+  TextColumn get roomId => text().nullable().references(Facilities, #id)();
+  TextColumn get dayOfWeek => text()(); // Lundi..Samedi
+  TextColumn get startTime => text()(); // HH:mm
+  TextColumn get endTime => text()(); // HH:mm
+  TextColumn get recurrence => text().withDefault(const Constant('Hebdomadaire'))();
+  DateTimeColumn get date => dateTime().nullable()(); // occurrence datée
+  BoolColumn get isSubstitution => boolean().withDefault(const Constant(false))();
+  TextColumn get notes => text().nullable()();
+}
+
 // --- Audit log ---
 class AuditLogs extends Table {
   TextColumn get id => text()(); // UUID
@@ -324,4 +339,12 @@ class AppSettings extends Table {
   TextColumn get value => text().nullable()();
   @override
   Set<Column> get primaryKey => {key};
+}
+
+class BackupRecords extends Table with UuidPrimaryKey, AuditColumns {
+  TextColumn get filePath => text()();
+  DateTimeColumn get createdAtBackup => dateTime()();
+  TextColumn get type => text().withDefault(const Constant('manuel'))(); // manuel, auto, fermeture
+  TextColumn get checksum => text().nullable()();
+  TextColumn get status => text().withDefault(const Constant('ok'))();
 }

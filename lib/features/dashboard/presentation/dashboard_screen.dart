@@ -41,23 +41,18 @@ class DashboardScreen extends ConsumerWidget {
               NavigationRailDestination(icon: Icon(Icons.fact_check_outlined), label: Text('Présences')),
               NavigationRailDestination(icon: Icon(Icons.grading_outlined), label: Text('Notes')),
               NavigationRailDestination(icon: Icon(Icons.payments_outlined), label: Text('Finances')),
+              NavigationRailDestination(icon: Icon(Icons.calendar_month_outlined), label: Text('Emploi du temps')),
+              NavigationRailDestination(icon: Icon(Icons.settings_outlined), label: Text('Paramètres')),
             ],
             onDestinationSelected: (i) {
               switch (i) {
-                case 1:
-                  context.go('/students');
-                  break;
-                case 2:
-                  context.go('/attendance');
-                  break;
-                case 3:
-                  context.go('/grades');
-                  break;
-                case 4:
-                  context.go('/finance');
-                  break;
-                default:
-                  break;
+                case 1: context.go('/students'); break;
+                case 2: context.go('/attendance'); break;
+                case 3: context.go('/grades'); break;
+                case 4: context.go('/finance'); break;
+                case 5: context.go('/timetable'); break;
+                case 6: context.go('/settings'); break;
+                default: break;
               }
             },
           ),

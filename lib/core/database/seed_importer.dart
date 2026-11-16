@@ -67,6 +67,7 @@ class SeedImporter {
       counts['presences_discipline'] = await _importAttendance();
       counts['finances'] = await _importFinance();
       counts['echeanciers'] = await _importPaymentSchedules();
+      counts['emploi_du_temps'] = await _importTimetable();
       counts['bibliotheque_locaux'] = await _importLibraryFacilities();
       counts['audit'] = await _importAudit();
     });
@@ -528,6 +529,35 @@ class SeedImporter {
           amountDueMga: Value(_i(r, ['Montant_Du_MGA'], 0)),
           amountPaidMga: Value(_i(r, ['Montant_Paye_MGA'], 0)),
           status: Value(_s(r, ['Statut']).isEmpty ? 'À venir' : _s(r, ['Statut'])),
+        ));
+        n++;
+      }
+      return n;
+    } catch (_) {
+      return 0;
+    }
+  }
+
+  Future<int> _importTimetable() async {
+    try {
+      final rows = await _load('assets/seed/emploi_du_temps.json');
+      var n = 0;
+      for (final r in rows) {
+        final id = _s(r, ['UUID_Session', 'UUID']);
+        if (id.isEmpty) continue;
+        await db.into(db.timetableSessions).insertOnConflictUpdate(TimetableSessionsCompanion.insert(
+          id: id,
+          classId: Value(_s(r, ['UUID_Classe']).isEmpty ? null : _s(r, ['UUID_Classe'])),
+          subjectId: Value(_s(r, ['UUID_Matiere']).isEmpty ? null : _s(r, ['UUID_Matiere'])),
+          teacherId: Value(_s(r, ['UUID_Enseignant']).isEmpty ? null : _s(r, ['UUID_Enseignant'])),
+          roomId: Value(_s(r, ['UUID_Salle']).isEmpty ? null : _s(r, ['UUID_Salle'])),
+          dayOfWeek: _s(r, ['Jour']).isEmpty ? 'Lundi' : _s(r, ['Jour']),
+          startTime: _s(r, ['Heure_Debut']).isEmpty ? '08:00' : _s(r, ['Heure_Debut']),
+          endTime: _s(r, ['Heure_Fin']).isEmpty ? '10:00' : _s(r, ['Heure_Fin']),
+          recurrence: Value(_s(r, ['Recurrence']).isEmpty ? 'Hebdomadaire' : _s(r, ['Recurrence'])),
+          date: Value(_dt(r, ['Date_Seance'])),
+          isSubstitution: Value(_b(r, ['Remplacement'])),
+          notes: Value(_s(r, ['Notes']).isEmpty ? null : _s(r, ['Notes'])),
         ));
         n++;
       }

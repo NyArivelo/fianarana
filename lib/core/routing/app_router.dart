@@ -10,8 +10,10 @@ import 'package:fianarana/features/setup/presentation/setup_screen.dart';
 import 'package:fianarana/features/attendance/presentation/attendance_screen.dart';
 import 'package:fianarana/features/finance/presentation/finance_screen.dart';
 import 'package:fianarana/features/grades/presentation/grades_screen.dart';
+import 'package:fianarana/features/settings/presentation/settings_screen.dart';
 import 'package:fianarana/features/students/presentation/student_detail_screen.dart';
 import 'package:fianarana/features/students/presentation/students_screen.dart';
+import 'package:fianarana/features/timetable/presentation/timetable_screen.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authControllerProvider);
@@ -73,6 +75,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/grades',
         builder: (context, state) => const GradesScreen(),
+      ),
+      GoRoute(
+        path: '/timetable',
+        builder: (context, state) => const TimetableScreen(),
+      ),
+      GoRoute(
+        path: '/settings',
+        builder: (context, state) => const SettingsScreen(),
       ),
     ],
     errorBuilder: (context, state) => Scaffold(
