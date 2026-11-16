@@ -1,0 +1,24 @@
+[
+  {
+    "UUID_Decision": "d0d1a111-1111-4111-8111-111111111111",
+    "UUID_Conseil": "c0c1a111-1111-4111-8111-111111111111",
+    "UUID_Eleve": "d49fa605-eec2-4436-b7a4-1e6fdae1e7f6",
+    "Matricule": "ELV-2026-0001",
+    "Decision": "Félicitations",
+    "Appreciation": "Très bon travail et comportement exemplaire.",
+    "Moyenne": 14.8,
+    "Rang": 2,
+    "Mention": "Bien"
+  },
+  {
+    "UUID_Decision": "d0d1a112-1111-4111-8111-111111111112",
+    "UUID_Conseil": "c0c1a111-1111-4111-8111-111111111111",
+    "UUID_Eleve": "99583a90-1f5d-4545-b966-5b543ffa5692",
+    "Matricule": "ELV-2026-0002",
+    "Decision": "Avertissement travail",
+    "Appreciation": "Des capacités mais un investissement irrégulier.",
+    "Moyenne": 9.6,
+    "Rang": 18,
+    "Mention": "Insuffisant"
+  }
+]

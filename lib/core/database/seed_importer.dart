@@ -69,6 +69,8 @@ class SeedImporter {
       counts['bibliotheque_locaux'] = await _importLibraryFacilities();
       counts['audit'] = await _importAudit();
     });
+    counts['conseils_classe'] = await _importCouncils();
+    counts['decisions_conseil'] = await _importCouncilDecisions();
     // RBAC/permissions de base (données de test sécurité) + trace d'import
     await RbacSeed(db).ensureDefaults();
     await AuditService(db).log(
@@ -456,5 +458,53 @@ class SeedImporter {
       n++;
     }
     return n;
+  }
+
+  Future<int> _importCouncils() async {
+    try {
+      final rows = await _load('assets/seed/conseils_classe.json');
+      var n = 0;
+      for (final r in rows) {
+        final id = _s(r, ['UUID_Conseil', 'UUID']);
+        if (id.isEmpty) continue;
+        await db.into(db.classCouncils).insertOnConflictUpdate(ClassCouncilsCompanion.insert(
+          id: id,
+          classId: _s(r, ['UUID_Classe']),
+          periodId: _s(r, ['UUID_Periode']),
+          councilDate: Value(_dt(r, ['Date_Conseil'])),
+          status: Value(_s(r, ['Statut']).isEmpty ? 'Préparation' : _s(r, ['Statut'])),
+          globalAppreciation: Value(_s(r, ['Appreciation_Globale'])),
+        ));
+        n++;
+      }
+      return n;
+    } catch (_) {
+      return 0; // fichier optionnel
+    }
+  }
+
+  Future<int> _importCouncilDecisions() async {
+    try {
+      final rows = await _load('assets/seed/decisions_conseil.json');
+      var n = 0;
+      for (final r in rows) {
+        final id = _s(r, ['UUID_Decision', 'UUID']);
+        if (id.isEmpty) continue;
+        await db.into(db.councilDecisions).insertOnConflictUpdate(CouncilDecisionsCompanion.insert(
+          id: id,
+          councilId: _s(r, ['UUID_Conseil']),
+          studentId: _s(r, ['UUID_Eleve']),
+          decision: Value(_s(r, ['Decision'])),
+          appreciation: Value(_s(r, ['Appreciation'])),
+          average: Value(_d(r, ['Moyenne'], 0)),
+          rank: Value(_i(r, ['Rang'], 0)),
+          mention: Value(_s(r, ['Mention'])),
+        ));
+        n++;
+      }
+      return n;
+    } catch (_) {
+      return 0;
+    }
   }
 }

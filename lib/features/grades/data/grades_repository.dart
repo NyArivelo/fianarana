@@ -143,10 +143,112 @@ class GradesRepository {
 
   Future<void> setValidation({required String gradeId, required String status, String? actorUserId, String? actorUsername}) async {
     await _require(actorUserId, 'grades.validate');
+    // empêcher modification si période verrouillée
+    final grade = await (db.select(db.evaluations)..where((t) => t.id.equals(gradeId))).getSingleOrNull();
+    if (grade?.periodId != null) {
+      await _ensurePeriodUnlocked(grade!.periodId!);
+    }
     await (db.update(db.evaluations)..where((t) => t.id.equals(gradeId))).write(
       EvaluationsCompanion(validationStatus: Value(status), updatedAt: Value(DateTime.now())),
     );
     await _audit.log(userId: actorUserId, username: actorUsername, module: 'Notes', targetObject: gradeId, description: 'Validation note: $status', result: 'Succès');
+  }
+
+  Future<void> _ensurePeriodUnlocked(String periodId) async {
+    final p = await (db.select(db.periods)..where((t) => t.id.equals(periodId))).getSingleOrNull();
+    if (p != null && p.isClosed) {
+      throw StateError('Période clôturée/verrouillée: modification interdite sans déverrouillage autorisé.');
+    }
+  }
+
+  /// Verrouillage de période après délibération (Direction uniquement via permission).
+  Future<void> lockPeriod({required String periodId, String? actorUserId, String? actorUsername}) async {
+    await _require(actorUserId, 'grades.publish'); // validation/publication conseil
+    final now = DateTime.now();
+    await (db.update(db.periods)..where((t) => t.id.equals(periodId))).write(PeriodsCompanion(
+      isClosed: const Value(true),
+      closedAt: Value(now),
+      closedByUserId: Value(actorUserId),
+      updatedAt: Value(now),
+    ));
+    await _audit.log(userId: actorUserId, username: actorUsername, module: 'Notes', targetObject: periodId, description: 'Verrouillage de période après délibération', result: 'Succès');
+  }
+
+  Future<void> unlockPeriod({required String periodId, required String reason, String? actorUserId, String? actorUsername}) async {
+    await _require(actorUserId, 'security.update'); // réservé Direction/Admin via attribution
+    final now = DateTime.now();
+    await (db.update(db.periods)..where((t) => t.id.equals(periodId))).write(PeriodsCompanion(
+      isClosed: const Value(false),
+      closedAt: const Value(null),
+      updatedAt: Value(now),
+    ));
+    await _audit.log(userId: actorUserId, username: actorUsername, module: 'Notes', targetObject: periodId, description: 'Déverrouillage exceptionnel de période', result: 'Succès', metadata: {'reason': reason});
+  }
+
+  Future<List<Period>> listPeriods() => (db.select(db.periods)..where((t)=>t.isDeleted.equals(false))..orderBy([(t)=>OrderingTerm.asc(t.sequence)])).get();
+
+  Future<String> upsertCouncil({
+    String? id,
+    required String classId,
+    required String periodId,
+    DateTime? councilDate,
+    String status = 'Préparation',
+    String? globalAppreciation,
+    String? actorUserId,
+    String? actorUsername,
+  }) async {
+    await _require(actorUserId, 'grades.validate');
+    final cid = id ?? newUuid();
+    await db.into(db.classCouncils).insertOnConflictUpdate(ClassCouncilsCompanion.insert(
+      id: cid,
+      classId: classId,
+      periodId: periodId,
+      councilDate: Value(councilDate),
+      status: Value(status),
+      globalAppreciation: Value(globalAppreciation),
+      updatedAt: Value(DateTime.now()),
+    ));
+    await _audit.log(userId: actorUserId, username: actorUsername, module: 'Conseil de classe', targetObject: cid, description: 'Mise à jour conseil de classe ($status)', result: 'Succès');
+    return cid;
+  }
+
+  Future<void> upsertDecision({
+    String? id,
+    required String councilId,
+    required String studentId,
+    String? decision,
+    String? appreciation,
+    double? average,
+    int? rank,
+    String? mention,
+    String? actorUserId,
+    String? actorUsername,
+  }) async {
+    await _require(actorUserId, 'grades.validate');
+    final did = id ?? newUuid();
+    await db.into(db.councilDecisions).insertOnConflictUpdate(CouncilDecisionsCompanion.insert(
+      id: did,
+      councilId: councilId,
+      studentId: studentId,
+      decision: Value(decision),
+      appreciation: Value(appreciation),
+      average: Value(average),
+      rank: Value(rank),
+      mention: Value(mention),
+      updatedAt: Value(DateTime.now()),
+    ));
+    await _audit.log(userId: actorUserId, username: actorUsername, module: 'Conseil de classe', targetObject: did, description: 'Décision conseil: ${decision ?? "appréciation"} pour élève $studentId', result: 'Succès');
+  }
+
+  Future<List<ClassCouncil>> listCouncils({String? classId, String? periodId}) {
+    final q = db.select(db.classCouncils)..where((t) => t.isDeleted.equals(false));
+    if (classId != null) q.where((t) => t.classId.equals(classId));
+    if (periodId != null) q.where((t) => t.periodId.equals(periodId));
+    return (q..orderBy([(t)=>OrderingTerm.desc(t.updatedAt)])).get();
+  }
+
+  Future<List<CouncilDecision>> decisionsOf(String councilId) {
+    return (db.select(db.councilDecisions)..where((t) => t.councilId.equals(councilId) & t.isDeleted.equals(false))).get();
   }
 
   /// Moyenne simple pondérée sur une liste (ignore dispensés et notes nulles).

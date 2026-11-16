@@ -199,6 +199,28 @@ class Evaluations extends Table with UuidPrimaryKey, AuditColumns {
   TextColumn get validationStatus => text().withDefault(const Constant('Brouillon'))(); // Brouillon, Validée
 }
 
+/// Conseils de classe / délibérations par classe et période.
+class ClassCouncils extends Table with UuidPrimaryKey, AuditColumns {
+  TextColumn get classId => text().references(Classes, #id)();
+  TextColumn get periodId => text().references(Periods, #id)();
+  DateTimeColumn get councilDate => dateTime().nullable()();
+  TextColumn get status => text().withDefault(const Constant('Préparation'))(); // Préparation, Validé, Verrouillé
+  TextColumn get globalAppreciation => text().nullable()();
+  TextColumn get validatedByUserId => text().nullable()();
+  DateTimeColumn get validatedAt => dateTime().nullable()();
+}
+
+/// Décisions individuelles de conseil de classe.
+class CouncilDecisions extends Table with UuidPrimaryKey, AuditColumns {
+  TextColumn get councilId => text().references(ClassCouncils, #id)();
+  TextColumn get studentId => text().references(Students, #id)();
+  TextColumn get decision => text().nullable()(); // Passage, Redoublement, Avertissement travail, Félicitations...
+  TextColumn get appreciation => text().nullable()();
+  RealColumn get average => real().nullable()();
+  IntColumn get rank => integer().nullable()();
+  TextColumn get mention => text().nullable()();
+}
+
 // --- Attendance & Discipline ---
 class AttendanceEvents extends Table with UuidPrimaryKey, AuditColumns {
   TextColumn get category => text()(); // Appel / Présence, Discipline

@@ -42,6 +42,8 @@ LazyDatabase _openConnection() {
     StaffMembers,
     TeacherAssignments,
     Evaluations,
+    ClassCouncils,
+    CouncilDecisions,
     AttendanceEvents,
     Payments,
     CashClosures,
@@ -59,12 +61,18 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
         onCreate: (m) async {
           await m.createAll();
+        },
+        onUpgrade: (m, from, to) async {
+          if (from < 2) {
+            await m.createTable(classCouncils);
+            await m.createTable(councilDecisions);
+          }
         },
         beforeOpen: (details) async {
           await customStatement('PRAGMA foreign_keys = ON');

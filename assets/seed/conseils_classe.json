@@ -1,0 +1,22 @@
+[
+  {
+    "UUID_Conseil": "c0c1a111-1111-4111-8111-111111111111",
+    "UUID_Classe": "a1dd1b1f-90de-4e34-9131-1cfb1b824d23",
+    "Classe": "3ème 1",
+    "UUID_Periode": "45b7dad5-f3e5-4e65-88df-7f4458fc5896",
+    "Periode": "Trimestre 1",
+    "Date_Conseil": "2026-12-19",
+    "Statut": "Préparation",
+    "Appreciation_Globale": "Classe sérieuse, progression satisfaisante dans l'ensemble."
+  },
+  {
+    "UUID_Conseil": "c0c1a222-2222-4222-8222-222222222222",
+    "UUID_Classe": "52ec63f8-4f31-44c5-9738-1e477af2285d",
+    "Classe": "3ème 2",
+    "UUID_Periode": "45b7dad5-f3e5-4e65-88df-7f4458fc5896",
+    "Periode": "Trimestre 1",
+    "Date_Conseil": "2026-12-19",
+    "Statut": "Préparation",
+    "Appreciation_Globale": "Résultats hétérogènes, efforts à poursuivre en mathématiques et français."
+  }
+]
