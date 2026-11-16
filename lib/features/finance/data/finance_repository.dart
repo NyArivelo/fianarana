@@ -167,6 +167,22 @@ class FinanceRepository {
     return q.get();
   }
 
+  Future<List<PaymentSchedule>> listSchedules({String? actorUserId, bool overdueOnly = false}) async {
+    await _require(actorUserId, 'finance.read');
+    final q = db.select(db.paymentSchedules)..where((t) => t.isDeleted.equals(false));
+    if (overdueOnly) {
+      q.where((t) => t.status.equals('En retard') | t.status.equals('Dû'));
+    }
+    q.orderBy([(t) => OrderingTerm.asc(t.dueDate)]);
+    return q.get();
+  }
+
+  Future<int> countOverdueSchedules({String? actorUserId}) async {
+    await _require(actorUserId, 'finance.read');
+    final rows = await (db.select(db.paymentSchedules)..where((t) => t.status.equals('En retard') & t.isDeleted.equals(false))).get();
+    return rows.length;
+  }
+
   /// Clôture de caisse (Z) journalière pour le caissier.
   Future<String> closeCashDesk({
     required String cashierUserId,

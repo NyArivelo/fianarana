@@ -1,0 +1,38 @@
+[
+  {
+    "UUID_Echeance": "e1a1b111-1111-4111-8111-111111111111",
+    "UUID_Eleve": "d49fa605-eec2-4436-b7a4-1e6fdae1e7f6",
+    "UUID_Classe": "a1dd1b1f-90de-4e34-9131-1cfb1b824d23",
+    "Libelle": "Écolage Tranche 2",
+    "Montant_Total_MGA": 900000,
+    "Nombre_Tranches": 3,
+    "Date_Echeance": "2026-12-15",
+    "Montant_Du_MGA": 250000,
+    "Montant_Paye_MGA": 0,
+    "Statut": "En retard"
+  },
+  {
+    "UUID_Echeance": "e1a1b222-2222-4222-8222-222222222222",
+    "UUID_Eleve": "99583a90-1f5d-4545-b966-5b543ffa5692",
+    "UUID_Classe": "a1dd1b1f-90de-4e34-9131-1cfb1b824d23",
+    "Libelle": "Écolage Tranche 2",
+    "Montant_Total_MGA": 900000,
+    "Nombre_Tranches": 3,
+    "Date_Echeance": "2026-12-15",
+    "Montant_Du_MGA": 250000,
+    "Montant_Paye_MGA": 100000,
+    "Statut": "Dû"
+  },
+  {
+    "UUID_Echeance": "e1a1b333-3333-4333-8333-333333333333",
+    "UUID_Eleve": "03611c93-0ea6-4633-8a59-274b8ea9af67",
+    "UUID_Classe": "3a30ad2c-62f1-4490-8a8b-47473e972a74",
+    "Libelle": "Écolage Tranche 3",
+    "Montant_Total_MGA": 1000000,
+    "Nombre_Tranches": 3,
+    "Date_Echeance": "2027-03-10",
+    "Montant_Du_MGA": 300000,
+    "Montant_Paye_MGA": 0,
+    "Statut": "À venir"
+  }
+]

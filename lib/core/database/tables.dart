@@ -250,6 +250,19 @@ class Payments extends Table with UuidPrimaryKey, AuditColumns {
   TextColumn get cashCloseStatus => text().nullable()();
 }
 
+/// Échéanciers / plans de paiement
+class PaymentSchedules extends Table with UuidPrimaryKey, AuditColumns {
+  TextColumn get studentId => text().references(Students, #id)();
+  TextColumn get classId => text().nullable().references(Classes, #id)();
+  TextColumn get label => text()();
+  IntColumn get totalAmountMga => integer().withDefault(const Constant(0))();
+  IntColumn get installmentCount => integer().withDefault(const Constant(1))();
+  DateTimeColumn get dueDate => dateTime().nullable()();
+  IntColumn get amountDueMga => integer().withDefault(const Constant(0))();
+  IntColumn get amountPaidMga => integer().withDefault(const Constant(0))();
+  TextColumn get status => text().withDefault(const Constant('À venir'))(); // À venir, Dû, En retard, Payé
+}
+
 class CashClosures extends Table with UuidPrimaryKey, AuditColumns {
   TextColumn get cashierUserId => text().references(Users, #id)();
   DateTimeColumn get closureDate => dateTime()();

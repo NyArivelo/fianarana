@@ -66,6 +66,7 @@ class SeedImporter {
       counts['evaluations'] = await _importEvaluations();
       counts['presences_discipline'] = await _importAttendance();
       counts['finances'] = await _importFinance();
+      counts['echeanciers'] = await _importPaymentSchedules();
       counts['bibliotheque_locaux'] = await _importLibraryFacilities();
       counts['audit'] = await _importAudit();
     });
@@ -499,6 +500,34 @@ class SeedImporter {
           average: Value(_d(r, ['Moyenne'], 0)),
           rank: Value(_i(r, ['Rang'], 0)),
           mention: Value(_s(r, ['Mention'])),
+        ));
+        n++;
+      }
+      return n;
+    } catch (_) {
+      return 0;
+    }
+  }
+
+  Future<int> _importPaymentSchedules() async {
+    try {
+      final rows = await _load('assets/seed/echeanciers_paiement.json');
+      var n = 0;
+      for (final r in rows) {
+        final id = _s(r, ['UUID_Echeance', 'UUID']);
+        final studentId = _s(r, ['UUID_Eleve']);
+        if (id.isEmpty || studentId.isEmpty) continue;
+        await db.into(db.paymentSchedules).insertOnConflictUpdate(PaymentSchedulesCompanion.insert(
+          id: id,
+          studentId: studentId,
+          classId: Value(_s(r, ['UUID_Classe']).isEmpty ? null : _s(r, ['UUID_Classe'])),
+          label: _s(r, ['Libelle']).isEmpty ? 'Échéance' : _s(r, ['Libelle']),
+          totalAmountMga: Value(_i(r, ['Montant_Total_MGA'], 0)),
+          installmentCount: Value(_i(r, ['Nombre_Tranches'], 1)),
+          dueDate: Value(_dt(r, ['Date_Echeance'])),
+          amountDueMga: Value(_i(r, ['Montant_Du_MGA'], 0)),
+          amountPaidMga: Value(_i(r, ['Montant_Paye_MGA'], 0)),
+          status: Value(_s(r, ['Statut']).isEmpty ? 'À venir' : _s(r, ['Statut'])),
         ));
         n++;
       }
