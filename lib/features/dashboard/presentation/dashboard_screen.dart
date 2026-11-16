@@ -50,6 +50,9 @@ class DashboardScreen extends ConsumerWidget {
                 case 2:
                   context.go('/attendance');
                   break;
+                case 3:
+                  context.go('/finance');
+                  break;
                 default:
                   break;
               }

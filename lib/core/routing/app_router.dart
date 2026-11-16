@@ -8,6 +8,7 @@ import 'package:fianarana/features/dashboard/presentation/dashboard_screen.dart'
 import 'package:fianarana/features/setup/presentation/bootstrap_screen.dart';
 import 'package:fianarana/features/setup/presentation/setup_screen.dart';
 import 'package:fianarana/features/attendance/presentation/attendance_screen.dart';
+import 'package:fianarana/features/finance/presentation/finance_screen.dart';
 import 'package:fianarana/features/students/presentation/student_detail_screen.dart';
 import 'package:fianarana/features/students/presentation/students_screen.dart';
 
@@ -63,6 +64,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/attendance',
         builder: (context, state) => const AttendanceScreen(),
+      ),
+      GoRoute(
+        path: '/finance',
+        builder: (context, state) => const FinanceScreen(),
       ),
     ],
     errorBuilder: (context, state) => Scaffold(
