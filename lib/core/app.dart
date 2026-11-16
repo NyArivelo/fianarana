@@ -9,6 +9,7 @@ import 'package:fianarana/core/routing/app_router.dart';
 import 'package:fianarana/core/services/backup_service.dart';
 import 'package:fianarana/core/theme/app_theme.dart';
 import 'package:fianarana/core/workspace/tab_workspace.dart';
+import 'package:fianarana/core/workspace/workspace_shell.dart';
 import 'package:fianarana/features/auth/application/auth_controller.dart';
 
 class FianaranaApp extends ConsumerStatefulWidget {
@@ -95,7 +96,7 @@ class _FianaranaAppState extends ConsumerState<FianaranaApp> with WidgetsBinding
               },
               child: Stack(
                 children: [
-                  if (child != null) child,
+                  if (child != null) WorkspaceShell(child: child),
                   if (auth.isAuthenticated && auth.isLocked)
                     _LockOverlay(
                       onUnlockPassword: (pwd) => ref.read(authControllerProvider.notifier).unlockWithPassword(pwd),

@@ -2,7 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:fianarana/core/workspace/tab_workspace.dart';
+import 'package:fianarana/features/attendance/presentation/attendance_screen.dart';
 import 'package:fianarana/features/auth/application/auth_controller.dart';
+import 'package:fianarana/features/finance/presentation/finance_screen.dart';
+import 'package:fianarana/features/grades/presentation/grades_screen.dart';
+import 'package:fianarana/features/settings/presentation/settings_screen.dart';
+import 'package:fianarana/features/students/presentation/students_screen.dart';
+import 'package:fianarana/features/timetable/presentation/timetable_screen.dart';
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
@@ -45,13 +52,17 @@ class DashboardScreen extends ConsumerWidget {
               NavigationRailDestination(icon: Icon(Icons.settings_outlined), label: Text('Paramètres')),
             ],
             onDestinationSelected: (i) {
+              void open(String id, String title, String route, WidgetBuilder b) {
+                openModuleTab(ref, id: id, title: title, route: route, builder: b);
+                context.go(route);
+              }
               switch (i) {
-                case 1: context.go('/students'); break;
-                case 2: context.go('/attendance'); break;
-                case 3: context.go('/grades'); break;
-                case 4: context.go('/finance'); break;
-                case 5: context.go('/timetable'); break;
-                case 6: context.go('/settings'); break;
+                case 1: open('tab-students', 'Élèves', '/students', (_) => const StudentsScreen()); break;
+                case 2: open('tab-attendance', 'Présences', '/attendance', (_) => const AttendanceScreen()); break;
+                case 3: open('tab-grades', 'Notes', '/grades', (_) => const GradesScreen()); break;
+                case 4: open('tab-finance', 'Finances', '/finance', (_) => const FinanceScreen()); break;
+                case 5: open('tab-timetable', 'Emploi du temps', '/timetable', (_) => const TimetableScreen()); break;
+                case 6: open('tab-settings', 'Paramètres', '/settings', (_) => const SettingsScreen()); break;
                 default: break;
               }
             },
