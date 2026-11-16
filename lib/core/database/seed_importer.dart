@@ -4,7 +4,9 @@ import 'package:drift/drift.dart';
 import 'package:flutter/services.dart' show rootBundle;
 
 import 'package:fianarana/core/database/app_database.dart';
+import 'package:fianarana/core/security/audit_service.dart';
 import 'package:fianarana/core/security/password_hasher.dart';
+import 'package:fianarana/core/security/rbac_seed.dart';
 
 /// Importe les données de test (assets/seed/*.json, issues de donnees_de_test.xlsx)
 /// dans la base SQLite. À exécuter lors de la première installation ou en mode bac à sable.
@@ -67,6 +69,15 @@ class SeedImporter {
       counts['bibliotheque_locaux'] = await _importLibraryFacilities();
       counts['audit'] = await _importAudit();
     });
+    // RBAC/permissions de base (données de test sécurité) + trace d'import
+    await RbacSeed(db).ensureDefaults();
+    await AuditService(db).log(
+      module: 'Système',
+      targetObject: 'Base de données',
+      description: 'Import des données de test terminé',
+      result: 'Succès',
+      metadata: counts,
+    );
     return counts.entries.map((e) => '${e.key}=${e.value}').join(', ');
   }
 

@@ -7,6 +7,8 @@ import 'package:fianarana/features/auth/presentation/login_screen.dart';
 import 'package:fianarana/features/dashboard/presentation/dashboard_screen.dart';
 import 'package:fianarana/features/setup/presentation/bootstrap_screen.dart';
 import 'package:fianarana/features/setup/presentation/setup_screen.dart';
+import 'package:fianarana/features/students/presentation/student_detail_screen.dart';
+import 'package:fianarana/features/students/presentation/students_screen.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authControllerProvider);
@@ -42,6 +44,20 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/',
         builder: (context, state) => const DashboardScreen(),
+      ),
+      GoRoute(
+        path: '/students',
+        builder: (context, state) => const StudentsScreen(),
+        routes: [
+          GoRoute(
+            path: 'new',
+            builder: (context, state) => const StudentDetailScreen(studentId: 'new'),
+          ),
+          GoRoute(
+            path: ':id',
+            builder: (context, state) => StudentDetailScreen(studentId: state.pathParameters['id']),
+          ),
+        ],
       ),
     ],
     errorBuilder: (context, state) => Scaffold(

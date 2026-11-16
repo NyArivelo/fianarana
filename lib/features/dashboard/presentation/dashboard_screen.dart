@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import 'package:fianarana/features/auth/application/auth_controller.dart';
 
@@ -41,7 +42,15 @@ class DashboardScreen extends ConsumerWidget {
               NavigationRailDestination(icon: Icon(Icons.payments_outlined), label: Text('Finances')),
               NavigationRailDestination(icon: Icon(Icons.settings_outlined), label: Text('Paramètres')),
             ],
-            onDestinationSelected: (_) {},
+            onDestinationSelected: (i) {
+              switch (i) {
+                case 1:
+                  context.go('/students');
+                  break;
+                default:
+                  break;
+              }
+            },
           ),
           const VerticalDivider(width: 1),
           Expanded(
@@ -60,23 +69,28 @@ class DashboardScreen extends ConsumerWidget {
                     children: [
                       _StatusCard(
                         title: 'Architecture',
-                        subtitle: 'Flutter Desktop + Drift + Riverpod + go_router (structure créée)',
+                        subtitle: 'Flutter Desktop + Drift (UUID v4) + Riverpod + go_router',
                         icon: Icons.account_tree_outlined,
                       ),
                       _StatusCard(
-                        title: 'Base de données',
-                        subtitle: 'Schéma Drift avec UUID v4 pour entités principales (ébauche)',
-                        icon: Icons.storage_outlined,
+                        title: 'Authentification & installation',
+                        subtitle: 'Bootstrap/setup, création admin initial, connexion DB + bcrypt, verrouillage échecs',
+                        icon: Icons.security_outlined,
+                      ),
+                      _StatusCard(
+                        title: 'RBAC & Audit',
+                        subtitle: 'Permissions granulaires/scope (services), rôles initiaux, journal d\'audit hashé',
+                        icon: Icons.policy_outlined,
+                      ),
+                      _StatusCard(
+                        title: 'Élèves & Inscriptions',
+                        subtitle: 'Liste/recherche, fiche, création, responsables, statuts, procédure transfert/quitus (base)',
+                        icon: Icons.people_outline,
                       ),
                       _StatusCard(
                         title: 'Données de test',
-                        subtitle: '11 classes, 325 élèves, personnel, finances... importées en JSON seed',
+                        subtitle: 'Import seed: établissement, 325 élèves, classes, personnel, notes, finances, présences, audit...',
                         icon: Icons.dataset_outlined,
-                      ),
-                      _StatusCard(
-                        title: 'Authentification',
-                        subtitle: 'Écran de connexion et contrôleur (vérification sécurisée à finaliser)',
-                        icon: Icons.security_outlined,
                       ),
                     ],
                   ),

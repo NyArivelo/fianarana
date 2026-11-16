@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart';
 
 import 'package:fianarana/core/database/app_database.dart';
+import 'package:fianarana/core/security/audit_service.dart';
 import 'package:fianarana/core/security/password_hasher.dart';
 
 class AuthUser {
@@ -23,15 +24,24 @@ class AuthUser {
 
 class AuthRepository {
   final AppDatabase db;
+  late final AuditService _audit = AuditService(db);
   AuthRepository(this.db);
 
   Future<AuthUser?> authenticate(String username, String password) async {
     final user = await (db.select(db.users)
           ..where((u) => u.username.equals(username) & u.isDeleted.equals(false)))
         .getSingleOrNull();
-    if (user == null || !user.isActive) return null;
+    if (user == null) {
+      await _audit.log(module: 'Sécurité', targetObject: 'Session', description: 'Tentative de connexion échouée (utilisateur inconnu: $username)', result: 'Échec');
+      return null;
+    }
+    if (!user.isActive || (user.lockedUntil != null && user.lockedUntil!.isAfter(DateTime.now()))) {
+      await _audit.log(userId: user.id, username: user.username, module: 'Sécurité', targetObject: 'Session', description: 'Connexion refusée (compte inactif ou verrouillé)', result: 'Échec');
+      return null;
+    }
     if (!passwordHasher.verify(password, user.passwordHash)) {
       await _registerFailedLogin(user);
+      await _audit.log(userId: user.id, username: user.username, module: 'Sécurité', targetObject: 'Session', description: 'Connexion échouée (mot de passe invalide)', result: 'Échec');
       return null;
     }
     await (db.update(db.users)..where((u) => u.id.equals(user.id))).write(
@@ -42,6 +52,7 @@ class AuthRepository {
         updatedAt: Value(DateTime.now()),
       ),
     );
+    await _audit.log(userId: user.id, username: user.username, module: 'Sécurité', targetObject: 'Session', description: 'Connexion réussie', result: 'Succès');
     return AuthUser(
       id: user.id,
       username: user.username,
@@ -79,7 +90,7 @@ class AuthRepository {
     final adminRoleId = AppDatabase.ensureId(null);
     final userId = AppDatabase.ensureId(null);
     await db.transaction(() async {
-      await db.into(db.roles).insert(RolesCompanion.insert(
+      await db.into(db.roles).insertOnConflictUpdate(RolesCompanion.insert(
         id: adminRoleId,
         name: 'Administrateur',
         description: const Value('Accès complet au système'),
@@ -104,5 +115,6 @@ class AuthRepository {
         roleId: adminRoleId,
       ));
     });
+    await _audit.log(userId: userId, username: username, module: 'Sécurité', targetObject: userId, description: 'Création du compte Administrateur initial', result: 'Succès');
   }
 }
