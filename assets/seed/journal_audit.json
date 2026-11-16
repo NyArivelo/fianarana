@@ -1,0 +1,46 @@
+[
+  {
+    "UUID_Audit": "ea26a338-21e2-4390-96f1-5f21295f4c70",
+    "Horodatage_UTC": "2026-11-16T08:01:12Z",
+    "UUID_Utilisateur": "57c0fcf1-b000-40e7-a480-9f563ae1f776",
+    "Identifiant_User": "admin.sys",
+    "Module": "Sécurité",
+    "Objet_Ciblé": "Session",
+    "Description_Opération": "Connexion réussie poste DESKTOP-ADMIN01",
+    "Résultat": "Succès",
+    "Empreinte_SHA256": "8f434346648f6b96df89dda901c5176b10a6d83961dd3c1ac88b59b2dc327aa4"
+  },
+  {
+    "UUID_Audit": "05c754b4-66cd-4856-9048-eeb2d4fbdf34",
+    "Horodatage_UTC": "2026-11-16T08:18:45Z",
+    "UUID_Utilisateur": "2de8762f-8227-47c2-a63b-e9434b4ed09a",
+    "Identifiant_User": "caisse.01",
+    "Module": "Finances",
+    "Objet_Ciblé": "REC-2026-0001",
+    "Description_Opération": "Encaissement Tranche 1 élève ELV-2026-0001",
+    "Résultat": "Succès",
+    "Empreinte_SHA256": "2c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae"
+  },
+  {
+    "UUID_Audit": "68fd9fdd-9bfa-4e33-be5f-f0ccf4d0e6f5",
+    "Horodatage_UTC": "2026-10-28T14:22:09Z",
+    "UUID_Utilisateur": "33d56601-c203-4336-9ce5-4e0b072c12b9",
+    "Identifiant_User": "sec.scol",
+    "Module": "Élèves",
+    "Objet_Ciblé": "ELV-2026-0067",
+    "Description_Opération": "Validation Quitus financier & bibliothèque + Certificat Radiation",
+    "Résultat": "Succès",
+    "Empreinte_SHA256": "4b227777d4dd1fc61c6f884f48641d02b4d121d3fd328cb08b5531fcacdabf8a"
+  },
+  {
+    "UUID_Audit": "ae43ba67-6346-4e06-b2cc-bc553b082419",
+    "Horodatage_UTC": "2026-11-14T17:30:00Z",
+    "UUID_Utilisateur": "163f0099-4876-45e1-a83f-cb87eed9d0d2",
+    "Identifiant_User": "dir.general",
+    "Module": "Évaluations",
+    "Objet_Ciblé": "Trimestre 1",
+    "Description_Opération": "Contrôle affectations Philosophie (1ère & Terminale uniquement)",
+    "Résultat": "Succès",
+    "Empreinte_SHA256": "7902699be42c8a8e46fbbb4501726517e86b22c56a189f7625a6da49081b2451"
+  }
+]

@@ -451,3 +451,6 @@ Modèles d'importation guidés (Templates CSV/Excel) : Génération de fichiers 
 
 5. Personnalisation de l'Interface et Accessibilité (Desktop)
 Gestion des polices et tailles d'affichage (Scaling UI) : Permettre le redimensionnement dynamique de la taille du texte et des éléments de l'interface pour s'adapter aux différents écrans (PC portables vs grands écrans de bureau) et assurer le confort visuel des agents administratifs.
+
+jointes:
+a chaque fois que tu cree une fonctionnalite, ajoute les donnees de test correpondant

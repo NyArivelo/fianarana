@@ -1,0 +1,65 @@
+[
+  {
+    "UUID_Entité": "97591447-7b95-422f-aff7-3d411c002c91",
+    "Type_Entité": "Établissement",
+    "Code": "ETAB-01",
+    "Libellé": "Collège & Lycée Privé (Secondaire 2 & 3)",
+    "Valeur_1": "Antananarivo, Madagascar",
+    "Valeur_2": "Devise: MGA | Fuseau: Indian/Antananarivo",
+    "Statut": "Actif"
+  },
+  {
+    "UUID_Entité": "92baed78-c06a-479c-89ed-b9ab7f42b265",
+    "Type_Entité": "Année Scolaire",
+    "Code": "2026-2027",
+    "Libellé": "Année Académique 2026-2027",
+    "Valeur_1": "2026-09-07",
+    "Valeur_2": "2027-06-30",
+    "Statut": "En cours"
+  },
+  {
+    "UUID_Entité": "45b7dad5-f3e5-4e65-88df-7f4458fc5896",
+    "Type_Entité": "Période",
+    "Code": "PER-1",
+    "Libellé": "Trimestre 1",
+    "Valeur_1": "2026-09-07",
+    "Valeur_2": "2026-12-18",
+    "Statut": "Ouverte"
+  },
+  {
+    "UUID_Entité": "3370551a-fbf4-4348-886e-0c5891d7967f",
+    "Type_Entité": "Période",
+    "Code": "PER-2",
+    "Libellé": "Trimestre 2",
+    "Valeur_1": "2027-01-04",
+    "Valeur_2": "2027-03-26",
+    "Statut": "Planifiée"
+  },
+  {
+    "UUID_Entité": "bf898df1-d21d-4c25-9cee-1ebbacee061b",
+    "Type_Entité": "Période",
+    "Code": "PER-3",
+    "Libellé": "Trimestre 3",
+    "Valeur_1": "2027-04-12",
+    "Valeur_2": "2027-06-30",
+    "Statut": "Planifiée"
+  },
+  {
+    "UUID_Entité": "6e6200fd-ecc9-4631-b6f3-082d40c1bc6f",
+    "Type_Entité": "Niveau Enseignement",
+    "Code": "SEC-2",
+    "Libellé": "Secondaire de niveau 2",
+    "Valeur_1": "Cycle Collège (Classe de 3ème)",
+    "Valeur_2": "Configurable",
+    "Statut": "Actif"
+  },
+  {
+    "UUID_Entité": "1481edf0-e485-4d9e-85be-4824ac10f80a",
+    "Type_Entité": "Niveau Enseignement",
+    "Code": "SEC-3",
+    "Libellé": "Secondaire de niveau 3",
+    "Valeur_1": "Cycle Lycée (Classes de 2nde, 1ère, Terminale)",
+    "Valeur_2": "Configurable",
+    "Statut": "Actif"
+  }
+]

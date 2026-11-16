@@ -1,0 +1,236 @@
+[
+  {
+    "JEU DE DONNÉES DE TEST — GESTION SCOLAIRE (SECONDAIRE NIVEAUX 2 & 3)": "Structure exacte : 11 classes (3ème à Terminale L/S), 325 élèves, 9 matières, 21 enseignantes — Clés primaires UUID v4 (SQLite/Drift)",
+    "col_1": null,
+    "col_2": null,
+    "col_3": null,
+    "col_4": null,
+    "col_5": null,
+    "col_6": null
+  },
+  {
+    "JEU DE DONNÉES DE TEST — GESTION SCOLAIRE (SECONDAIRE NIVEAUX 2 & 3)": "TOTAL ÉLÈVES",
+    "col_1": "CLASSES PARALLÈLES",
+    "col_2": "ENSEIGNANTES",
+    "col_3": "MATIÈRES",
+    "col_4": "TOTAL ENCAISSÉ (MGA)",
+    "col_5": "RESTE À RECOUVRER (MGA)",
+    "col_6": null
+  },
+  {
+    "JEU DE DONNÉES DE TEST — GESTION SCOLAIRE (SECONDAIRE NIVEAUX 2 & 3)": "Niveau d'enseignement",
+    "col_1": "Classe",
+    "col_2": "Série",
+    "col_3": "Effectif Test",
+    "col_4": "Capacité Max",
+    "col_5": null,
+    "col_6": null
+  },
+  {
+    "JEU DE DONNÉES DE TEST — GESTION SCOLAIRE (SECONDAIRE NIVEAUX 2 & 3)": "Secondaire de niveau 2",
+    "col_1": "3ème 1",
+    "col_2": "Tronc commun",
+    "col_3": null,
+    "col_4": 35,
+    "col_5": null,
+    "col_6": null
+  },
+  {
+    "JEU DE DONNÉES DE TEST — GESTION SCOLAIRE (SECONDAIRE NIVEAUX 2 & 3)": "Secondaire de niveau 2",
+    "col_1": "3ème 2",
+    "col_2": "Tronc commun",
+    "col_3": null,
+    "col_4": 35,
+    "col_5": null,
+    "col_6": null
+  },
+  {
+    "JEU DE DONNÉES DE TEST — GESTION SCOLAIRE (SECONDAIRE NIVEAUX 2 & 3)": "Secondaire de niveau 3",
+    "col_1": "2nde 1",
+    "col_2": "Tronc commun",
+    "col_3": null,
+    "col_4": 40,
+    "col_5": null,
+    "col_6": null
+  },
+  {
+    "JEU DE DONNÉES DE TEST — GESTION SCOLAIRE (SECONDAIRE NIVEAUX 2 & 3)": "Secondaire de niveau 3",
+    "col_1": "2nde 2",
+    "col_2": "Tronc commun",
+    "col_3": null,
+    "col_4": 40,
+    "col_5": null,
+    "col_6": null
+  },
+  {
+    "JEU DE DONNÉES DE TEST — GESTION SCOLAIRE (SECONDAIRE NIVEAUX 2 & 3)": "Secondaire de niveau 3",
+    "col_1": "2nde 3",
+    "col_2": "Tronc commun",
+    "col_3": null,
+    "col_4": 40,
+    "col_5": null,
+    "col_6": null
+  },
+  {
+    "JEU DE DONNÉES DE TEST — GESTION SCOLAIRE (SECONDAIRE NIVEAUX 2 & 3)": "Secondaire de niveau 3",
+    "col_1": "1ère L1",
+    "col_2": "Série L",
+    "col_3": null,
+    "col_4": 35,
+    "col_5": null,
+    "col_6": null
+  },
+  {
+    "JEU DE DONNÉES DE TEST — GESTION SCOLAIRE (SECONDAIRE NIVEAUX 2 & 3)": "Secondaire de niveau 3",
+    "col_1": "1ère L2",
+    "col_2": "Série L",
+    "col_3": null,
+    "col_4": 35,
+    "col_5": null,
+    "col_6": null
+  },
+  {
+    "JEU DE DONNÉES DE TEST — GESTION SCOLAIRE (SECONDAIRE NIVEAUX 2 & 3)": "Secondaire de niveau 3",
+    "col_1": "1ère S",
+    "col_2": "Série S",
+    "col_3": null,
+    "col_4": 35,
+    "col_5": null,
+    "col_6": null
+  },
+  {
+    "JEU DE DONNÉES DE TEST — GESTION SCOLAIRE (SECONDAIRE NIVEAUX 2 & 3)": "Secondaire de niveau 3",
+    "col_1": "Terminale L",
+    "col_2": "Série L",
+    "col_3": null,
+    "col_4": 35,
+    "col_5": null,
+    "col_6": null
+  },
+  {
+    "JEU DE DONNÉES DE TEST — GESTION SCOLAIRE (SECONDAIRE NIVEAUX 2 & 3)": "Secondaire de niveau 3",
+    "col_1": "Terminale S1",
+    "col_2": "Série S",
+    "col_3": null,
+    "col_4": 35,
+    "col_5": null,
+    "col_6": null
+  },
+  {
+    "JEU DE DONNÉES DE TEST — GESTION SCOLAIRE (SECONDAIRE NIVEAUX 2 & 3)": "Secondaire de niveau 3",
+    "col_1": "Terminale S2",
+    "col_2": "Série S",
+    "col_3": null,
+    "col_4": 35,
+    "col_5": null,
+    "col_6": null
+  },
+  {
+    "JEU DE DONNÉES DE TEST — GESTION SCOLAIRE (SECONDAIRE NIVEAUX 2 & 3)": "TOTAL ÉTABLISSEMENT",
+    "col_1": "11 classes",
+    "col_2": "-",
+    "col_3": null,
+    "col_4": null,
+    "col_5": null,
+    "col_6": null
+  },
+  {
+    "JEU DE DONNÉES DE TEST — GESTION SCOLAIRE (SECONDAIRE NIVEAUX 2 & 3)": "Matière",
+    "col_1": "Classes concernées",
+    "col_2": "Nb Enseignantes",
+    "col_3": "Vérification",
+    "col_4": null,
+    "col_5": null,
+    "col_6": null
+  },
+  {
+    "JEU DE DONNÉES DE TEST — GESTION SCOLAIRE (SECONDAIRE NIVEAUX 2 & 3)": "Physique-Chimie",
+    "col_1": "3ème, 2nde, 1ère, Terminale",
+    "col_2": null,
+    "col_3": "Conforme",
+    "col_4": null,
+    "col_5": null,
+    "col_6": null
+  },
+  {
+    "JEU DE DONNÉES DE TEST — GESTION SCOLAIRE (SECONDAIRE NIVEAUX 2 & 3)": "Mathématiques",
+    "col_1": "3ème, 2nde, 1ère, Terminale",
+    "col_2": null,
+    "col_3": "Conforme",
+    "col_4": null,
+    "col_5": null,
+    "col_6": null
+  },
+  {
+    "JEU DE DONNÉES DE TEST — GESTION SCOLAIRE (SECONDAIRE NIVEAUX 2 & 3)": "Sciences de la Vie et de la Terre",
+    "col_1": "3ème, 2nde, 1ère, Terminale",
+    "col_2": null,
+    "col_3": "Conforme",
+    "col_4": null,
+    "col_5": null,
+    "col_6": null
+  },
+  {
+    "JEU DE DONNÉES DE TEST — GESTION SCOLAIRE (SECONDAIRE NIVEAUX 2 & 3)": "Français",
+    "col_1": "3ème, 2nde, 1ère, Terminale",
+    "col_2": null,
+    "col_3": "Conforme",
+    "col_4": null,
+    "col_5": null,
+    "col_6": null
+  },
+  {
+    "JEU DE DONNÉES DE TEST — GESTION SCOLAIRE (SECONDAIRE NIVEAUX 2 & 3)": "Malagasy",
+    "col_1": "3ème, 2nde, 1ère, Terminale",
+    "col_2": null,
+    "col_3": "Conforme",
+    "col_4": null,
+    "col_5": null,
+    "col_6": null
+  },
+  {
+    "JEU DE DONNÉES DE TEST — GESTION SCOLAIRE (SECONDAIRE NIVEAUX 2 & 3)": "Anglais",
+    "col_1": "3ème, 2nde, 1ère, Terminale",
+    "col_2": null,
+    "col_3": "Conforme",
+    "col_4": null,
+    "col_5": null,
+    "col_6": null
+  },
+  {
+    "JEU DE DONNÉES DE TEST — GESTION SCOLAIRE (SECONDAIRE NIVEAUX 2 & 3)": "Histoire et Géographie",
+    "col_1": "3ème, 2nde, 1ère, Terminale",
+    "col_2": null,
+    "col_3": "Conforme",
+    "col_4": null,
+    "col_5": null,
+    "col_6": null
+  },
+  {
+    "JEU DE DONNÉES DE TEST — GESTION SCOLAIRE (SECONDAIRE NIVEAUX 2 & 3)": "Philosophie",
+    "col_1": "1ère et Terminale uniquement",
+    "col_2": null,
+    "col_3": "Conforme",
+    "col_4": null,
+    "col_5": null,
+    "col_6": null
+  },
+  {
+    "JEU DE DONNÉES DE TEST — GESTION SCOLAIRE (SECONDAIRE NIVEAUX 2 & 3)": "Éducation Physique et Sportive",
+    "col_1": "3ème, 2nde, 1ère, Terminale",
+    "col_2": null,
+    "col_3": "Conforme",
+    "col_4": null,
+    "col_5": null,
+    "col_6": null
+  },
+  {
+    "JEU DE DONNÉES DE TEST — GESTION SCOLAIRE (SECONDAIRE NIVEAUX 2 & 3)": "TOTAL ENSEIGNANTES",
+    "col_1": "Toutes disciplines",
+    "col_2": null,
+    "col_3": "21 enseignantes",
+    "col_4": null,
+    "col_5": null,
+    "col_6": null
+  }
+]

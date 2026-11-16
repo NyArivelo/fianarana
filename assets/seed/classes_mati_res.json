@@ -1,0 +1,222 @@
+[
+  {
+    "UUID_Entité": "a1dd1b1f-90de-4e34-9131-1cfb1b824d23",
+    "Catégorie": "Classe",
+    "UUID_Parent_Niveau": "6e6200fd-ecc9-4631-b6f3-082d40c1bc6f",
+    "Niveau_Ou_Domaine": "Secondaire de niveau 2 (3ème)",
+    "Série_Ou_Code": "Tronc commun",
+    "Libellé": "3ème 1",
+    "Capacité_Ou_Coef_Sec2": 35,
+    "Effectif_Ou_Coef_Sec3": 25,
+    "Salle_Ou_Classes_Cibles": "Salle B101"
+  },
+  {
+    "UUID_Entité": "52ec63f8-4f31-44c5-9738-1e477af2285d",
+    "Catégorie": "Classe",
+    "UUID_Parent_Niveau": "6e6200fd-ecc9-4631-b6f3-082d40c1bc6f",
+    "Niveau_Ou_Domaine": "Secondaire de niveau 2 (3ème)",
+    "Série_Ou_Code": "Tronc commun",
+    "Libellé": "3ème 2",
+    "Capacité_Ou_Coef_Sec2": 35,
+    "Effectif_Ou_Coef_Sec3": 32,
+    "Salle_Ou_Classes_Cibles": "Salle B102"
+  },
+  {
+    "UUID_Entité": "658732ac-1077-4080-ac55-36ed2638fa8b",
+    "Catégorie": "Classe",
+    "UUID_Parent_Niveau": "1481edf0-e485-4d9e-85be-4824ac10f80a",
+    "Niveau_Ou_Domaine": "Secondaire de niveau 3 (2nde)",
+    "Série_Ou_Code": "Tronc commun",
+    "Libellé": "2nde 1",
+    "Capacité_Ou_Coef_Sec2": 40,
+    "Effectif_Ou_Coef_Sec3": 35,
+    "Salle_Ou_Classes_Cibles": "Salle L101"
+  },
+  {
+    "UUID_Entité": "3a30ad2c-62f1-4490-8a8b-47473e972a74",
+    "Catégorie": "Classe",
+    "UUID_Parent_Niveau": "1481edf0-e485-4d9e-85be-4824ac10f80a",
+    "Niveau_Ou_Domaine": "Secondaire de niveau 3 (2nde)",
+    "Série_Ou_Code": "Tronc commun",
+    "Libellé": "2nde 2",
+    "Capacité_Ou_Coef_Sec2": 40,
+    "Effectif_Ou_Coef_Sec3": 24,
+    "Salle_Ou_Classes_Cibles": "Salle L102"
+  },
+  {
+    "UUID_Entité": "35ef1e2f-6ed8-48aa-a85c-1feac4b2a7d0",
+    "Catégorie": "Classe",
+    "UUID_Parent_Niveau": "1481edf0-e485-4d9e-85be-4824ac10f80a",
+    "Niveau_Ou_Domaine": "Secondaire de niveau 3 (2nde)",
+    "Série_Ou_Code": "Tronc commun",
+    "Libellé": "2nde 3",
+    "Capacité_Ou_Coef_Sec2": 40,
+    "Effectif_Ou_Coef_Sec3": 30,
+    "Salle_Ou_Classes_Cibles": "Salle L103"
+  },
+  {
+    "UUID_Entité": "37d2a666-4748-41c7-bebe-311d467eee27",
+    "Catégorie": "Classe",
+    "UUID_Parent_Niveau": "1481edf0-e485-4d9e-85be-4824ac10f80a",
+    "Niveau_Ou_Domaine": "Secondaire de niveau 3 (1ère)",
+    "Série_Ou_Code": "Série L",
+    "Libellé": "1ère L1",
+    "Capacité_Ou_Coef_Sec2": 35,
+    "Effectif_Ou_Coef_Sec3": 30,
+    "Salle_Ou_Classes_Cibles": "Salle L201"
+  },
+  {
+    "UUID_Entité": "cd554ff9-361a-4821-afdf-2de3b5de440d",
+    "Catégorie": "Classe",
+    "UUID_Parent_Niveau": "1481edf0-e485-4d9e-85be-4824ac10f80a",
+    "Niveau_Ou_Domaine": "Secondaire de niveau 3 (1ère)",
+    "Série_Ou_Code": "Série L",
+    "Libellé": "1ère L2",
+    "Capacité_Ou_Coef_Sec2": 35,
+    "Effectif_Ou_Coef_Sec3": 29,
+    "Salle_Ou_Classes_Cibles": "Salle L202"
+  },
+  {
+    "UUID_Entité": "8ad98869-d151-43ef-8c22-8e90050775df",
+    "Catégorie": "Classe",
+    "UUID_Parent_Niveau": "1481edf0-e485-4d9e-85be-4824ac10f80a",
+    "Niveau_Ou_Domaine": "Secondaire de niveau 3 (1ère)",
+    "Série_Ou_Code": "Série S",
+    "Libellé": "1ère S",
+    "Capacité_Ou_Coef_Sec2": 35,
+    "Effectif_Ou_Coef_Sec3": 31,
+    "Salle_Ou_Classes_Cibles": "Salle L203"
+  },
+  {
+    "UUID_Entité": "415152f6-2b96-46fe-9d13-9b13760b3f0f",
+    "Catégorie": "Classe",
+    "UUID_Parent_Niveau": "1481edf0-e485-4d9e-85be-4824ac10f80a",
+    "Niveau_Ou_Domaine": "Secondaire de niveau 3 (Terminale)",
+    "Série_Ou_Code": "Série L",
+    "Libellé": "Terminale L",
+    "Capacité_Ou_Coef_Sec2": 35,
+    "Effectif_Ou_Coef_Sec3": 28,
+    "Salle_Ou_Classes_Cibles": "Salle L301"
+  },
+  {
+    "UUID_Entité": "dc2f6b4c-e8a4-4870-b4ae-9fb75d938c47",
+    "Catégorie": "Classe",
+    "UUID_Parent_Niveau": "1481edf0-e485-4d9e-85be-4824ac10f80a",
+    "Niveau_Ou_Domaine": "Secondaire de niveau 3 (Terminale)",
+    "Série_Ou_Code": "Série S",
+    "Libellé": "Terminale S1",
+    "Capacité_Ou_Coef_Sec2": 35,
+    "Effectif_Ou_Coef_Sec3": 31,
+    "Salle_Ou_Classes_Cibles": "Salle L302"
+  },
+  {
+    "UUID_Entité": "a590ac36-d02c-40ec-baf1-51ac90011e22",
+    "Catégorie": "Classe",
+    "UUID_Parent_Niveau": "1481edf0-e485-4d9e-85be-4824ac10f80a",
+    "Niveau_Ou_Domaine": "Secondaire de niveau 3 (Terminale)",
+    "Série_Ou_Code": "Série S",
+    "Libellé": "Terminale S2",
+    "Capacité_Ou_Coef_Sec2": 35,
+    "Effectif_Ou_Coef_Sec3": 30,
+    "Salle_Ou_Classes_Cibles": "Salle L303"
+  },
+  {
+    "UUID_Entité": "d82e60d0-49d6-40fa-80ab-a59d06a9e9f8",
+    "Catégorie": "Matière",
+    "UUID_Parent_Niveau": "N/A",
+    "Niveau_Ou_Domaine": "Sciences",
+    "Série_Ou_Code": "PHCH",
+    "Libellé": "Physique-Chimie",
+    "Capacité_Ou_Coef_Sec2": 3,
+    "Effectif_Ou_Coef_Sec3": 4,
+    "Salle_Ou_Classes_Cibles": "3ème, 2nde, 1ère, Terminale"
+  },
+  {
+    "UUID_Entité": "de2d117d-943f-4ea3-bb5e-a61c1eccdace",
+    "Catégorie": "Matière",
+    "UUID_Parent_Niveau": "N/A",
+    "Niveau_Ou_Domaine": "Sciences",
+    "Série_Ou_Code": "MATH",
+    "Libellé": "Mathématiques",
+    "Capacité_Ou_Coef_Sec2": 3,
+    "Effectif_Ou_Coef_Sec3": 4,
+    "Salle_Ou_Classes_Cibles": "3ème, 2nde, 1ère, Terminale"
+  },
+  {
+    "UUID_Entité": "cc51a4d1-e972-4686-bd59-a332f8f84fb5",
+    "Catégorie": "Matière",
+    "UUID_Parent_Niveau": "N/A",
+    "Niveau_Ou_Domaine": "Sciences",
+    "Série_Ou_Code": "SVT",
+    "Libellé": "Sciences de la Vie et de la Terre",
+    "Capacité_Ou_Coef_Sec2": 2,
+    "Effectif_Ou_Coef_Sec3": 3,
+    "Salle_Ou_Classes_Cibles": "3ème, 2nde, 1ère, Terminale"
+  },
+  {
+    "UUID_Entité": "83021903-d061-4ab5-9e3b-aa0b649e0bbd",
+    "Catégorie": "Matière",
+    "UUID_Parent_Niveau": "N/A",
+    "Niveau_Ou_Domaine": "Lettres",
+    "Série_Ou_Code": "FRAN",
+    "Libellé": "Français",
+    "Capacité_Ou_Coef_Sec2": 3,
+    "Effectif_Ou_Coef_Sec3": 4,
+    "Salle_Ou_Classes_Cibles": "3ème, 2nde, 1ère, Terminale"
+  },
+  {
+    "UUID_Entité": "ea663162-35f2-4827-a744-ee4b9ee1cd1e",
+    "Catégorie": "Matière",
+    "UUID_Parent_Niveau": "N/A",
+    "Niveau_Ou_Domaine": "Lettres",
+    "Série_Ou_Code": "MLG",
+    "Libellé": "Malagasy",
+    "Capacité_Ou_Coef_Sec2": 2,
+    "Effectif_Ou_Coef_Sec3": 3,
+    "Salle_Ou_Classes_Cibles": "3ème, 2nde, 1ère, Terminale"
+  },
+  {
+    "UUID_Entité": "41a5f647-0571-44c1-934f-c605decdb7ca",
+    "Catégorie": "Matière",
+    "UUID_Parent_Niveau": "N/A",
+    "Niveau_Ou_Domaine": "Langues",
+    "Série_Ou_Code": "ANG",
+    "Libellé": "Anglais",
+    "Capacité_Ou_Coef_Sec2": 2,
+    "Effectif_Ou_Coef_Sec3": 3,
+    "Salle_Ou_Classes_Cibles": "3ème, 2nde, 1ère, Terminale"
+  },
+  {
+    "UUID_Entité": "fb20d992-52ed-4bd0-8d7a-a4c6f6af5dc2",
+    "Catégorie": "Matière",
+    "UUID_Parent_Niveau": "N/A",
+    "Niveau_Ou_Domaine": "Sciences Humaines",
+    "Série_Ou_Code": "HG",
+    "Libellé": "Histoire et Géographie",
+    "Capacité_Ou_Coef_Sec2": 2,
+    "Effectif_Ou_Coef_Sec3": 3,
+    "Salle_Ou_Classes_Cibles": "3ème, 2nde, 1ère, Terminale"
+  },
+  {
+    "UUID_Entité": "e1f660c9-43e5-4475-acaf-1f72306b6be4",
+    "Catégorie": "Matière",
+    "UUID_Parent_Niveau": "N/A",
+    "Niveau_Ou_Domaine": "Lettres & Humanités",
+    "Série_Ou_Code": "PHIL",
+    "Libellé": "Philosophie",
+    "Capacité_Ou_Coef_Sec2": 2,
+    "Effectif_Ou_Coef_Sec3": 4,
+    "Salle_Ou_Classes_Cibles": "1ère et Terminale uniquement"
+  },
+  {
+    "UUID_Entité": "0b136083-cb53-4af9-a42c-10ec4c527bc5",
+    "Catégorie": "Matière",
+    "UUID_Parent_Niveau": "N/A",
+    "Niveau_Ou_Domaine": "Sport",
+    "Série_Ou_Code": "EPS",
+    "Libellé": "Éducation Physique et Sportive",
+    "Capacité_Ou_Coef_Sec2": 1,
+    "Effectif_Ou_Coef_Sec3": 1,
+    "Salle_Ou_Classes_Cibles": "3ème, 2nde, 1ère, Terminale"
+  }
+]
