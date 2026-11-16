@@ -75,6 +75,12 @@ class AuthRepository {
     );
   }
 
+  Future<bool> verifyPin(String userId, String pin) async {
+    final user = await (db.select(db.users)..where((u) => u.id.equals(userId))).getSingleOrNull();
+    if (user == null || user.pinHash == null) return false;
+    return passwordHasher.verify(pin, user.pinHash!);
+  }
+
   Future<bool> hasAnyUser() async {
     final row = await (db.selectOnly(db.users)..addColumns([db.users.id.count()])).getSingle();
     return (row.read(db.users.id.count()) ?? 0) > 0;

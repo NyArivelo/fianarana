@@ -90,12 +90,22 @@ class AuthController extends StateNotifier<AuthState> {
     }
   }
 
-  /// Déverrouillage par mot de passe (base). Le PIN rapide peut être ajouté côté UI/service.
+  /// Déverrouillage par mot de passe (base).
   Future<bool> unlockWithPassword(String password) async {
     final username = state.username;
     if (username == null) return false;
     final user = await _repo.authenticate(username, password);
     if (user == null) return false;
+    state = state.copyWith(isLocked: false, error: null);
+    return true;
+  }
+
+  /// Déverrouillage rapide par PIN (4-6 chiffres) si configuré pour l'utilisateur.
+  Future<bool> unlockWithPin(String pin) async {
+    final userId = state.userId;
+    if (userId == null) return false;
+    final ok = await _repo.verifyPin(userId, pin);
+    if (!ok) return false;
     state = state.copyWith(isLocked: false, error: null);
     return true;
   }
