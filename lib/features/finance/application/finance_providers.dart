@@ -17,3 +17,8 @@ final financeTotalsProvider = FutureProvider((ref) {
   final userId = ref.watch(authControllerProvider).userId;
   return ref.watch(financeRepositoryProvider).totals(actorUserId: userId);
 });
+
+final cashClosuresProvider = FutureProvider((ref) {
+  final userId = ref.watch(authControllerProvider).userId;
+  return ref.watch(financeRepositoryProvider).listClosures(actorUserId: userId);
+});

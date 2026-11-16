@@ -39,8 +39,8 @@ class DashboardScreen extends ConsumerWidget {
               NavigationRailDestination(icon: Icon(Icons.dashboard_outlined), label: Text('Accueil')),
               NavigationRailDestination(icon: Icon(Icons.people_outline), label: Text('Élèves')),
               NavigationRailDestination(icon: Icon(Icons.fact_check_outlined), label: Text('Présences')),
+              NavigationRailDestination(icon: Icon(Icons.grading_outlined), label: Text('Notes')),
               NavigationRailDestination(icon: Icon(Icons.payments_outlined), label: Text('Finances')),
-              NavigationRailDestination(icon: Icon(Icons.settings_outlined), label: Text('Paramètres')),
             ],
             onDestinationSelected: (i) {
               switch (i) {
@@ -51,6 +51,9 @@ class DashboardScreen extends ConsumerWidget {
                   context.go('/attendance');
                   break;
                 case 3:
+                  context.go('/grades');
+                  break;
+                case 4:
                   context.go('/finance');
                   break;
                 default:
@@ -92,6 +95,11 @@ class DashboardScreen extends ConsumerWidget {
                         title: 'Élèves & Inscriptions',
                         subtitle: 'Liste/recherche, fiche, création, responsables, statuts, procédure transfert/quitus (base)',
                         icon: Icons.people_outline,
+                      ),
+                      _StatusCard(
+                        title: 'Présences, Notes & Finances',
+                        subtitle: 'Présences/discipline, évaluations (940) + moyenne pondérée, encaissement/reçu et clôture Z de caisse',
+                        icon: Icons.fact_check_outlined,
                       ),
                       _StatusCard(
                         title: 'Données de test',

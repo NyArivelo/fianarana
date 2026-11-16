@@ -1,8 +1,9 @@
 import 'package:drift/drift.dart';
 
 import 'package:fianarana/core/database/app_database.dart';
-import 'package:fianarana/core/security/permission_service.dart';
+import 'package:fianarana/core/database/uuid.dart';
 import 'package:fianarana/core/security/audit_service.dart';
+import 'package:fianarana/core/security/permission_service.dart';
 
 class PaymentRow {
   final String id;
@@ -107,5 +108,101 @@ class FinanceRepository {
       bal += r.balanceMga;
     }
     return {'due': due, 'paid': paid, 'balance': bal, 'count': rows.where((r)=>!r.isDeleted).length};
+  }
+
+  Future<String> _nextReceiptNumber() async {
+    final rows = await db.select(db.payments).get();
+    var maxN = 0;
+    for (final r in rows) {
+      final m = RegExp(r'(\d+)$').firstMatch(r.receiptNumber);
+      if (m != null) {
+        final n = int.tryParse(m.group(1)!) ?? 0;
+        if (n > maxN) maxN = n;
+      }
+    }
+    final next = maxN + 1;
+    return 'REC-${DateTime.now().year}-${next.toString().padLeft(4, '0')}';
+  }
+
+  /// Encaissement: enregistre un paiement et génère un reçu numéroté.
+  Future<String> recordPayment({
+    required String studentId,
+    String? classId,
+    required String feeLabel,
+    required int amountDueMga,
+    required int amountPaidMga,
+    DateTime? paymentDate,
+    String? paymentMethod,
+    String? scheduleStatus,
+    String? actorUserId,
+    String? actorUsername,
+  }) async {
+    await _require(actorUserId, 'finance.create');
+    final id = newUuid();
+    final receipt = await _nextReceiptNumber();
+    final balance = (amountDueMga - amountPaidMga).clamp(0, 1 << 30);
+    final now = paymentDate ?? DateTime.now();
+    await db.into(db.payments).insert(PaymentsCompanion.insert(
+      id: id,
+      receiptNumber: receipt,
+      studentId: studentId,
+      classId: Value(classId),
+      feeLabel: feeLabel,
+      amountDueMga: Value(amountDueMga),
+      amountPaidMga: Value(amountPaidMga),
+      balanceMga: Value(balance),
+      paymentDate: Value(now),
+      paymentMethod: Value(paymentMethod),
+      scheduleStatus: Value(scheduleStatus),
+      cashierUserId: Value(actorUserId),
+      cashCloseStatus: const Value('Ouvert'),
+    ));
+    await _audit.log(userId: actorUserId, username: actorUsername, module: 'Finances', targetObject: receipt, description: 'Encaissement $amountPaidMga MGA ($feeLabel) élève $studentId', result: 'Succès', metadata: {'paymentId': id});
+    return receipt;
+  }
+
+  Future<List<CashClosure>> listClosures({String? actorUserId, int limit = 50}) async {
+    await _require(actorUserId, 'finance.read');
+    final q = db.select(db.cashClosures)..where((t) => t.isDeleted.equals(false))..orderBy([(t) => OrderingTerm.desc(t.closureDate)])..limit(limit);
+    return q.get();
+  }
+
+  /// Clôture de caisse (Z) journalière pour le caissier.
+  Future<String> closeCashDesk({
+    required String cashierUserId,
+    DateTime? date,
+    int totalCash = 0,
+    int totalCheck = 0,
+    int totalTransfer = 0,
+    int totalMobileMoney = 0,
+    String? notes,
+    String? actorUserId,
+    String? actorUsername,
+  }) async {
+    await _require(actorUserId, 'finance.close_cash_desk');
+    final id = newUuid();
+    final d = date ?? DateTime.now();
+    await db.transaction(() async {
+      await db.into(db.cashClosures).insert(CashClosuresCompanion.insert(
+        id: id,
+        cashierUserId: cashierUserId,
+        closureDate: d,
+        totalCash: Value(totalCash),
+        totalCheck: Value(totalCheck),
+        totalTransfer: Value(totalTransfer),
+        totalMobileMoney: Value(totalMobileMoney),
+        status: const Value('Clôturé'),
+        validatedByUserId: Value(actorUserId),
+        notes: Value(notes),
+      ));
+      // marquer les paiements du jour/ouverts comme clôturés (simplifié)
+      final start = DateTime(d.year, d.month, d.day);
+      final end = start.add(const Duration(days: 1));
+      await (db.update(db.payments)
+            ..where((p) => p.cashCloseStatus.equals('Ouvert') & p.paymentDate.isBetweenValues(start, end)))
+          .write(const PaymentsCompanion(cashCloseStatus: Value('Clôturé (Z-Caisse)')));
+    });
+    await _audit.log(userId: actorUserId, username: actorUsername, module: 'Finances', targetObject: id, description: 'Clôture de caisse (Z) caissier $cashierUserId', result: 'Succès');
+    return id;
   }
 }
