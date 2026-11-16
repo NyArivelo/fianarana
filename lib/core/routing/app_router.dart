@@ -8,11 +8,14 @@ import 'package:fianarana/features/dashboard/presentation/dashboard_screen.dart'
 import 'package:fianarana/features/setup/presentation/bootstrap_screen.dart';
 import 'package:fianarana/features/setup/presentation/setup_screen.dart';
 import 'package:fianarana/features/attendance/presentation/attendance_screen.dart';
+import 'package:fianarana/features/facilities/presentation/facilities_screen.dart';
 import 'package:fianarana/features/finance/presentation/finance_screen.dart';
 import 'package:fianarana/features/finance/presentation/schedules_screen.dart';
 import 'package:fianarana/features/grades/presentation/councils_screen.dart';
 import 'package:fianarana/features/grades/presentation/grades_screen.dart';
+import 'package:fianarana/features/library/presentation/library_screen.dart';
 import 'package:fianarana/features/settings/presentation/settings_screen.dart';
+import 'package:fianarana/features/staff/presentation/staff_screen.dart';
 import 'package:fianarana/features/students/presentation/student_detail_screen.dart';
 import 'package:fianarana/features/students/presentation/students_screen.dart';
 import 'package:fianarana/features/timetable/presentation/timetable_screen.dart';
@@ -92,6 +95,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: '/settings',
         builder: (context, state) => const SettingsScreen(),
       ),
+      GoRoute(path: '/staff', builder: (context, state) => const StaffScreen()),
+      GoRoute(path: '/library', builder: (context, state) => const LibraryScreen()),
+      GoRoute(path: '/facilities', builder: (context, state) => const FacilitiesScreen()),
     ],
     errorBuilder: (context, state) => Scaffold(
       body: Center(child: Text('Page introuvable: ${state.uri}')),
