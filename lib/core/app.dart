@@ -11,6 +11,7 @@ import 'package:fianarana/core/theme/app_theme.dart';
 import 'package:fianarana/core/workspace/tab_workspace.dart';
 import 'package:fianarana/core/workspace/workspace_shell.dart';
 import 'package:fianarana/features/auth/application/auth_controller.dart';
+import 'package:fianarana/features/search/presentation/global_search_dialog.dart';
 
 class FianaranaApp extends ConsumerStatefulWidget {
   const FianaranaApp({super.key});
@@ -92,6 +93,7 @@ class _FianaranaAppState extends ConsumerState<FianaranaApp> with WidgetsBinding
             shortcuts: <LogicalKeySet, Intent>{
               LogicalKeySet(LogicalKeyboardKey.control, LogicalKeyboardKey.keyL): const _LockIntent(),
               LogicalKeySet(LogicalKeyboardKey.control, LogicalKeyboardKey.keyW): const _CloseTabIntent(),
+              LogicalKeySet(LogicalKeyboardKey.control, LogicalKeyboardKey.keyF): const _SearchIntent(),
             },
             child: Actions(
               actions: <Type, Action<Intent>>{
@@ -106,6 +108,11 @@ class _FianaranaAppState extends ConsumerState<FianaranaApp> with WidgetsBinding
                   } else {
                     router.pop();
                   }
+                  return null;
+                }),
+                _SearchIntent: CallbackAction<_SearchIntent>(onInvoke: (_) {
+                  final ctx = router.routerDelegate.navigatorKey.currentContext;
+                  if (ctx != null) showGlobalSearch(ctx);
                   return null;
                 }),
               },
@@ -129,6 +136,7 @@ class _FianaranaAppState extends ConsumerState<FianaranaApp> with WidgetsBinding
 
 class _LockIntent extends Intent { const _LockIntent(); }
 class _CloseTabIntent extends Intent { const _CloseTabIntent(); }
+class _SearchIntent extends Intent { const _SearchIntent(); }
 
 class _LockOverlay extends StatefulWidget {
   final Future<bool> Function(String password) onUnlockPassword;

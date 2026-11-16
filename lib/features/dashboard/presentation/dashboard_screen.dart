@@ -5,9 +5,13 @@ import 'package:go_router/go_router.dart';
 import 'package:fianarana/core/workspace/tab_workspace.dart';
 import 'package:fianarana/features/attendance/presentation/attendance_screen.dart';
 import 'package:fianarana/features/auth/application/auth_controller.dart';
+import 'package:fianarana/features/facilities/presentation/facilities_screen.dart';
 import 'package:fianarana/features/finance/presentation/finance_screen.dart';
 import 'package:fianarana/features/grades/presentation/grades_screen.dart';
+import 'package:fianarana/features/library/presentation/library_screen.dart';
+import 'package:fianarana/features/search/presentation/global_search_dialog.dart';
 import 'package:fianarana/features/settings/presentation/settings_screen.dart';
+import 'package:fianarana/features/staff/presentation/staff_screen.dart';
 import 'package:fianarana/features/students/presentation/students_screen.dart';
 import 'package:fianarana/features/timetable/presentation/timetable_screen.dart';
 
@@ -21,12 +25,13 @@ class DashboardScreen extends ConsumerWidget {
       appBar: AppBar(
         title: const Text('Tableau de bord - Fianarana'),
         actions: [
+          IconButton(tooltip: 'Recherche rapide (Ctrl+F)', onPressed: () => showGlobalSearch(context), icon: const Icon(Icons.search)),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8),
             child: Center(child: Text(auth.fullName ?? auth.username ?? 'Utilisateur')),
           ),
           IconButton(
-            tooltip: 'Verrouiller (Ctrl+L à implémenter)',
+            tooltip: 'Verrouiller (Ctrl+L)',
             onPressed: () => ref.read(authControllerProvider.notifier).lock(),
             icon: const Icon(Icons.lock_outline),
           ),
