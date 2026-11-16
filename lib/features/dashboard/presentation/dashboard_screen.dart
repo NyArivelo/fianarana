@@ -83,60 +83,18 @@ class DashboardScreen extends ConsumerWidget {
                     style: Theme.of(context).textTheme.headlineSmall,
                   ),
                   const SizedBox(height: 12),
-                  const Wrap(
-                    spacing: 12,
-                    runSpacing: 12,
-                    children: [
-                      _StatusCard(
-                        title: 'Architecture',
-                        subtitle: 'Flutter Desktop + Drift (UUID v4) + Riverpod + go_router',
-                        icon: Icons.account_tree_outlined,
-                      ),
-                      _StatusCard(
-                        title: 'Authentification & installation',
-                        subtitle: 'Bootstrap/setup, création admin initial, connexion DB + bcrypt, verrouillage échecs',
-                        icon: Icons.security_outlined,
-                      ),
-                      _StatusCard(
-                        title: 'RBAC & Audit',
-                        subtitle: 'Permissions granulaires/scope (services), rôles initiaux, journal d\'audit hashé',
-                        icon: Icons.policy_outlined,
-                      ),
-                      _StatusCard(
-                        title: 'Élèves & Inscriptions',
-                        subtitle: 'Liste/recherche, fiche, création, responsables, statuts, procédure transfert/quitus (base)',
-                        icon: Icons.people_outline,
-                      ),
-                      _StatusCard(
-                        title: 'Présences, Notes & Finances',
-                        subtitle: 'Présences/discipline, évaluations (940) + moyenne pondérée, encaissement/reçu et clôture Z de caisse',
-                        icon: Icons.fact_check_outlined,
-                      ),
-                      _StatusCard(
-                        title: 'Données de test',
-                        subtitle: 'Import seed: établissement, 325 élèves, classes, personnel, notes, finances, présences, audit...',
-                        icon: Icons.dataset_outlined,
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
-                  Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: const [
-                          Text('Prochaines étapes recommandées'),
-                          SizedBox(height: 8),
-                          Text('• Générer le code Drift (build_runner) et connecter la base SQLite locale'),
-                          Text('• Implémenter le service d’authentification (hachage Argon2id/bcrypt, rôles, permissions, audit)'),
-                          Text('• Créer l’assistant de première installation et le paramétrage établissement'),
-                          Text('• Développer les modules Élèves/Inscriptions, Cours/Présences, Notes/Bulletins, Finances/Caisse'),
-                          Text('• Ajouter à chaque fonctionnalité ses données de test et scénarios de validation'),
-                        ],
-                      ),
-                    ),
-                  ),
+                        const Text('Modules & état', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
+                        const SizedBox(height: 10),
+                        Wrap(spacing: 12, runSpacing: 12, children: const [
+                          _StatusCard(title: 'Élèves & Inscriptions', subtitle: 'Liste/recherche, dossiers, édition, responsables, transfert/quitus (base)', icon: Icons.people_outline),
+                          _StatusCard(title: 'Présences & Discipline', subtitle: 'Consultation et saisie rapide, données de test importées', icon: Icons.fact_check_outlined),
+                          _StatusCard(title: 'Notes & Conseils', subtitle: 'Évaluations, moyenne pondérée, édition, conseils/décisions, bulletins PDF', icon: Icons.grading_outlined),
+                          _StatusCard(title: 'Finances & Caisse', subtitle: 'Encaissement, reçus PDF, clôture Z, échéanciers/relances, export CSV', icon: Icons.payments_outlined),
+                          _StatusCard(title: 'Emplois du temps', subtitle: 'Séances et détection de conflits enseignant/classe/salle', icon: Icons.calendar_month_outlined),
+                          _StatusCard(title: 'Personnel, Bibliothèque, Locaux', subtitle: 'Gestion/listes, prêts et quitus, équipements (données seed)', icon: Icons.badge_outlined),
+                          _StatusCard(title: 'Sécurité & Audit', subtitle: 'RBAC/permissions, journal d\'audit hashé, verrouillage/PIN/inactivité', icon: Icons.policy_outlined),
+                          _StatusCard(title: 'Sauvegarde & Corbeille', subtitle: 'Backup .zip (manuel/auto), restauration, suppression logique/restauration', icon: Icons.backup_outlined),
+                        ]),
                 ],
               ),
             ),
