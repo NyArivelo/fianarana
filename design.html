@@ -1,0 +1,1471 @@
+<!DOCTYPE html>
+<html lang="fr" class="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EduDesk Pro — Gestion Scolaire Desktop (v1.1)</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Google Fonts : Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- Configuration Tailwind -->
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            brand: {
+              50: '#eff6ff',
+              100: '#dbeafe',
+              200: '#bfdbfe',
+              300: '#93c5fd',
+              400: '#60a5fa',
+              500: '#3b82f6',
+              600: '#2563eb',
+              700: '#1d4ed8',
+              800: '#1e40af',
+              900: '#1e3a8a',
+              950: '#172554',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Personnalisation fine des barres de défilement Desktop */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(148, 163, 184, 0.4);
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(100, 116, 139, 0.6);
+    }
+    /* Suppression des flèches sur les inputs number pour la grille tableur */
+    input[type=number]::-webkit-inner-spin-button, 
+    input[type=number]::-webkit-outer-spin-button { 
+      -webkit-appearance: none; 
+      margin: 0; 
+    }
+    .tab-active-indicator {
+      position: relative;
+    }
+    .tab-active-indicator::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background-color: #2563eb;
+    }
+  </style>
+</head>
+<body class="bg-slate-100 dark:bg-slate-950 text-slate-800 dark:text-slate-100 font-sans antialiased selection:bg-blue-600 selection:text-white overflow-hidden h-screen flex flex-col">
+
+  <!-- =====================================================================
+       BARRE SUPÉRIEURE DESKTOP (Titre, Mode Production/Sandbox, Recherche Ctrl+F, Session Ctrl+L)
+       ===================================================================== -->
+  <header class="h-12 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-3 flex items-center justify-between shrink-0 z-30 select-none">
+    <!-- Gauche : Logo Établissement & Bouton Menu Escamotable -->
+    <div class="flex items-center gap-3">
+      <button id="toggleSidebarBtn" title="Réduire/Agrandir le menu" class="p-1.5 rounded-lg text-slate-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-slate-800 transition-colors">
+        <i data-lucide="panel-left" class="w-5 h-5"></i>
+      </button>
+      
+      <div class="flex items-center gap-2.5">
+        <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-600 to-blue-800 flex items-center justify-center text-white shadow-sm">
+          <i data-lucide="graduation-cap" class="w-5 h-5"></i>
+        </div>
+        <div class="hidden sm:block leading-tight">
+          <div class="flex items-center gap-2">
+            <span class="font-bold text-sm tracking-tight text-slate-900 dark:text-white">Lycée Privé Les Flamboyants</span>
+            <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800">2026-2027</span>
+          </div>
+          <p class="text-[11px] text-slate-500 dark:text-slate-400">Trimestre 1 (Ouvert) • SQLite Drift Local</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Centre : Barre de Recherche Globale Rapide (Ctrl+F) -->
+    <div class="flex-1 max-w-md mx-4">
+      <button onclick="openGlobalSearch()" class="w-full flex items-center justify-between px-3 py-1.5 text-xs text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800/80 hover:bg-slate-200/70 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg transition-all">
+        <span class="flex items-center gap-2">
+          <i data-lucide="search" class="w-3.5 h-3.5 text-blue-600"></i>
+          <span>Rechercher un élève, matricule, reçu, classe...</span>
+        </span>
+        <kbd class="hidden md:inline-block px-1.5 py-0.5 text-[10px] font-mono font-semibold bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 rounded border border-slate-200 dark:border-slate-700 shadow-2xs">Ctrl + F</kbd>
+      </button>
+    </div>
+
+    <!-- Droite : Indicateur Mode (Prod/Sandbox), Thème, Verrouillage Session (Ctrl+L) & Profil -->
+    <div class="flex items-center gap-2">
+      <!-- Switch Production / Bac à Sable -->
+      <button id="sandboxToggleBtn" onclick="toggleSandboxMode()" title="Basculer entre Production et Bac à Sable" class="hidden md:flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800 transition-colors">
+        <span id="sandboxDot" class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+        <span id="sandboxLabel">Base Production</span>
+      </button>
+
+      <!-- Taille d'affichage (Scaling UI) -->
+      <button onclick="cycleFontScale()" title="Ajuster la taille du texte (Accessibilité Desktop)" class="p-1.5 rounded-lg text-slate-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-slate-800 transition-colors">
+        <i data-lucide="a-large-small" class="w-4 h-4"></i>
+      </button>
+
+      <!-- Thème Clair / Sombre -->
+      <button onclick="toggleTheme()" title="Basculer Thème Clair / Sombre" class="p-1.5 rounded-lg text-slate-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-slate-800 transition-colors">
+        <i data-lucide="sun" class="w-4 h-4 hidden dark:block text-amber-400"></i>
+        <i data-lucide="moon" class="w-4 h-4 block dark:hidden"></i>
+      </button>
+
+      <!-- Verrouillage Rapide PIN (Ctrl+L) -->
+      <button onclick="lockSession()" title="Verrouiller la session (Ctrl + L)" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-blue-50 hover:bg-blue-100 text-blue-700 dark:bg-blue-950 dark:hover:bg-blue-900 dark:text-blue-300 border border-blue-200 dark:border-blue-800 transition-colors">
+        <i data-lucide="lock" class="w-3.5 h-3.5"></i>
+        <span class="hidden lg:inline">Verrouiller</span>
+      </button>
+
+      <!-- Profil Utilisateur Actif -->
+      <div class="flex items-center gap-2 pl-2 border-l border-slate-200 dark:border-slate-800">
+        <div class="w-7 h-7 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-bold shadow-xs" id="currentUserAvatar">
+          HR
+        </div>
+        <div class="hidden xl:block text-left leading-none">
+          <p class="text-xs font-semibold text-slate-800 dark:text-slate-100" id="currentUserName">Hery Rakoto</p>
+          <p class="text-[10px] text-blue-600 dark:text-blue-400 font-medium mt-0.5" id="currentUserRole">Administrateur • Portée Globale</p>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- =====================================================================
+       CORPS PRINCIPAL : BARRE LATÉRALE + ESPACE DE TRAVAIL MULTI-ONGLETS (MDI)
+       ===================================================================== -->
+  <div class="flex-1 flex overflow-hidden">
+    
+    <!-- BARRE LATÉRALE DE NAVIGATION (NavigationRail Desktop) -->
+    <aside id="sidebar" class="w-60 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col justify-between transition-all duration-200 shrink-0 select-none">
+      <div class="p-2.5 space-y-1 overflow-y-auto flex-1">
+        <div class="px-2.5 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-400 sidebar-label">Pilotage & Scolarité</div>
+        
+        <button onclick="openTab('dashboard')" data-nav="dashboard" class="nav-item w-full flex items-center gap-3 px-2.5 py-2 rounded-lg text-sm font-medium text-blue-700 bg-blue-50 dark:bg-blue-950/70 dark:text-blue-300 transition-colors">
+          <i data-lucide="layout-dashboard" class="w-4 h-4 shrink-0"></i>
+          <span class="sidebar-label truncate">Tableau de bord</span>
+        </button>
+
+        <button onclick="openTab('students')" data-nav="students" class="nav-item w-full flex items-center justify-between px-2.5 py-2 rounded-lg text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+          <span class="flex items-center gap-3 truncate">
+            <i data-lucide="users" class="w-4 h-4 shrink-0"></i>
+            <span class="sidebar-label truncate">Élèves & Inscriptions</span>
+          </span>
+          <span class="sidebar-label text-[10px] font-mono px-1.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">325</span>
+        </button>
+
+        <button onclick="openTab('classes')" data-nav="classes" class="nav-item w-full flex items-center justify-between px-2.5 py-2 rounded-lg text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+          <span class="flex items-center gap-3 truncate">
+            <i data-lucide="layers" class="w-4 h-4 shrink-0"></i>
+            <span class="sidebar-label truncate">Classes & Matières</span>
+          </span>
+          <span class="sidebar-label text-[10px] font-mono px-1.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">11</span>
+        </button>
+
+        <button onclick="openTab('grades')" data-nav="grades" class="nav-item w-full flex items-center gap-3 px-2.5 py-2 rounded-lg text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+          <i data-lucide="file-spreadsheet" class="w-4 h-4 shrink-0"></i>
+          <span class="sidebar-label truncate">Évaluations & Notes</span>
+        </button>
+
+        <div class="pt-3 px-2.5 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-slate-400 sidebar-label">Administration & Ressources</div>
+
+        <button onclick="openTab('finance')" data-nav="finance" class="nav-item w-full flex items-center gap-3 px-2.5 py-2 rounded-lg text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+          <i data-lucide="wallet" class="w-4 h-4 shrink-0"></i>
+          <span class="sidebar-label truncate">Finances & Caisse</span>
+        </button>
+
+        <button onclick="openTab('staff')" data-nav="staff" class="nav-item w-full flex items-center justify-between px-2.5 py-2 rounded-lg text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+          <span class="flex items-center gap-3 truncate">
+            <i data-lucide="briefcase" class="w-4 h-4 shrink-0"></i>
+            <span class="sidebar-label truncate">Enseignantes & RH</span>
+          </span>
+          <span class="sidebar-label text-[10px] font-mono px-1.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">21</span>
+        </button>
+
+        <button onclick="openTab('library')" data-nav="library" class="nav-item w-full flex items-center gap-3 px-2.5 py-2 rounded-lg text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+          <i data-lucide="book-open" class="w-4 h-4 shrink-0"></i>
+          <span class="sidebar-label truncate">Bibliothèque & Quitus</span>
+        </button>
+
+        <button onclick="openTab('audit')" data-nav="audit" class="nav-item w-full flex items-center gap-3 px-2.5 py-2 rounded-lg text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+          <i data-lucide="shield-check" class="w-4 h-4 shrink-0"></i>
+          <span class="sidebar-label truncate">Journal d'Audit</span>
+        </button>
+      </div>
+
+      <!-- Pied de barre latérale : Sauvegarde & Raccourcis -->
+      <div class="p-3 border-t border-slate-200 dark:border-slate-800 space-y-2 sidebar-label">
+        <div class="bg-blue-50/80 dark:bg-blue-950/40 border border-blue-100 dark:border-blue-900/60 rounded-lg p-2.5">
+          <div class="flex items-center justify-between text-xs font-medium text-blue-900 dark:text-blue-200">
+            <span class="flex items-center gap-1.5"><i data-lucide="database" class="w-3.5 h-3.5 text-blue-600"></i> Sauvegarde ZIP</span>
+            <span class="text-[10px] font-mono text-emerald-600 dark:text-emerald-400">OK 12:00</span>
+          </div>
+          <button onclick="triggerBackup()" class="mt-2 w-full py-1 px-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded-md shadow-2xs transition-colors">
+            Sauvegarder maintenant
+          </button>
+        </div>
+        <div class="flex items-center justify-between text-[11px] text-slate-400 px-1">
+          <span>Raccourcis : Ctrl+W Fermer</span>
+          <span>v1.1.0</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ZONE PRINCIPALE MDI (Barre d'onglets + Contenu dynamique) -->
+    <main class="flex-1 flex flex-col min-w-0 bg-slate-50 dark:bg-slate-950 overflow-hidden">
+      
+      <!-- BARRE D'ONGLETS DE TRAVAIL (MDI Tabs) -->
+      <div class="h-10 bg-slate-200/70 dark:bg-slate-900/90 border-b border-slate-200 dark:border-slate-800 px-2 flex items-end gap-1 overflow-x-auto shrink-0 select-none" id="mdiTabBar">
+        <!-- Les onglets sont injectés dynamiquement par JavaScript -->
+      </div>
+
+      <!-- CONTENEUR DES VUES D'ONGLETS -->
+      <div class="flex-1 overflow-y-auto p-4 md:p-6" id="tabContentContainer">
+        <!-- Le contenu de l'onglet actif s'affiche ici -->
+      </div>
+
+      <!-- BARRE D'ÉTAT INFÉRIEURE (Status Bar Desktop) -->
+      <footer class="h-7 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 px-4 flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 shrink-0 select-none">
+        <div class="flex items-center gap-4">
+          <span class="flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-blue-600"></span>
+            <span>SQLite 3.45 (Drift ORM) — Clés Primaires UUID v4</span>
+          </span>
+          <span class="hidden sm:inline font-mono text-[10px] text-slate-400">DB: /data/flamboyants_2026.sqlite</span>
+        </div>
+        <div class="flex items-center gap-4">
+          <span class="hidden md:inline">Navigation grille : <kbd class="font-mono bg-slate-100 dark:bg-slate-800 px-1 rounded">↑↓←→</kbd> <kbd class="font-mono bg-slate-100 dark:bg-slate-800 px-1 rounded">Entrée</kbd></span>
+          <span id="statusMessage" class="text-blue-600 dark:text-blue-400 font-medium">Prêt</span>
+        </div>
+      </footer>
+    </main>
+  </div>
+
+  <!-- =====================================================================
+       MODALE 1 : VERROUILLAGE RAPIDE DE SESSION & QUICK SWITCH PIN (Ctrl+L)
+       ===================================================================== -->
+  <div id="lockModal" class="fixed inset-0 z-50 hidden bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl max-w-md w-full p-6 text-center space-y-5">
+      <div class="w-14 h-14 rounded-2xl bg-blue-600/10 text-blue-600 dark:text-blue-400 flex items-center justify-center mx-auto border border-blue-200 dark:border-blue-800">
+        <i data-lucide="shield-alert" class="w-7 h-7"></i>
+      </div>
+      
+      <div>
+        <h2 class="text-lg font-bold text-slate-900 dark:text-white">Session Verrouillée</h2>
+        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Vos onglets ouverts sont conservés en mémoire. Saisissez votre code PIN à 4 chiffres pour déverrouiller ou changer d'agent.</p>
+      </div>
+
+      <!-- Sélecteur Quick Switch Utilisateur -->
+      <div class="text-left">
+        <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-1.5">Compte Agent (Quick Switch)</label>
+        <select id="pinUserSelect" class="w-full px-3 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-blue-600 outline-none">
+          <option value="HR|Hery Rakoto|Administrateur • Portée Globale|1234">Hery Rakoto — Administrateur (PIN: 1234)</option>
+          <option value="MR|Miora Rabe|Économat / Caisse • Portée Caisse|2580">Miora Rabe — Caissière Économat (PIN: 2580)</option>
+          <option value="NR|Nadia Razafy|Enseignante Physique-Chimie • Restreinte|1111">Nadia Razafy — Enseignante PC (PIN: 1111)</option>
+          <option value="SR|Sitraka Randria|Secrétariat Général • Portée Globale|0000">Sitraka Randria — Secrétariat (PIN: 0000)</option>
+        </select>
+      </div>
+
+      <!-- Saisie PIN -->
+      <div>
+        <input type="password" id="pinInput" maxlength="4" placeholder="••••" class="w-40 text-center font-mono text-2xl tracking-[0.5em] py-2.5 px-4 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 focus:border-blue-600 focus:ring-2 focus:ring-blue-600/30 outline-none" onkeydown="if(event.key==='Enter') unlockSession()" />
+        <p id="pinError" class="text-xs text-red-500 mt-1.5 hidden">Code PIN incorrect. Indice affiché dans la liste.</p>
+      </div>
+
+      <div class="flex gap-2 pt-2">
+        <button onclick="unlockSession()" class="flex-1 py-2.5 px-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm rounded-xl shadow-sm transition-colors flex items-center justify-center gap-2">
+          <i data-lucide="unlock" class="w-4 h-4"></i>
+          <span>Déverrouiller la session</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- =====================================================================
+       MODALE 2 : RECHERCHE GLOBALE RAPIDE (Ctrl+F)
+       ===================================================================== -->
+  <div id="searchModal" class="fixed inset-0 z-50 hidden bg-slate-950/60 backdrop-blur-xs flex items-start justify-center pt-20 p-4" onclick="if(event.target===this) closeGlobalSearch()">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl max-w-xl w-full overflow-hidden">
+      <div class="p-3.5 border-b border-slate-200 dark:border-slate-800 flex items-center gap-3">
+        <i data-lucide="search" class="w-5 h-5 text-blue-600"></i>
+        <input type="text" id="globalSearchInput" oninput="runGlobalSearch(this.value)" placeholder="Tapez un nom d'élève, un matricule (MAT-2026...), une classe ou un reçu..." class="flex-1 bg-transparent text-sm outline-none text-slate-900 dark:text-white placeholder:text-slate-400" />
+        <button onclick="closeGlobalSearch()" class="px-2 py-1 text-[11px] font-mono bg-slate-100 dark:bg-slate-800 rounded text-slate-500">Échap</button>
+      </div>
+      <div id="globalSearchResults" class="max-h-80 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800/80 p-2">
+        <!-- Résultats dynamiques -->
+      </div>
+    </div>
+  </div>
+
+  <!-- =====================================================================
+       MODALE 3 : APERÇU DOCUMENT PDF NATIF (Bulletin / Reçu / Quitus)
+       ===================================================================== -->
+  <div id="docPreviewModal" class="fixed inset-0 z-50 hidden bg-slate-950/70 backdrop-blur-xs flex items-center justify-center p-4" onclick="if(event.target===this) closeDocModal()">
+    <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl max-w-2xl w-full overflow-hidden flex flex-col max-h-[90vh]">
+      <div class="px-5 py-3.5 bg-slate-50 dark:bg-slate-800/70 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <i data-lucide="file-text" class="w-4 h-4 text-blue-600"></i>
+          <span class="font-semibold text-sm" id="docModalTitle">Document Studio — Aperçu PDF</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="showToast('Impression lancée vers le spouleur système', 'success')" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded-lg flex items-center gap-1.5">
+            <i data-lucide="printer" class="w-3.5 h-3.5"></i> Imprimer
+          </button>
+          <button onclick="closeDocModal()" class="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-white rounded-lg">
+            <i data-lucide="x" class="w-4 h-4"></i>
+          </button>
+        </div>
+      </div>
+      <div class="p-6 overflow-y-auto bg-slate-200/60 dark:bg-slate-950 flex justify-center">
+        <!-- Feuille A4 simulée -->
+        <div id="docModalBody" class="bg-white text-slate-900 w-full max-w-lg p-8 rounded shadow-md border border-slate-300 text-xs space-y-4">
+          <!-- Contenu injecté -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATION CONTAINER -->
+  <div id="toastContainer" class="fixed bottom-9 right-4 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+  <!-- =====================================================================
+       LOGIQUE APPLICATIVE & DONNÉES DU CAHIER DES CHARGES (325 élèves, 11 classes, 21 enseignantes)
+       ===================================================================== -->
+  <script>
+    // 1. DONNÉES MÉTIER COHÉRENTES AVEC LE JEU DE DONNÉES EXCEL v2
+    const CLASSES_DATA = [
+      { id: 'cls-3-1', name: '3ème 1', cycle: 'Secondaire Niveau 2', series: 'Tronc Commun', count: 25, capacity: 35, hasPhilo: false, mainTeacher: 'Mme Bakoly R.' },
+      { id: 'cls-3-2', name: '3ème 2', cycle: 'Secondaire Niveau 2', series: 'Tronc Commun', count: 32, capacity: 35, hasPhilo: false, mainTeacher: 'Mme Sahondra T.' },
+      { id: 'cls-2-1', name: '2nde 1', cycle: 'Secondaire Niveau 3', series: 'Indéterminée', count: 35, capacity: 35, hasPhilo: false, mainTeacher: 'Mme Vololona M.' },
+      { id: 'cls-2-2', name: '2nde 2', cycle: 'Secondaire Niveau 3', series: 'Indéterminée', count: 24, capacity: 35, hasPhilo: false, mainTeacher: 'Mme Hanitra K.' },
+      { id: 'cls-2-3', name: '2nde 3', cycle: 'Secondaire Niveau 3', series: 'Indéterminée', count: 30, capacity: 35, hasPhilo: false, mainTeacher: 'Mme Lalaina P.' },
+      { id: 'cls-1-l1', name: '1ère L1', cycle: 'Secondaire Niveau 3', series: 'Série L (Littéraire)', count: 30, capacity: 35, hasPhilo: true, mainTeacher: 'Mme Fara D.' },
+      { id: 'cls-1-l2', name: '1ère L2', cycle: 'Secondaire Niveau 3', series: 'Série L (Littéraire)', count: 29, capacity: 35, hasPhilo: true, mainTeacher: 'Mme Noro G.' },
+      { id: 'cls-1-s', name: '1ère S', cycle: 'Secondaire Niveau 3', series: 'Série S (Scientifique)', count: 31, capacity: 35, hasPhilo: true, mainTeacher: 'Mme Nadia R.' },
+      { id: 'cls-t-l', name: 'Terminale L', cycle: 'Secondaire Niveau 3', series: 'Série L (Littéraire)', count: 28, capacity: 35, hasPhilo: true, mainTeacher: 'Mme Soa V.' },
+      { id: 'cls-t-s1', name: 'Terminale S1', cycle: 'Secondaire Niveau 3', series: 'Série S (Scientifique)', count: 31, capacity: 35, hasPhilo: true, mainTeacher: 'Mme Voahangy A.' },
+      { id: 'cls-t-s2', name: 'Terminale S2', cycle: 'Secondaire Niveau 3', series: 'Série S (Scientifique)', count: 30, capacity: 35, hasPhilo: true, mainTeacher: 'Mme Bodo Z.' },
+    ];
+
+    const SUBJECTS_STAFF = [
+      { subject: 'Physique-Chimie', code: 'PC', teachersCount: 2, scope: 'Toutes classes (3ème à Terminale)', coeffS: 5, coeffL: 2, names: ['Mme Nadia Razafy', 'Mme Voahangy Andria'] },
+      { subject: 'Mathématiques', code: 'MATH', teachersCount: 2, scope: 'Toutes classes (3ème à Terminale)', coeffS: 5, coeffL: 2, names: ['Mme Bodo Zafindrabe', 'Mme Tantely Rasoa'] },
+      { subject: 'Sciences de la Vie et de la Terre', code: 'SVT', teachersCount: 3, scope: 'Toutes classes (3ème à Terminale)', coeffS: 4, coeffL: 2, names: ['Mme Sahondra Tojo', 'Mme Ony Rabemananjara', 'Mme Lova Ravelo'] },
+      { subject: 'Français', code: 'FR', teachersCount: 2, scope: 'Toutes classes (3ème à Terminale)', coeffS: 3, coeffL: 4, names: ['Mme Fara Daniel', 'Mme Nirina Rakotobe'] },
+      { subject: 'Malagasy', code: 'MLG', teachersCount: 2, scope: 'Toutes classes (3ème à Terminale)', coeffS: 3, coeffL: 4, names: ['Mme Bakoly Randria', 'Mme Vololona Mamy'] },
+      { subject: 'Anglais', code: 'ANG', teachersCount: 4, scope: 'Toutes classes (3ème à Terminale)', coeffS: 2, coeffL: 3, names: ['Mme Hanitra Koto', 'Mme Lalaina Paul', 'Mme Mialy Rajaona', 'Mme Tsiry Andriana'] },
+      { subject: 'Histoire et Géographie', code: 'HG', teachersCount: 3, scope: 'Toutes classes (3ème à Terminale)', coeffS: 2, coeffL: 4, names: ['Mme Noro Germain', 'Mme Soa Valérie', 'Mme Rina Solofo'] },
+      { subject: 'Philosophie', code: 'PHILO', teachersCount: 2, scope: 'Uniquement 1ère et Terminale', coeffS: 2, coeffL: 5, names: ['Mme Mireille Ramaroson', 'Mme Holisoa Rakoto'] },
+      { subject: 'Éducation Physique et Sportive', code: 'EPS', teachersCount: 1, scope: 'Toutes classes (Dispense gérée)', coeffS: 1, coeffL: 1, names: ['Mme Fanja Ratsimba'] },
+    ];
+
+    const STUDENTS_SAMPLE = [
+      { uuid: 'f47ac10b-58cc-4372-a567-0e02b2c3d479', matricule: 'MAT-2026-0001', lastName: 'RAKOTOMALALA', firstName: 'Aina Fitia', gender: 'F', className: 'Terminale S1', status: 'Validée', guardian: 'M. Jean Rakotomalala (Fratrie: 2)', balanceMGA: 0, libraryOk: true, photoHash: '8f434346648f6b96df89dda901c5176b' },
+      { uuid: '9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d', matricule: 'MAT-2026-0002', lastName: 'RAKOTOMALALA', firstName: 'Tojo Kévin', gender: 'M', className: '3ème 1', status: 'Validée', guardian: 'M. Jean Rakotomalala (Fratrie: 2)', balanceMGA: 0, libraryOk: true, photoHash: '2c26b46b68ffc68ff99b453c1d304134' },
+      { uuid: '1b9d6bcd-bbfd-4b2d-9b5d-ab8dfbbd4bed', matricule: 'MAT-2026-0014', lastName: 'ANDRIANARISOA', firstName: 'Miora Nomena', gender: 'F', className: 'Terminale L', status: 'Validée', guardian: 'Mme Claire Andrianarisoa', balanceMGA: 150000, libraryOk: true, photoHash: '4b227777d4dd1fc61c6f884f48641d02' },
+      { uuid: '6ec0bd7f-11c0-43da-975e-2a8ad9ebae0b', matricule: 'MAT-2026-0042', lastName: 'RAZAFINDRABE', firstName: 'Hery Tiana', gender: 'M', className: '1ère S', status: 'Validée', guardian: 'M. Paul Razafindrabe', balanceMGA: 0, libraryOk: false, photoHash: 'ef2d127de37b942baad06145e54b0c61' },
+      { uuid: 'c9bf9e57-1685-4c89-bafb-ff5af830be8a', matricule: 'MAT-2026-0089', lastName: 'RANDRIANASOLO', firstName: 'Fanja', gender: 'F', className: '2nde 1', status: 'Préinscription', guardian: 'Mme Vola Randrianasolo', balanceMGA: 300000, libraryOk: true, photoHash: '7902699be42c8a8e46fbbb4501726517' },
+      { uuid: 'd290f1ee-6c54-4b01-90e6-d701748f0851', matricule: 'MAT-2026-0112', lastName: 'RABEMANANJARA', firstName: 'Sitraka', gender: 'M', className: '3ème 2', status: 'Suspendue', guardian: 'M. Luc Rabemananjara', balanceMGA: 450000, libraryOk: true, photoHash: '2c624232cdd221771294dfbb310aca00' },
+      { uuid: '3fa85f64-5717-4562-b3fc-2c963f66afa6', matricule: 'MAT-2026-0156', lastName: 'RASOANAIVO', firstName: 'Tsiky', gender: 'F', className: '1ère L1', status: 'Transféré/Radiation', guardian: 'Mme Hanta Rasoanaivo', balanceMGA: 0, libraryOk: true, photoHash: '19581e27de7ced00ff1ce50b2047e7a5' },
+      { uuid: '7c9e6679-7425-40de-944b-e07fc1f90ae7', matricule: 'MAT-2026-0204', lastName: 'RAJAONARIVELO', firstName: 'Lova', gender: 'M', className: 'Terminale S2', status: 'Validée', guardian: 'M. Solo Rajaonarivelo', balanceMGA: 0, libraryOk: true, photoHash: '4e07408562bedb8b60ce05c1decfe3ad' },
+    ];
+
+    // Données de notes pour la grille tableur (Terminale S1 vs 3ème 1)
+    let GRADES_DATA = {
+      'Terminale S1': [
+        { id: 1, matricule: 'MAT-2026-0001', name: 'RAKOTOMALALA Aina Fitia', math: 16.5, pc: 15.0, svt: 17.0, fr: 14.0, mlg: 15.5, ang: 16.0, hg: 13.5, philo: 14.5, eps: 16.0, epsExempt: false },
+        { id: 2, matricule: 'MAT-2026-0009', name: 'ANDRIAMAMPIONONA Rivo', math: 12.0, pc: 11.5, svt: 13.0, fr: 10.5, mlg: 12.0, ang: 11.0, hg: 12.5, philo: 11.0, eps: 0, epsExempt: true },
+        { id: 3, matricule: 'MAT-2026-0018', name: 'RAFANOMEZANTSOA Koloina', math: 14.5, pc: 16.0, svt: 15.5, fr: 13.0, mlg: 14.0, ang: 15.0, hg: 14.0, philo: 13.5, eps: 15.0, epsExempt: false },
+        { id: 4, matricule: 'MAT-2026-0027', name: 'RAKOTONDRABE Thierry', math: 09.5, pc: 10.0, svt: 11.0, fr: 08.5, mlg: 11.5, ang: 09.0, hg: 10.0, philo: 09.5, eps: 14.0, epsExempt: false },
+        { id: 5, matricule: 'MAT-2026-0033', name: 'RASOLOFONIAINA Diamondra', math: 18.0, pc: 17.5, svt: 16.5, fr: 15.5, mlg: 16.0, ang: 17.0, hg: 15.0, philo: 16.0, eps: 17.0, epsExempt: false },
+      ],
+      '3ème 1': [
+        { id: 101, matricule: 'MAT-2026-0002', name: 'RAKOTOMALALA Tojo Kévin', math: 14.0, pc: 13.5, svt: 15.0, fr: 12.5, mlg: 14.5, ang: 13.0, hg: 14.0, philo: null, eps: 16.5, epsExempt: false },
+        { id: 102, matricule: 'MAT-2026-0045', name: 'RAMANANTSOA Sarobidy', math: 16.0, pc: 15.5, svt: 14.5, fr: 15.0, mlg: 16.0, ang: 15.5, hg: 14.5, philo: null, eps: 0, epsExempt: true },
+        { id: 103, matricule: 'MAT-2026-0058', name: 'RANDRIAMBOLOLONA Mickaël', math: 11.0, pc: 10.5, svt: 12.0, fr: 11.5, mlg: 13.0, ang: 10.0, hg: 11.5, philo: null, eps: 15.0, epsExempt: false },
+      ]
+    };
+
+    let RECEIPTS_DATA = [
+      { ref: 'REC-2026-0412', date: '16/11/2026 11:42', student: 'RAKOTOMALALA Aina Fitia', class: 'Terminale S1', motif: 'Écolage T1 (Tranche 2/3)', amount: 250000, mode: 'Espèces', cashier: 'Miora Rabe', status: 'Validé' },
+      { ref: 'REC-2026-0411', date: '16/11/2026 10:15', student: 'RAJAONARIVELO Lova', class: 'Terminale S2', motif: 'Écolage T1 + Frais Labo', amount: 280000, mode: 'Virement', cashier: 'Miora Rabe', status: 'Validé' },
+      { ref: 'REC-2026-0410', date: '16/11/2026 09:30', student: 'ANDRIANARISOA Miora', class: 'Terminale L', motif: 'Acompte Écolage T1', amount: 150000, mode: 'Mobile Money', cashier: 'Miora Rabe', status: 'Validé' },
+      { ref: 'REC-2026-0409', date: '15/11/2026 16:45', student: 'RAKOTOMALALA Tojo Kévin', class: '3ème 1', motif: 'Écolage T1 (Tranche 2/3)', amount: 210000, mode: 'Espèces', cashier: 'Miora Rabe', status: 'Clôturé (Z-045)' },
+    ];
+
+    const AUDIT_LOGS = [
+      { uuid: 'evt-882a-91f0', time: '2026-11-16 11:42:18 UTC', user: 'Miora Rabe (Économat)', module: 'Finances', action: 'CREATE_RECEIPT', target: 'REC-2026-0412 (250 000 MGA)', hash: 'sha256:9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08' },
+      { uuid: 'evt-771b-44c2', time: '2026-11-16 10:05:02 UTC', user: 'Nadia Razafy (Enseignante)', module: 'Évaluations', action: 'UPDATE_GRADE', target: 'Terminale S1 • Physique-Chimie', hash: 'sha256:4b227777d4dd1fc61c6f884f48641d0260d66d3b9102837186906bc609712d76' },
+      { uuid: 'evt-659c-10a9', time: '2026-11-16 08:30:44 UTC', user: 'Hery Rakoto (Admin)', module: 'Sécurité', action: 'BACKUP_ZIP_AUTO', target: 'flamboyants_2026_11_16.zip', hash: 'sha256:ef2d127de37b942baad06145e54b0c61f0d862216524b3d07894a8852fa868a7' },
+      { uuid: 'evt-540d-33e1', time: '2026-11-15 17:15:00 UTC', user: 'Sitraka Randria (Secrétariat)', module: 'Transferts', action: 'ISSUE_QUITUS', target: 'MAT-2026-0156 (RASOANAIVO Tsiky)', hash: 'sha256:7902699be42c8a8e46fbbb4501726517e86b22c56a189f7625a6da49081b2451' },
+    ];
+
+    // 2. GESTION DES ONGLETS MULTIPLES (MDI STATE)
+    const MODULE_DEFS = {
+      dashboard: { title: 'Tableau de bord', icon: 'layout-dashboard', closable: false },
+      students: { title: 'Élèves & Inscriptions (325)', icon: 'users', closable: true },
+      classes: { title: 'Classes & Matières (11)', icon: 'layers', closable: true },
+      grades: { title: 'Saisie des Notes', icon: 'file-spreadsheet', closable: true },
+      finance: { title: 'Finances & Caisse', icon: 'wallet', closable: true },
+      staff: { title: 'Enseignantes (21)', icon: 'briefcase', closable: true },
+      library: { title: 'Bibliothèque & Quitus', icon: 'book-open', closable: true },
+      audit: { title: 'Journal d\'Audit SHA-256', icon: 'shield-check', closable: true },
+    };
+
+    let openTabs = ['dashboard', 'students', 'grades'];
+    let activeTab = 'dashboard';
+    let selectedStudentUuid = STUDENTS_SAMPLE[0].uuid;
+    let studentSearchQuery = '';
+    let studentClassFilter = 'ALL';
+    let studentStatusFilter = 'ALL';
+    let activeGradeClass = 'Terminale S1';
+    let isSandbox = false;
+    let fontScaleStep = 0;
+
+    // 3. RENDU DES ONGLETS MDI ET NAVIGATION
+    function renderTabs() {
+      const tabBar = document.getElementById('mdiTabBar');
+      tabBar.innerHTML = openTabs.map(tabId => {
+        const def = MODULE_DEFS[tabId];
+        const isActive = tabId === activeTab;
+        return `
+          <div onclick="switchTab('${tabId}')" class="group flex items-center gap-2 px-3.5 py-2 text-xs font-medium rounded-t-lg cursor-pointer border-t border-x transition-all shrink-0 ${
+            isActive 
+              ? 'bg-slate-50 dark:bg-slate-950 text-blue-700 dark:text-blue-400 border-slate-200 dark:border-slate-800 tab-active-indicator shadow-2xs' 
+              : 'bg-slate-200/50 dark:bg-slate-900/50 text-slate-600 dark:text-slate-400 border-transparent hover:bg-white/60 dark:hover:bg-slate-800/60'
+          }">
+            <i data-lucide="${def.icon}" class="w-3.5 h-3.5 ${isActive ? 'text-blue-600 dark:text-blue-400' : 'text-slate-400'}"></i>
+            <span>${def.title}</span>
+            ${def.closable ? `
+              <button onclick="event.stopPropagation(); closeTab('${tabId}')" title="Fermer l'onglet (Ctrl+W)" class="ml-1 p-0.5 rounded hover:bg-slate-300/70 dark:hover:bg-slate-700 text-slate-400 hover:text-slate-700 dark:hover:text-white opacity-70 group-hover:opacity-100">
+                <i data-lucide="x" class="w-3 h-3"></i>
+              </button>
+            ` : ''}
+          </div>
+        `;
+      }).join('');
+
+      // Mise à jour de la barre latérale
+      document.querySelectorAll('.nav-item').forEach(btn => {
+        const navId = btn.getAttribute('data-nav');
+        if (navId === activeTab) {
+          btn.className = 'nav-item w-full flex items-center justify-between px-2.5 py-2 rounded-lg text-sm font-medium text-blue-700 bg-blue-50 dark:bg-blue-950/70 dark:text-blue-300 transition-colors';
+        } else {
+          btn.className = 'nav-item w-full flex items-center justify-between px-2.5 py-2 rounded-lg text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors';
+        }
+      });
+
+      renderActiveTabContent();
+      lucide.createIcons();
+    }
+
+    function openTab(tabId) {
+      if (!openTabs.includes(tabId)) {
+        openTabs.push(tabId);
+      }
+      activeTab = tabId;
+      renderTabs();
+    }
+
+    function switchTab(tabId) {
+      activeTab = tabId;
+      renderTabs();
+    }
+
+    function closeTab(tabId) {
+      if (tabId === 'dashboard') return;
+      const idx = openTabs.indexOf(tabId);
+      if (idx > -1) {
+        openTabs.splice(idx, 1);
+        if (activeTab === tabId) {
+          activeTab = openTabs[Math.max(0, idx - 1)];
+        }
+        renderTabs();
+      }
+    }
+
+    // 4. RENDU DU CONTENU DE CHAQUE MODULE
+    function renderActiveTabContent() {
+      const container = document.getElementById('tabContentContainer');
+      switch (activeTab) {
+        case 'dashboard':
+          container.innerHTML = renderDashboardView();
+          break;
+        case 'students':
+          container.innerHTML = renderStudentsView();
+          break;
+        case 'classes':
+          container.innerHTML = renderClassesView();
+          break;
+        case 'grades':
+          container.innerHTML = renderGradesView();
+          break;
+        case 'finance':
+          container.innerHTML = renderFinanceView();
+          break;
+        case 'staff':
+          container.innerHTML = renderStaffView();
+          break;
+        case 'library':
+          container.innerHTML = renderLibraryView();
+          break;
+        case 'audit':
+          container.innerHTML = renderAuditView();
+          break;
+      }
+      lucide.createIcons();
+    }
+
+    // --- VUE 1 : TABLEAU DE BORD ---
+    function renderDashboardView() {
+      return `
+        <div class="max-w-7xl mx-auto space-y-6">
+          <!-- En-tête -->
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <h1 class="text-xl font-bold text-slate-900 dark:text-white tracking-tight">Tableau de bord de l'établissement</h1>
+              <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Synthèse en temps réel • Secondaire Niveau 2 (3ème) & Secondaire Niveau 3 (2nde, 1ère, Terminale)</p>
+            </div>
+            <div class="flex flex-wrap items-center gap-2">
+              <button onclick="openTab('students')" class="px-3 py-2 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium flex items-center gap-2 shadow-2xs transition-colors">
+                <i data-lucide="user-plus" class="w-4 h-4 text-blue-600"></i> Nouvelle inscription
+              </button>
+              <button onclick="openTab('grades')" class="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-medium flex items-center gap-2 shadow-sm transition-colors">
+                <i data-lucide="edit-3" class="w-4 h-4"></i> Saisir des notes
+              </button>
+            </div>
+          </div>
+
+          <!-- Cartes KPI -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-2xs">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-medium text-slate-500 dark:text-slate-400">Effectif Total Élèves</span>
+                <div class="w-8 h-8 rounded-lg bg-blue-50 dark:bg-blue-950 text-blue-600 dark:text-blue-400 flex items-center justify-center">
+                  <i data-lucide="users" class="w-4 h-4"></i>
+                </div>
+              </div>
+              <div class="mt-3 flex items-baseline gap-2">
+                <span class="text-2xl font-bold font-mono text-slate-900 dark:text-white">325</span>
+                <span class="text-xs font-medium text-emerald-600 dark:text-emerald-400">+12 vs 2025</span>
+              </div>
+              <p class="text-[11px] text-slate-400 mt-1">57 en 3ème • 89 en 2nde • 90 en 1ère • 89 en Tle</p>
+            </div>
+
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-2xs">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-medium text-slate-500 dark:text-slate-400">Structure Pédagogique</span>
+                <div class="w-8 h-8 rounded-lg bg-indigo-50 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
+                  <i data-lucide="layers" class="w-4 h-4"></i>
+                </div>
+              </div>
+              <div class="mt-3 flex items-baseline gap-2">
+                <span class="text-2xl font-bold font-mono text-slate-900 dark:text-white">11</span>
+                <span class="text-xs font-medium text-slate-500">Classes parallèles</span>
+              </div>
+              <p class="text-[11px] text-slate-400 mt-1">9 matières • Philosophie active en 1ère & Tle</p>
+            </div>
+
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-2xs">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-medium text-slate-500 dark:text-slate-400">Corps Enseignant</span>
+                <div class="w-8 h-8 rounded-lg bg-sky-50 dark:bg-sky-950 text-sky-600 dark:text-sky-400 flex items-center justify-center">
+                  <i data-lucide="briefcase" class="w-4 h-4"></i>
+                </div>
+              </div>
+              <div class="mt-3 flex items-baseline gap-2">
+                <span class="text-2xl font-bold font-mono text-slate-900 dark:text-white">21</span>
+                <span class="text-xs font-medium text-sky-600 dark:text-sky-400">Enseignantes</span>
+              </div>
+              <p class="text-[11px] text-slate-400 mt-1">100% des créneaux horaires couverts</p>
+            </div>
+
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-2xs">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-medium text-slate-500 dark:text-slate-400">Recouvrement Écolage T1</span>
+                <div class="w-8 h-8 rounded-lg bg-emerald-50 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+                  <i data-lucide="wallet" class="w-4 h-4"></i>
+                </div>
+              </div>
+              <div class="mt-3 flex items-baseline gap-2">
+                <span class="text-2xl font-bold font-mono text-slate-900 dark:text-white">88,4%</span>
+                <span class="text-xs font-mono text-emerald-600 dark:text-emerald-400">68,9M MGA</span>
+              </div>
+              <p class="text-[11px] text-slate-400 mt-1">Caisse du jour : 680 000 MGA (3 reçus)</p>
+            </div>
+          </div>
+
+          <!-- Graphique Répartition des Effectifs par Classe & Alertes Métier -->
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Graphique barres horizontales des 11 classes -->
+            <div class="lg:col-span-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-2xs">
+              <div class="flex items-center justify-between mb-4">
+                <div>
+                  <h2 class="text-sm font-bold text-slate-900 dark:text-white">Répartition des effectifs par classe (325 élèves)</h2>
+                  <p class="text-xs text-slate-500 dark:text-slate-400">Capacité cible : 30 à 35 élèves par salle</p>
+                </div>
+                <span class="text-[11px] font-mono px-2 py-1 rounded-md bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-300">Moyenne : 29,5 él./classe</span>
+              </div>
+              
+              <div class="space-y-2.5">
+                ${CLASSES_DATA.map(c => {
+                  const pct = Math.round((c.count / c.capacity) * 100);
+                  const isSec2 = c.cycle.includes('Niveau 2');
+                  return `
+                    <div class="grid grid-cols-12 items-center gap-3 text-xs">
+                      <div class="col-span-3 sm:col-span-2 font-semibold text-slate-700 dark:text-slate-200 truncate">${c.name}</div>
+                      <div class="col-span-7 sm:col-span-8 bg-slate-100 dark:bg-slate-800 h-2.5 rounded-full overflow-hidden">
+                        <div class="h-full rounded-full ${isSec2 ? 'bg-sky-500' : 'bg-blue-600'}" style="width: ${pct}%"></div>
+                      </div>
+                      <div class="col-span-2 text-right font-mono font-semibold text-slate-700 dark:text-slate-300">${c.count} <span class="text-[10px] text-slate-400">él.</span></div>
+                    </div>
+                  `;
+                }).join('')}
+              </div>
+            </div>
+
+            <!-- Alertes & Contrôles Métier -->
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-2xs flex flex-col justify-between space-y-4">
+              <div>
+                <h2 class="text-sm font-bold text-slate-900 dark:text-white mb-3">Alertes & Conformité Métier</h2>
+                <div class="space-y-3">
+                  <div class="p-3 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 text-xs space-y-1">
+                    <div class="flex items-center gap-1.5 font-semibold text-amber-800 dark:text-amber-300">
+                      <i data-lucide="book-x" class="w-4 h-4"></i> Blocage Quitus Bibliothèque
+                    </div>
+                    <p class="text-amber-700 dark:text-amber-400/90 text-[11px]">1 élève (RAZAFINDRABE Hery, 1ère S) possède un ouvrage non restitué. Certificat de sortie bloqué.</p>
+                  </div>
+
+                  <div class="p-3 rounded-xl bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800/60 text-xs space-y-1">
+                    <div class="flex items-center gap-1.5 font-semibold text-blue-800 dark:text-blue-300">
+                      <i data-lucide="heart-pulse" class="w-4 h-4"></i> Dispenses EPS actives (2)
+                    </div>
+                    <p class="text-blue-700 dark:text-blue-400/90 text-[11px]">Coefficient EPS neutralisé automatiquement dans le calcul des moyennes du Trimestre 1.</p>
+                  </div>
+
+                  <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-xs space-y-1">
+                    <div class="flex items-center gap-1.5 font-semibold text-slate-800 dark:text-slate-200">
+                      <i data-lucide="lock" class="w-4 h-4 text-blue-600"></i> Conseil de classe T1
+                    </div>
+                    <p class="text-slate-500 dark:text-slate-400 text-[11px]">Verrouillage des notes prévu le 12/12/2026 après délibération.</p>
+                  </div>
+                </div>
+              </div>
+
+              <button onclick="openTab('audit')" class="w-full py-2 px-3 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-medium transition-colors flex items-center justify-center gap-2">
+                <i data-lucide="shield-check" class="w-4 h-4 text-blue-600"></i> Vérifier l'intégrité SHA-256
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // --- VUE 2 : ÉLÈVES, INSCRIPTIONS & TRANSFERTS/QUITUS ---
+    function renderStudentsView() {
+      const filtered = STUDENTS_SAMPLE.filter(s => {
+        const matchQuery = `${s.lastName} ${s.firstName} ${s.matricule} ${s.className}`.toLowerCase().includes(studentSearchQuery.toLowerCase());
+        const matchClass = studentClassFilter === 'ALL' || s.className === studentClassFilter;
+        const matchStatus = studentStatusFilter === 'ALL' || s.status === studentStatusFilter;
+        return matchQuery && matchClass && matchStatus;
+      });
+
+      const selected = STUDENTS_SAMPLE.find(s => s.uuid === selectedStudentUuid) || filtered[0] || STUDENTS_SAMPLE[0];
+
+      const getStatusBadge = (status) => {
+        switch(status) {
+          case 'Validée': return 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800';
+          case 'Préinscription': return 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/60 dark:text-blue-300 dark:border-blue-800';
+          case 'Suspendue': return 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-800';
+          default: return 'bg-slate-100 text-slate-600 border-slate-300 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700';
+        }
+      };
+
+      return `
+        <div class="max-w-7xl mx-auto space-y-4">
+          <!-- Barre d'outils -->
+          <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 bg-white dark:bg-slate-900 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xs">
+            <div class="flex flex-wrap items-center gap-2 flex-1">
+              <div class="relative flex-1 min-w-[200px] max-w-xs">
+                <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-2.5"></i>
+                <input type="text" value="${studentSearchQuery}" oninput="studentSearchQuery=this.value; renderActiveTabContent()" placeholder="Filtrer nom, matricule..." class="w-full pl-9 pr-3 py-1.5 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 focus:border-blue-600 outline-none" />
+              </div>
+
+              <select onchange="studentClassFilter=this.value; renderActiveTabContent()" class="px-3 py-1.5 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 outline-none">
+                <option value="ALL">Toutes les classes (11)</option>
+                ${CLASSES_DATA.map(c => `<option value="${c.name}" ${studentClassFilter===c.name?'selected':''}>${c.name} (${c.count})</option>`).join('')}
+              </select>
+
+              <select onchange="studentStatusFilter=this.value; renderActiveTabContent()" class="px-3 py-1.5 text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 outline-none">
+                <option value="ALL">Tous les statuts</option>
+                <option value="Validée" ${studentStatusFilter==='Validée'?'selected':''}>Validée</option>
+                <option value="Préinscription" ${studentStatusFilter==='Préinscription'?'selected':''}>Préinscription</option>
+                <option value="Suspendue" ${studentStatusFilter==='Suspendue'?'selected':''}>Suspendue</option>
+                <option value="Transféré/Radiation" ${studentStatusFilter==='Transféré/Radiation'?'selected':''}>Transféré/Radiation</option>
+              </select>
+            </div>
+
+            <div class="flex items-center gap-2">
+              <button onclick="showToast('Modèle XLSX élèves téléchargé', 'info')" class="px-3 py-1.5 text-xs font-medium rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-1.5">
+                <i data-lucide="download" class="w-3.5 h-3.5 text-blue-600"></i> Export XLSX
+              </button>
+              <button onclick="showToast('Assistant de nouvelle inscription ouvert', 'info')" class="px-3 py-1.5 text-xs font-medium rounded-xl bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-1.5 shadow-2xs">
+                <i data-lucide="plus" class="w-3.5 h-3.5"></i> Inscrire un élève
+              </button>
+            </div>
+          </div>
+
+          <!-- Grille Maître-Détail Desktop -->
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            <!-- Liste des élèves -->
+            <div class="lg:col-span-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-2xs">
+              <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse text-xs">
+                  <thead>
+                    <tr class="bg-slate-50 dark:bg-slate-800/70 border-b border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 font-semibold">
+                      <th class="py-2.5 px-3">Matricule</th>
+                      <th class="py-2.5 px-3">Nom & Prénoms</th>
+                      <th class="py-2.5 px-3">Classe</th>
+                      <th class="py-2.5 px-3">Statut</th>
+                      <th class="py-2.5 px-3 text-right">Solde MGA</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+                    ${filtered.map(s => {
+                      const isSelected = s.uuid === selected.uuid;
+                      return `
+                        <tr onclick="selectedStudentUuid='${s.uuid}'; renderActiveTabContent()" class="cursor-pointer transition-colors ${isSelected ? 'bg-blue-50/80 dark:bg-blue-950/50' : 'hover:bg-slate-50 dark:hover:bg-slate-800/40'}">
+                          <td class="py-2.5 px-3 font-mono text-[11px] font-medium text-blue-600 dark:text-blue-400">${s.matricule}</td>
+                          <td class="py-2.5 px-3 font-semibold text-slate-800 dark:text-slate-100">${s.lastName} <span class="font-normal">${s.firstName}</span></td>
+                          <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 font-medium">${s.className}</span></td>
+                          <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded-full border text-[10px] font-semibold ${getStatusBadge(s.status)}">${s.status}</span></td>
+                          <td class="py-2.5 px-3 text-right font-mono ${s.balanceMGA > 0 ? 'text-amber-600 dark:text-amber-400 font-semibold' : 'text-emerald-600 dark:text-emerald-400'}">${s.balanceMGA.toLocaleString('fr-FR')}</td>
+                        </tr>
+                      `;
+                    }).join('')}
+                  </tbody>
+                </table>
+              </div>
+              <div class="px-4 py-2.5 bg-slate-50 dark:bg-slate-800/40 border-t border-slate-200 dark:border-slate-800 text-[11px] text-slate-500 flex justify-between">
+                <span>Affichage de l'échantillon représentatif (${filtered.length} dossiers sur 325 actifs)</span>
+                <span class="font-mono">Base : 325 élèves</span>
+              </div>
+            </div>
+
+            <!-- Fiche Détail & Procédure Quitus -->
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-2xs space-y-4">
+              <div class="flex items-start gap-3 pb-4 border-b border-slate-100 dark:border-slate-800">
+                <div class="w-12 h-12 rounded-xl bg-blue-600 text-white font-bold flex items-center justify-center text-base shrink-0 shadow-xs">
+                  ${selected.lastName[0]}${selected.firstName[0]}
+                </div>
+                <div class="min-w-0 flex-1">
+                  <h3 class="font-bold text-sm text-slate-900 dark:text-white truncate">${selected.lastName} ${selected.firstName}</h3>
+                  <p class="font-mono text-[11px] text-blue-600 dark:text-blue-400">${selected.matricule} • ${selected.className}</p>
+                  <p class="font-mono text-[10px] text-slate-400 truncate mt-0.5" title="Clé Primaire UUID v4">UUID: ${selected.uuid}</p>
+                </div>
+              </div>
+
+              <div class="space-y-2.5 text-xs">
+                <div class="flex justify-between">
+                  <span class="text-slate-500">Responsable légal :</span>
+                  <span class="font-medium text-slate-800 dark:text-slate-200 text-right">${selected.guardian}</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-slate-500">Fichier photo local :</span>
+                  <span class="font-mono text-[10px] text-slate-500">/media/photos/${selected.matricule}.jpg</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-slate-500">Quitus Économat :</span>
+                  <span class="font-semibold ${selected.balanceMGA === 0 ? 'text-emerald-600' : 'text-amber-600'}">${selected.balanceMGA === 0 ? 'Régularisé (0 MGA)' : 'Impayé : ' + selected.balanceMGA.toLocaleString('fr-FR') + ' MGA'}</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-slate-500">Quitus Bibliothèque :</span>
+                  <span class="font-semibold ${selected.libraryOk ? 'text-emerald-600' : 'text-red-600'}">${selected.libraryOk ? 'Aucun prêt en cours' : 'Livre non restitué !'}</span>
+                </div>
+              </div>
+
+              <!-- Actions Documentaires -->
+              <div class="pt-3 border-t border-slate-100 dark:border-slate-800 space-y-2">
+                <button onclick="previewBulletin('${selected.lastName} ${selected.firstName}', '${selected.className}')" class="w-full py-2 px-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-medium flex items-center justify-center gap-2 transition-colors">
+                  <i data-lucide="file-text" class="w-4 h-4"></i> Générer Bulletin PDF (T1)
+                </button>
+                <button onclick="attemptQuitus('${selected.uuid}')" class="w-full py-2 px-3 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-medium flex items-center justify-center gap-2 transition-colors">
+                  <i data-lucide="file-check-2" class="w-4 h-4 text-blue-600"></i> Procédure Transfert & Quitus
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // --- VUE 3 : CLASSES & MATIÈRES ---
+    function renderClassesView() {
+      return `
+        <div class="max-w-7xl mx-auto space-y-6">
+          <div class="flex items-center justify-between">
+            <div>
+              <h1 class="text-lg font-bold text-slate-900 dark:text-white">Structure Pédagogique (11 Classes)</h1>
+              <p class="text-xs text-slate-500">Organisation par cycle : Secondaire Niveau 2 (3ème) et Secondaire Niveau 3 (2nde, 1ère L/S, Terminale L/S)</p>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            ${CLASSES_DATA.map(c => `
+              <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-2xs hover:border-blue-400 dark:hover:border-blue-700 transition-all flex flex-col justify-between space-y-3">
+                <div>
+                  <div class="flex items-center justify-between">
+                    <span class="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-md ${c.cycle.includes('Niveau 2') ? 'bg-sky-50 text-sky-700 dark:bg-sky-950 dark:text-sky-300' : 'bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300'}">${c.cycle}</span>
+                    <span class="font-mono text-xs font-bold text-slate-700 dark:text-slate-300">${c.count} élèves</span>
+                  </div>
+                  <h3 class="text-base font-bold text-slate-900 dark:text-white mt-2">${c.name}</h3>
+                  <p class="text-xs text-slate-500">${c.series} • Titulaire : ${c.mainTeacher}</p>
+                </div>
+
+                <div class="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[11px]">
+                  <span class="${c.hasPhilo ? 'text-indigo-600 dark:text-indigo-400 font-medium' : 'text-slate-400'}">
+                    ${c.hasPhilo ? '✓ Philosophie incluse' : '• Sans Philosophie'}
+                  </span>
+                  <button onclick="activeGradeClass='${c.name.includes('3ème') ? '3ème 1' : 'Terminale S1'}'; openTab('grades')" class="text-blue-600 dark:text-blue-400 font-semibold hover:underline">
+                    Grille de notes →
+                  </button>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    // --- VUE 4 : ÉVALUATIONS & NOTES (GRILLE STYLE TABLEUR AVEC DISPENSE EPS & PHILO CONDITIONNELLE) ---
+    function renderGradesView() {
+      const rows = GRADES_DATA[activeGradeClass] || GRADES_DATA['Terminale S1'];
+      const hasPhilo = !activeGradeClass.startsWith('3ème') && !activeGradeClass.startsWith('2nde');
+      const isSeriesL = activeGradeClass.includes('L');
+
+      // Coefficients selon série
+      const coeffs = {
+        math: isSeriesL ? 2 : 5,
+        pc: isSeriesL ? 2 : 5,
+        svt: isSeriesL ? 2 : 4,
+        fr: isSeriesL ? 4 : 3,
+        mlg: isSeriesL ? 4 : 3,
+        ang: isSeriesL ? 3 : 2,
+        hg: isSeriesL ? 4 : 2,
+        philo: hasPhilo ? (isSeriesL ? 5 : 2) : 0,
+        eps: 1
+      };
+
+      const computeAverage = (r) => {
+        let sum = 0;
+        let totalCoeff = 0;
+        const subjects = ['math', 'pc', 'svt', 'fr', 'mlg', 'ang', 'hg'];
+        if (hasPhilo) subjects.push('philo');
+        
+        subjects.forEach(sub => {
+          sum += (parseFloat(r[sub]) || 0) * coeffs[sub];
+          totalCoeff += coeffs[sub];
+        });
+
+        // Neutralisation du coefficient EPS si l'élève est dispensé
+        if (!r.epsExempt) {
+          sum += (parseFloat(r.eps) || 0) * coeffs.eps;
+          totalCoeff += coeffs.eps;
+        }
+
+        return (sum / totalCoeff).toFixed(2);
+      };
+
+      return `
+        <div class="max-w-7xl mx-auto space-y-4">
+          <!-- Contrôles de la grille -->
+          <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-2xs">
+            <div class="flex flex-wrap items-center gap-3">
+              <div>
+                <label class="block text-[10px] font-semibold uppercase text-slate-400 mb-1">Classe sélectionnée</label>
+                <select onchange="activeGradeClass=this.value; renderActiveTabContent()" class="px-3 py-1.5 text-xs font-semibold rounded-xl border border-slate-200 dark:border-slate-700 bg-blue-50/60 dark:bg-blue-950/60 text-blue-800 dark:text-blue-200 outline-none">
+                  <option value="Terminale S1" ${activeGradeClass==='Terminale S1'?'selected':''}>Terminale S1 (31 él. • Avec Philosophie)</option>
+                  <option value="3ème 1" ${activeGradeClass==='3ème 1'?'selected':''}>3ème 1 (25 él. • Sans Philosophie)</option>
+                </select>
+              </div>
+              <div class="text-xs text-slate-500 dark:text-slate-400 border-l border-slate-200 dark:border-slate-800 pl-3">
+                <p class="font-medium text-slate-700 dark:text-slate-200">Règles de calcul actives :</p>
+                <p class="text-[11px]">${hasPhilo ? 'Philosophie activée (Coeff ' + coeffs.philo + ')' : 'Philosophie masquée (Secondaire Niveau 2)'} • Neutralisation automatique si Dispensé EPS</p>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-2">
+              <button onclick="showToast('Notes enregistrées dans SQLite et journalisées en audit', 'success')" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-xl shadow-sm flex items-center gap-2">
+                <i data-lucide="save" class="w-4 h-4"></i> Valider la saisie (Ctrl+S)
+              </button>
+            </div>
+          </div>
+
+          <!-- Grille Tableur Interactive -->
+          <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-2xs">
+            <div class="overflow-x-auto">
+              <table class="w-full text-left border-collapse text-xs">
+                <thead>
+                  <tr class="bg-slate-100 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-semibold">
+                    <th class="py-2.5 px-3 sticky left-0 bg-slate-100 dark:bg-slate-800 z-10">Élève</th>
+                    <th class="py-2.5 px-2 text-center">Math<br><span class="text-[10px] font-mono text-blue-600">c.${coeffs.math}</span></th>
+                    <th class="py-2.5 px-2 text-center">PC<br><span class="text-[10px] font-mono text-blue-600">c.${coeffs.pc}</span></th>
+                    <th class="py-2.5 px-2 text-center">SVT<br><span class="text-[10px] font-mono text-blue-600">c.${coeffs.svt}</span></th>
+                    <th class="py-2.5 px-2 text-center">FR<br><span class="text-[10px] font-mono text-blue-600">c.${coeffs.fr}</span></th>
+                    <th class="py-2.5 px-2 text-center">MLG<br><span class="text-[10px] font-mono text-blue-600">c.${coeffs.mlg}</span></th>
+                    <th class="py-2.5 px-2 text-center">ANG<br><span class="text-[10px] font-mono text-blue-600">c.${coeffs.ang}</span></th>
+                    <th class="py-2.5 px-2 text-center">HG<br><span class="text-[10px] font-mono text-blue-600">c.${coeffs.hg}</span></th>
+                    ${hasPhilo ? `<th class="py-2.5 px-2 text-center bg-indigo-50/70 dark:bg-indigo-950/50">Philo<br><span class="text-[10px] font-mono text-indigo-600">c.${coeffs.philo}</span></th>` : ''}
+                    <th class="py-2.5 px-2 text-center">EPS<br><span class="text-[10px] font-mono text-blue-600">c.1</span></th>
+                    <th class="py-2.5 px-2 text-center">Disp. EPS</th>
+                    <th class="py-2.5 px-3 text-right bg-blue-50/70 dark:bg-blue-950/50 text-blue-800 dark:text-blue-200">Moyenne /20</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+                  ${rows.map((r, idx) => {
+                    const avg = computeAverage(r);
+                    const subjectsList = ['math', 'pc', 'svt', 'fr', 'mlg', 'ang', 'hg'];
+                    return `
+                      <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-800/40">
+                        <td class="py-2 px-3 font-medium text-slate-800 dark:text-slate-100 sticky left-0 bg-white dark:bg-slate-900">
+                          <div>${r.name}</div>
+                          <div class="font-mono text-[10px] text-slate-400">${r.matricule}</div>
+                        </td>
+                        ${subjectsList.map(sub => `
+                          <td class="py-1.5 px-1.5 text-center">
+                            <input type="number" step="0.25" min="0" max="20" value="${r[sub]}" onchange="updateGradeCell(${idx}, '${sub}', this.value)" class="w-12 text-center font-mono py-1 rounded border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 focus:border-blue-600 focus:bg-white dark:focus:bg-slate-950 outline-none" />
+                          </td>
+                        `).join('')}
+                        ${hasPhilo ? `
+                          <td class="py-1.5 px-1.5 text-center bg-indigo-50/30 dark:bg-indigo-950/20">
+                            <input type="number" step="0.25" min="0" max="20" value="${r.philo}" onchange="updateGradeCell(${idx}, 'philo', this.value)" class="w-12 text-center font-mono py-1 rounded border border-indigo-200 dark:border-indigo-800 bg-white dark:bg-slate-900 focus:border-indigo-600 outline-none" />
+                          </td>
+                        ` : ''}
+                        <td class="py-1.5 px-1.5 text-center">
+                          ${r.epsExempt 
+                            ? `<span class="inline-block w-12 py-1 text-[10px] font-mono bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300 rounded">DISP.</span>`
+                            : `<input type="number" step="0.25" min="0" max="20" value="${r.eps}" onchange="updateGradeCell(${idx}, 'eps', this.value)" class="w-12 text-center font-mono py-1 rounded border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 focus:border-blue-600 outline-none" />`
+                          }
+                        </td>
+                        <td class="py-1.5 px-2 text-center">
+                          <input type="checkbox" ${r.epsExempt ? 'checked' : ''} onchange="toggleEpsExempt(${idx})" class="w-4 h-4 accent-blue-600 rounded cursor-pointer" title="Neutraliser le coefficient EPS" />
+                        </td>
+                        <td class="py-2 px-3 text-right font-mono font-bold text-sm bg-blue-50/40 dark:bg-blue-950/30 ${parseFloat(avg) >= 10 ? 'text-blue-700 dark:text-blue-300' : 'text-red-600 dark:text-red-400'}">
+                          ${avg}
+                        </td>
+                      </tr>
+                    `;
+                  }).join('')}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // --- VUE 5 : FINANCES, ÉCONOMAT & CAISSE ---
+    function renderFinanceView() {
+      return `
+        <div class="max-w-7xl mx-auto space-y-6">
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Formulaire Encaissement Rapide -->
+            <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-2xs space-y-4">
+              <div class="flex items-center gap-2 text-blue-600 dark:text-blue-400">
+                <i data-lucide="banknote" class="w-5 h-5"></i>
+                <h2 class="font-bold text-sm text-slate-900 dark:text-white">Nouvel Encaissement (MGA)</h2>
+              </div>
+
+              <div class="space-y-3 text-xs">
+                <div>
+                  <label class="block font-medium text-slate-600 dark:text-slate-300 mb-1">Élève concerné</label>
+                  <select id="payStudentSelect" class="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 outline-none">
+                    ${STUDENTS_SAMPLE.map(s => `<option value="${s.lastName} ${s.firstName}|${s.className}">${s.matricule} — ${s.lastName} ${s.firstName} (${s.className})</option>`).join('')}
+                  </select>
+                </div>
+
+                <div>
+                  <label class="block font-medium text-slate-600 dark:text-slate-300 mb-1">Motif du règlement</label>
+                  <select id="payMotifInput" class="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 outline-none">
+                    <option value="Écolage Trimestre 1">Écolage Trimestre 1</option>
+                    <option value="Frais de Laboratoire & Informatique">Frais de Laboratoire & Informatique</option>
+                    <option value="Frais d'examen blanc">Frais d'examen blanc</option>
+                  </select>
+                </div>
+
+                <div class="grid grid-cols-2 gap-2">
+                  <div>
+                    <label class="block font-medium text-slate-600 dark:text-slate-300 mb-1">Montant (MGA)</label>
+                    <input type="number" id="payAmountInput" value="250000" class="w-full px-3 py-2 font-mono rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 outline-none" />
+                  </div>
+                  <div>
+                    <label class="block font-medium text-slate-600 dark:text-slate-300 mb-1">Mode</label>
+                    <select id="payModeInput" class="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 outline-none">
+                      <option value="Espèces">Espèces</option>
+                      <option value="Mobile Money">Mobile Money</option>
+                      <option value="Virement">Virement</option>
+                      <option value="Chèque">Chèque</option>
+                    </select>
+                  </div>
+                </div>
+
+                <button onclick="recordPayment()" class="w-full py-2.5 px-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl shadow-sm transition-colors flex items-center justify-center gap-2 mt-2">
+                  <i data-lucide="receipt" class="w-4 h-4"></i> Encaisser & Générer Reçu
+                </button>
+              </div>
+            </div>
+
+            <!-- Journal de Caisse Quotidien -->
+            <div class="lg:col-span-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-2xs flex flex-col justify-between space-y-4">
+              <div>
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+                  <div>
+                    <h2 class="font-bold text-sm text-slate-900 dark:text-white">Journal de Caisse — Journée du 16/11/2026</h2>
+                    <p class="text-xs text-slate-500">Caissière : Miora Rabe • Portée restreinte à la session caisse</p>
+                  </div>
+                  <button onclick="showToast('Procédure de Clôture Z de caisse vérifiée : Écart 0 MGA', 'success')" class="px-3 py-1.5 bg-slate-900 dark:bg-blue-950 text-white dark:text-blue-200 border border-slate-700 rounded-xl text-xs font-medium flex items-center gap-1.5">
+                    <i data-lucide="lock-keyhole" class="w-3.5 h-3.5"></i> Clôture Z de caisse
+                  </button>
+                </div>
+
+                <div class="overflow-x-auto">
+                  <table class="w-full text-left border-collapse text-xs">
+                    <thead>
+                      <tr class="bg-slate-50 dark:bg-slate-800/70 border-b border-slate-200 dark:border-slate-800 text-slate-500">
+                        <th class="py-2 px-3">N° Reçu</th>
+                        <th class="py-2 px-3">Élève</th>
+                        <th class="py-2 px-3">Motif</th>
+                        <th class="py-2 px-3">Mode</th>
+                        <th class="py-2 px-3 text-right">Montant MGA</th>
+                        <th class="py-2 px-3 text-center">PDF</th>
+                      </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+                      ${RECEIPTS_DATA.map(rec => `
+                        <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/40">
+                          <td class="py-2.5 px-3 font-mono font-semibold text-blue-600 dark:text-blue-400">${rec.ref}</td>
+                          <td class="py-2.5 px-3 font-medium">${rec.student} <span class="text-[10px] text-slate-400">(${rec.class})</span></td>
+                          <td class="py-2.5 px-3 text-slate-600 dark:text-slate-300">${rec.motif}</td>
+                          <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-[10px]">${rec.mode}</span></td>
+                          <td class="py-2.5 px-3 text-right font-mono font-bold">${rec.amount.toLocaleString('fr-FR')}</td>
+                          <td class="py-2.5 px-3 text-center">
+                            <button onclick="previewReceipt('${rec.ref}')" class="p-1 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950 rounded" title="Aperçu Reçu PDF">
+                              <i data-lucide="printer" class="w-3.5 h-3.5"></i>
+                            </button>
+                          </td>
+                        </tr>
+                      `).join('')}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // --- VUE 6 : PERSONNEL & 21 ENSEIGNANTES ---
+    function renderStaffView() {
+      return `
+        <div class="max-w-7xl mx-auto space-y-4">
+          <div class="flex items-center justify-between">
+            <div>
+              <h1 class="text-lg font-bold text-slate-900 dark:text-white">Corps Enseignant par Discipline (21 Enseignantes)</h1>
+              <p class="text-xs text-slate-500">Répartition exacte des matières et coefficients (Séries L et S)</p>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            ${SUBJECTS_STAFF.map(item => `
+              <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-2xs space-y-3">
+                <div class="flex items-start justify-between">
+                  <div>
+                    <span class="font-mono text-[10px] font-bold px-2 py-0.5 rounded bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-300">${item.code}</span>
+                    <h3 class="font-bold text-sm text-slate-900 dark:text-white mt-1.5">${item.subject}</h3>
+                  </div>
+                  <span class="px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 font-mono text-xs font-bold text-blue-600 dark:text-blue-400">
+                    ${item.teachersCount} ens.
+                  </span>
+                </div>
+                <p class="text-[11px] text-slate-500">${item.scope}</p>
+                <div class="flex flex-wrap gap-1.5 pt-2 border-t border-slate-100 dark:border-slate-800">
+                  ${item.names.map(n => `<span class="text-[11px] px-2 py-0.5 rounded-md bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300">${n}</span>`).join('')}
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    // --- VUE 7 : BIBLIOTHÈQUE & QUITUS ---
+    function renderLibraryView() {
+      return `
+        <div class="max-w-5xl mx-auto bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-2xs space-y-4">
+          <div class="flex items-center justify-between">
+            <div>
+              <h2 class="text-base font-bold text-slate-900 dark:text-white">Catalogue Bibliothèque & Contrôle des Quitus</h2>
+              <p class="text-xs text-slate-500">Tout emprunt non restitué bloque automatiquement la délivrance du Certificat de Radiation.</p>
+            </div>
+          </div>
+          <div class="p-4 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 flex items-center justify-between gap-4">
+            <div class="text-xs space-y-1">
+              <p class="font-bold text-amber-900 dark:text-amber-200">Prêt en retard détecté — MAT-2026-0042 (RAZAFINDRABE Hery Tiana • 1ère S)</p>
+              <p class="text-amber-700 dark:text-amber-400">Ouvrage : « Précis de Physique-Chimie Terminale S » (Exemplaire EX-019) — Échéance dépassée de 4 jours.</p>
+            </div>
+            <button onclick="showToast('Retour enregistré : Quitus bibliothèque débloqué pour MAT-2026-0042', 'success')" class="px-3 py-2 bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold rounded-xl shrink-0">
+              Enregistrer le retour
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    // --- VUE 8 : JOURNAL D'AUDIT SHA-256 ---
+    function renderAuditView() {
+      return `
+        <div class="max-w-7xl mx-auto bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-2xs">
+          <div class="p-4 border-b border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <h2 class="text-sm font-bold text-slate-900 dark:text-white">Journal d'Audit Inaltérable (Traçabilité UTC & SHA-256)</h2>
+              <p class="text-xs text-slate-500">Historique des opérations sensibles vérifiables par empreinte cryptographique.</p>
+            </div>
+            <button onclick="showToast('Export JSON signé avec empreinte SHA-256 généré', 'success')" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded-xl flex items-center gap-1.5">
+              <i data-lucide="file-key-2" class="w-3.5 h-3.5"></i> Exporter Journal Signé
+            </button>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-xs">
+              <thead>
+                <tr class="bg-slate-50 dark:bg-slate-800/70 border-b border-slate-200 dark:border-slate-800 text-slate-500">
+                  <th class="py-2.5 px-3">Horodatage UTC</th>
+                  <th class="py-2.5 px-3">Agent</th>
+                  <th class="py-2.5 px-3">Module / Action</th>
+                  <th class="py-2.5 px-3">Objet ciblé</th>
+                  <th class="py-2.5 px-3">Empreinte SHA-256</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+                ${AUDIT_LOGS.map(l => `
+                  <tr>
+                    <td class="py-2.5 px-3 font-mono text-[11px] text-slate-500">${l.time}</td>
+                    <td class="py-2.5 px-3 font-medium">${l.user}</td>
+                    <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-300 font-mono text-[10px]">${l.action}</span></td>
+                    <td class="py-2.5 px-3">${l.target}</td>
+                    <td class="py-2.5 px-3 font-mono text-[10px] text-slate-400 truncate max-w-[200px]" title="${l.hash}">${l.hash}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `;
+    }
+
+    // 5. INTERACTIONS MÉTIER & UTILITAIRES
+    function updateGradeCell(rowIndex, subject, val) {
+      let num = parseFloat(val);
+      if (isNaN(num) || num < 0) num = 0;
+      if (num > 20) num = 20;
+      GRADES_DATA[activeGradeClass][rowIndex][subject] = num;
+      renderActiveTabContent();
+      document.getElementById('statusMessage').textContent = `Note mise à jour (${subject.toUpperCase()} : ${num}/20)`;
+    }
+
+    function toggleEpsExempt(rowIndex) {
+      const row = GRADES_DATA[activeGradeClass][rowIndex];
+      row.epsExempt = !row.epsExempt;
+      renderActiveTabContent();
+      showToast(row.epsExempt ? `Dispense EPS activée pour ${row.name} (Coeff neutralisé)` : `Dispense EPS levée pour ${row.name}`, 'info');
+    }
+
+    function attemptQuitus(uuid) {
+      const s = STUDENTS_SAMPLE.find(x => x.uuid === uuid);
+      if (!s) return;
+      if (s.balanceMGA > 0) {
+        showToast(`Transfert bloqué : Solde écolage impayé de ${s.balanceMGA.toLocaleString('fr-FR')} MGA`, 'error');
+        return;
+      }
+      if (!s.libraryOk) {
+        showToast(`Transfert bloqué : Livre de bibliothèque non restitué par ${s.lastName}`, 'error');
+        return;
+      }
+      previewQuitusDoc(s);
+    }
+
+    function recordPayment() {
+      const [studentName, studentClass] = document.getElementById('payStudentSelect').value.split('|');
+      const motif = document.getElementById('payMotifInput').value;
+      const amount = parseInt(document.getElementById('payAmountInput').value, 10) || 0;
+      const mode = document.getElementById('payModeInput').value;
+      if (amount <= 0) return;
+
+      const newRef = `REC-2026-0${413 + RECEIPTS_DATA.length}`;
+      RECEIPTS_DATA.unshift({
+        ref: newRef,
+        date: '16/11/2026 12:27',
+        student: studentName,
+        class: studentClass,
+        motif: motif,
+        amount: amount,
+        mode: mode,
+        cashier: document.getElementById('currentUserName').textContent,
+        status: 'Validé'
+      });
+      renderActiveTabContent();
+      previewReceipt(newRef);
+      showToast(`Encaissement ${newRef} enregistré (${amount.toLocaleString('fr-FR')} MGA)`, 'success');
+    }
+
+    // Génération d'aperçus PDF Document Studio
+    function previewBulletin(studentName, className) {
+      document.getElementById('docModalTitle').textContent = `Document Studio — Bulletin Scolaire (${studentName})`;
+      document.getElementById('docModalBody').innerHTML = `
+        <div class="flex justify-between items-start border-b-2 border-blue-700 pb-3">
+          <div>
+            <h3 class="font-bold text-sm text-blue-900">LYCÉE PRIVÉ LES FLAMBOYANTS</h3>
+            <p class="text-[10px] text-slate-500">Année Scolaire 2026-2027 • Trimestre 1</p>
+          </div>
+          <span class="px-2 py-1 bg-blue-50 text-blue-800 font-bold rounded text-[11px]">BULLETIN DE NOTES</span>
+        </div>
+        <div class="bg-slate-50 p-3 rounded border border-slate-200 flex justify-between">
+          <div><strong>Élève :</strong> ${studentName}</div>
+          <div><strong>Classe :</strong> ${className}</div>
+        </div>
+        <table class="w-full border-collapse border border-slate-300 text-[11px]">
+          <thead class="bg-blue-700 text-white">
+            <tr><th class="p-1.5 text-left">Matière</th><th class="p-1.5">Coeff</th><th class="p-1.5">Note /20</th><th class="p-1.5 text-left">Appréciation</th></tr>
+          </thead>
+          <tbody class="divide-y divide-slate-200">
+            <tr><td class="p-1.5">Mathématiques</td><td class="p-1.5 text-center">5</td><td class="p-1.5 text-center font-bold">16.50</td><td class="p-1.5">Très bon travail</td></tr>
+            <tr><td class="p-1.5">Physique-Chimie</td><td class="p-1.5 text-center">5</td><td class="p-1.5 text-center font-bold">15.00</td><td class="p-1.5">Sérieux et régulier</td></tr>
+            <tr><td class="p-1.5">Philosophie</td><td class="p-1.5 text-center">2</td><td class="p-1.5 text-center font-bold">14.50</td><td class="p-1.5">Bonne réflexion</td></tr>
+          </tbody>
+        </table>
+        <div class="flex justify-between items-center pt-3 border-t border-slate-200 font-bold">
+          <span>Moyenne Générale : 15,42 / 20 (Rang : 2ème / 31)</span>
+          <span class="text-blue-700">Mention : BIEN</span>
+        </div>
+      `;
+      document.getElementById('docPreviewModal').classList.remove('hidden');
+    }
+
+    function previewReceipt(ref) {
+      const rec = RECEIPTS_DATA.find(r => r.ref === ref) || RECEIPTS_DATA[0];
+      document.getElementById('docModalTitle').textContent = `Document Studio — Reçu de Caisse ${rec.ref}`;
+      document.getElementById('docModalBody').innerHTML = `
+        <div class="flex justify-between items-start border-b-2 border-blue-700 pb-3">
+          <div>
+            <h3 class="font-bold text-sm text-blue-900">LYCÉE PRIVÉ LES FLAMBOYANTS</h3>
+            <p class="text-[10px] text-slate-500">Service Économat & Caisse • Antananarivo</p>
+          </div>
+          <div class="text-right">
+            <span class="font-mono font-bold text-blue-700 text-xs">${rec.ref}</span>
+            <p class="text-[10px] text-slate-400">${rec.date}</p>
+          </div>
+        </div>
+        <div class="space-y-2 py-2">
+          <p><strong>Reçu de :</strong> ${rec.student} (${rec.class})</p>
+          <p><strong>Motif :</strong> ${rec.motif}</p>
+          <p><strong>Mode de paiement :</strong> ${rec.mode}</p>
+          <div class="p-3 bg-blue-50 border border-blue-200 rounded text-center font-mono text-base font-bold text-blue-900">
+            MONTANT ENCAISSÉ : ${rec.amount.toLocaleString('fr-FR')} MGA
+          </div>
+        </div>
+        <div class="flex justify-between text-[10px] text-slate-500 pt-4 border-t border-slate-200">
+          <span>Agent de caisse : ${rec.cashier}</span>
+          <span>Document généré nativement (PDF/A)</span>
+        </div>
+      `;
+      document.getElementById('docPreviewModal').classList.remove('hidden');
+    }
+
+    function previewQuitusDoc(student) {
+      document.getElementById('docModalTitle').textContent = `Document Studio — Certificat de Radiation & Quitus`;
+      document.getElementById('docModalBody').innerHTML = `
+        <div class="text-center border-b-2 border-blue-700 pb-3">
+          <h3 class="font-bold text-sm text-blue-900">CERTIFICAT DE RADIATION ET QUITUS</h3>
+          <p class="text-[10px] text-slate-500">Lycée Privé Les Flamboyants • Année 2026-2027</p>
+        </div>
+        <p class="leading-relaxed">La Direction certifie que l'élève <strong>${student.lastName} ${student.firstName}</strong> (Matricule <span class="font-mono">${student.matricule}</span>), inscrit(e) en classe de <strong>${student.className}</strong>, est libre de tout engagement financier envers l'économat et a restitué l'ensemble des ouvrages de la bibliothèque.</p>
+        <div class="p-2.5 bg-emerald-50 border border-emerald-200 rounded text-emerald-800 font-medium text-[11px]">
+          ✓ Quitus Économat : Validé (0 MGA) &nbsp;|&nbsp; ✓ Quitus Bibliothèque : Validé
+        </div>
+      `;
+      document.getElementById('docPreviewModal').classList.remove('hidden');
+    }
+
+    function closeDocModal() {
+      document.getElementById('docPreviewModal').classList.add('hidden');
+    }
+
+    // 6. RACCOURCIS CLAVIER DESKTOP, THÈME, SANDBOX & VERROUILLAGE SESSION
+    function toggleTheme() {
+      document.documentElement.classList.toggle('dark');
+    }
+
+    function toggleSandboxMode() {
+      isSandbox = !isSandbox;
+      const btn = document.getElementById('sandboxToggleBtn');
+      const dot = document.getElementById('sandboxDot');
+      const label = document.getElementById('sandboxLabel');
+      if (isSandbox) {
+        btn.className = 'hidden md:flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium bg-amber-50 text-amber-700 border border-amber-300 dark:bg-amber-950/70 dark:text-amber-300 dark:border-amber-700 transition-colors';
+        dot.className = 'w-2 h-2 rounded-full bg-amber-500';
+        label.textContent = 'Mode Bac à Sable';
+        showToast('Basculement sur la base d\'entraînement (Bac à Sable)', 'info');
+      } else {
+        btn.className = 'hidden md:flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800 transition-colors';
+        dot.className = 'w-2 h-2 rounded-full bg-emerald-500 animate-pulse';
+        label.textContent = 'Base Production';
+        showToast('Retour sur la base de Production', 'success');
+      }
+    }
+
+    function cycleFontScale() {
+      const scales = ['100%', '106%', '112%'];
+      fontScaleStep = (fontScaleStep + 1) % scales.length;
+      document.documentElement.style.fontSize = scales[fontScaleStep];
+      showToast(`Échelle d'affichage Desktop : ${scales[fontScaleStep]}`, 'info');
+    }
+
+    function lockSession() {
+      document.getElementById('pinInput').value = '';
+      document.getElementById('pinError').classList.add('hidden');
+      document.getElementById('lockModal').classList.remove('hidden');
+      setTimeout(() => document.getElementById('pinInput').focus(), 100);
+    }
+
+    function unlockSession() {
+      const [initials, name, role, expectedPin] = document.getElementById('pinUserSelect').value.split('|');
+      const entered = document.getElementById('pinInput').value;
+      if (entered === expectedPin) {
+        document.getElementById('currentUserAvatar').textContent = initials;
+        document.getElementById('currentUserName').textContent = name;
+        document.getElementById('currentUserRole').textContent = role;
+        document.getElementById('lockModal').classList.add('hidden');
+        showToast(`Session active : ${name}`, 'success');
+      } else {
+        document.getElementById('pinError').classList.remove('hidden');
+      }
+    }
+
+    function openGlobalSearch() {
+      document.getElementById('searchModal').classList.remove('hidden');
+      const input = document.getElementById('globalSearchInput');
+      input.value = '';
+      runGlobalSearch('');
+      setTimeout(() => input.focus(), 50);
+    }
+
+    function closeGlobalSearch() {
+      document.getElementById('searchModal').classList.add('hidden');
+    }
+
+    function runGlobalSearch(q) {
+      const resBox = document.getElementById('globalSearchResults');
+      const term = q.toLowerCase().trim();
+      const matchedStudents = STUDENTS_SAMPLE.filter(s => `${s.lastName} ${s.firstName} ${s.matricule} ${s.className}`.toLowerCase().includes(term)).slice(0, 5);
+      resBox.innerHTML = matchedStudents.map(s => `
+        <button onclick="selectedStudentUuid='${s.uuid}'; openTab('students'); closeGlobalSearch()" class="w-full text-left p-2.5 hover:bg-blue-50 dark:hover:bg-slate-800 rounded-xl flex items-center justify-between transition-colors">
+          <div>
+            <p class="text-xs font-semibold text-slate-800 dark:text-slate-100">${s.lastName} ${s.firstName}</p>
+            <p class="text-[11px] font-mono text-blue-600">${s.matricule} • ${s.className}</p>
+          </div>
+          <span class="text-[10px] px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-500">Ouvrir dossier →</span>
+        </button>
+      `).join('') || `<p class="p-4 text-center text-xs text-slate-400">Aucun résultat trouvé.</p>`;
+    }
+
+    function triggerBackup() {
+      showToast('Archive compressée SQLite + Médias générée avec succès', 'success');
+    }
+
+    function showToast(msg, type = 'info') {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      const colors = type === 'error' 
+        ? 'bg-red-600 text-white' 
+        : type === 'success' 
+          ? 'bg-blue-700 text-white' 
+          : 'bg-slate-900 text-white dark:bg-slate-800 border border-slate-700';
+      toast.className = `${colors} px-4 py-2.5 rounded-xl shadow-lg text-xs font-medium flex items-center gap-2 transition-all transform translate-y-2 opacity-0`;
+      toast.innerHTML = `<span>${msg}</span>`;
+      container.appendChild(toast);
+      requestAnimationFrame(() => {
+        toast.classList.remove('translate-y-2', 'opacity-0');
+      });
+      setTimeout(() => {
+        toast.classList.add('opacity-0');
+        setTimeout(() => toast.remove(), 300);
+      }, 3200);
+    }
+
+    // Escamotage barre latérale
+    document.getElementById('toggleSidebarBtn').addEventListener('click', () => {
+      const sb = document.getElementById('sidebar');
+      const labels = document.querySelectorAll('.sidebar-label');
+      if (sb.classList.contains('w-60')) {
+        sb.classList.remove('w-60');
+        sb.classList.add('w-16');
+        labels.forEach(el => el.classList.add('hidden'));
+      } else {
+        sb.classList.remove('w-16');
+        sb.classList.add('w-60');
+        labels.forEach(el => el.classList.remove('hidden'));
+      }
+    });
+
+    // Raccourcis clavier globaux (Ctrl+F, Ctrl+L, Ctrl+W, Échap)
+    document.addEventListener('keydown', (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'f') {
+        e.preventDefault();
+        openGlobalSearch();
+      } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'l') {
+        e.preventDefault();
+        lockSession();
+      } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'w') {
+        if (activeTab !== 'dashboard') {
+          e.preventDefault();
+          closeTab(activeTab);
+        }
+      } else if (e.key === 'Escape') {
+        closeGlobalSearch();
+        closeDocModal();
+      }
+    });
+
+    // Initialisation au chargement
+    window.addEventListener('DOMContentLoaded', () => {
+      renderTabs();
+    });
+  </script>
+</body>
+</html>
