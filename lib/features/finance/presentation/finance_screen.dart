@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:printing/printing.dart';
 
+import 'package:fianarana/core/utils/csv_export.dart';
 import 'package:fianarana/features/auth/application/auth_controller.dart';
 import 'package:fianarana/features/finance/application/finance_providers.dart';
 import 'package:fianarana/features/finance/data/finance_repository.dart';
@@ -141,6 +142,12 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
       appBar: AppBar(
         title: const Text('Finances & Caisse'),
         actions: [
+          OutlinedButton.icon(onPressed: () async {
+            final rows = await ref.read(paymentsProvider(_query).future);
+            final f = await CsvExport.export(filename: 'paiements_export.csv', headers: ['Recu','Date','Eleve','Matricule','Classe','Libelle','Du','Paye','Reste','Mode','Etat'], rows: rows.map((r)=>[r.receipt, r.date?.toIso8601String(), r.studentName, r.matricule, r.classLabel, r.feeLabel, '${r.due}', '${r.paid}', '${r.balance}', r.method, r.closeStatus]).toList());
+            if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Export CSV: ${f.path}')));
+          }, icon: const Icon(Icons.download), label: const Text('Export CSV')),
+          const SizedBox(width: 8),
           OutlinedButton.icon(onPressed: () => context.go('/finance/schedules'), icon: const Icon(Icons.event_note_outlined), label: const Text('Échéanciers')),
           const SizedBox(width: 8),
           OutlinedButton.icon(onPressed: _closeCashDesk, icon: const Icon(Icons.lock_clock), label: const Text('Clôture Z')),
