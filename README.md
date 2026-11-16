@@ -26,7 +26,11 @@ Application Desktop de gestion scolaire (installation locale monoposte, un étab
 
 ## Données de test
 
-Le fichier `donnees_de_test.xlsx` est inclus. À chaque fonctionnalité créée, des données de test correspondantes doivent être ajoutées/mises à jour (seed).
+Le fichier `donnees_de_test.xlsx` est inclus et exporté en JSON dans `assets/seed/` (établissement, 325 élèves, 11 classes, personnel, notes, finances, présences, bibliothèque, audit, etc.).  
+À chaque fonctionnalité créée, des données de test correspondantes doivent être ajoutées/mises à jour (seed).
+
+- **Assistant de première installation** (`/setup`) : crée le compte administrateur initial et peut importer automatiquement toutes les données de test en base SQLite.
+- **Comptes seed (après import)** : identifiants issus du fichier (ex. `admin.sys`, `dir.general`, `caisse.01`, etc.). Mot de passe de test initial : `Password123!` (PIN seed importé si présent). **À changer en production.**
 
 ## Prérequis de développement
 

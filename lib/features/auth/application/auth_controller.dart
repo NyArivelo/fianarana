@@ -1,7 +1,11 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:fianarana/features/auth/application/auth_providers.dart';
+import 'package:fianarana/features/auth/data/auth_repository.dart';
+
 class AuthState {
   final bool isAuthenticated;
+  final bool isLoading;
   final String? userId;
   final String? username;
   final String? fullName;
@@ -10,6 +14,7 @@ class AuthState {
 
   const AuthState({
     this.isAuthenticated = false,
+    this.isLoading = false,
     this.userId,
     this.username,
     this.fullName,
@@ -19,6 +24,7 @@ class AuthState {
 
   AuthState copyWith({
     bool? isAuthenticated,
+    bool? isLoading,
     String? userId,
     String? username,
     String? fullName,
@@ -27,6 +33,7 @@ class AuthState {
   }) {
     return AuthState(
       isAuthenticated: isAuthenticated ?? this.isAuthenticated,
+      isLoading: isLoading ?? this.isLoading,
       userId: userId ?? this.userId,
       username: username ?? this.username,
       fullName: fullName ?? this.fullName,
@@ -37,23 +44,34 @@ class AuthState {
 }
 
 class AuthController extends StateNotifier<AuthState> {
-  AuthController() : super(const AuthState());
+  final AuthRepository _repo;
+  AuthController(this._repo) : super(const AuthState());
 
   Future<bool> login({required String username, required String password}) async {
-    // TODO: implémenter vérification réelle via DB + hash (Argon2id/bcrypt)
-    // Comptes de démonstration alignés sur les données de test (mot de passe à définir en seed sécurisé)
-    if (username.isNotEmpty && password.isNotEmpty) {
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      final user = await _repo.authenticate(username, password);
+      if (user == null) {
+        state = state.copyWith(
+          isLoading: false,
+          isAuthenticated: false,
+          error: 'Identifiant ou mot de passe invalide, ou compte inactif/verrouillé.',
+        );
+        return false;
+      }
       state = AuthState(
         isAuthenticated: true,
-        userId: 'demo',
-        username: username,
-        fullName: username,
-        scopeType: 'Globale',
+        isLoading: false,
+        userId: user.id,
+        username: user.username,
+        fullName: user.fullName,
+        scopeType: user.scopeType,
       );
       return true;
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: 'Erreur de connexion: $e');
+      return false;
     }
-    state = state.copyWith(error: 'Identifiants invalides');
-    return false;
   }
 
   void logout() {
@@ -61,11 +79,12 @@ class AuthController extends StateNotifier<AuthState> {
   }
 
   void lock() {
-    // TODO: conserver les onglets et demander PIN (Ctrl+L)
+    // TODO: conserver les onglets ouverts et demander PIN (Ctrl+L)
     state = const AuthState();
   }
 }
 
 final authControllerProvider = StateNotifierProvider<AuthController, AuthState>((ref) {
-  return AuthController();
+  final repo = ref.watch(authRepositoryProvider);
+  return AuthController(repo);
 });
