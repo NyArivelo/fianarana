@@ -126,7 +126,7 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
                   );
                 },
                 loading: () => const Center(child: CircularProgressIndicator()),
-                error: (e, st) => Center(child: Text('Erreur chargement élèves: $e')),
+                error: (e, st) => Center(child: Text('Erreur chargement élèves: $e\n(Vérifiez vos permissions: students.read)')),
               ),
             ),
           ],

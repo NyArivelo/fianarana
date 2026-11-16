@@ -3,6 +3,7 @@ import 'package:drift/drift.dart';
 import 'package:fianarana/core/database/app_database.dart';
 import 'package:fianarana/core/database/uuid.dart';
 import 'package:fianarana/core/security/audit_service.dart';
+import 'package:fianarana/core/security/permission_service.dart';
 
 class StudentListItem {
   final String id;
@@ -28,12 +29,30 @@ class StudentListItem {
   String get fullName => '$lastName $firstName';
 }
 
+class UnauthorizedActionException implements Exception {
+  final String permission;
+  UnauthorizedActionException(this.permission);
+  @override
+  String toString() => 'Action non autorisée (permission requise: $permission)';
+}
+
 class StudentsRepository {
   final AppDatabase db;
   late final AuditService _audit = AuditService(db);
+  late final PermissionService _perm = PermissionService(db);
   StudentsRepository(this.db);
 
-  Future<List<StudentListItem>> list({String? query, String? classId, int limit = 200}) async {
+  Future<void> _require(String? userId, String permission) async {
+    if (userId == null || userId.isEmpty) return; // bootstrap/contexte système
+    final ok = await _perm.userHasPermission(userId, permission);
+    if (!ok) {
+      await _audit.log(userId: userId, module: 'Sécurité', targetObject: permission, description: 'Permission refusée: $permission', result: 'Échec');
+      throw UnauthorizedActionException(permission);
+    }
+  }
+
+  Future<List<StudentListItem>> list({String? actorUserId, String? query, String? classId, int limit = 200}) async {
+    await _require(actorUserId, 'students.read');
     final s = db.students;
     final e = db.enrollments;
     final c = db.classes;
@@ -76,15 +95,18 @@ class StudentsRepository {
     return items;
   }
 
-  Future<Student?> getById(String id) {
+  Future<Student?> getById(String id, {String? actorUserId}) async {
+    await _require(actorUserId, 'students.read');
     return (db.select(db.students)..where((t) => t.id.equals(id))).getSingleOrNull();
   }
 
-  Future<List<Enrollment>> enrollmentsOf(String studentId) {
+  Future<List<Enrollment>> enrollmentsOf(String studentId, {String? actorUserId}) async {
+    await _require(actorUserId, 'students.read');
     return (db.select(db.enrollments)..where((t) => t.studentId.equals(studentId) & t.isDeleted.equals(false))).get();
   }
 
-  Future<List<Guardian>> guardiansOf(String studentId) async {
+  Future<List<Guardian>> guardiansOf(String studentId, {String? actorUserId}) async {
+    await _require(actorUserId, 'students.read');
     final rows = await db.select(db.guardians).join([
       innerJoin(db.studentGuardians, db.studentGuardians.guardianId.equalsExp(db.guardians.id)),
     ])
@@ -109,6 +131,7 @@ class StudentsRepository {
     String? actorUserId,
     String? actorUsername,
   }) async {
+    await _require(actorUserId, 'students.create');
     final id = newUuid();
     final now = DateTime.now();
     await db.transaction(() async {
@@ -147,6 +170,7 @@ class StudentsRepository {
     String? actorUserId,
     String? actorUsername,
   }) async {
+    await _require(actorUserId, 'enrollments.update');
     await (db.update(db.enrollments)..where((t) => t.id.equals(enrollmentId))).write(
       EnrollmentsCompanion(status: Value(status), updatedAt: Value(DateTime.now())),
     );
@@ -163,6 +187,7 @@ class StudentsRepository {
     String? actorUserId,
     String? actorUsername,
   }) async {
+    await _require(actorUserId, 'students.update');
     if (!financeClearance || !libraryClearance) {
       throw StateError('Quitus financier et bibliothèque requis avant transfert/radiation.');
     }

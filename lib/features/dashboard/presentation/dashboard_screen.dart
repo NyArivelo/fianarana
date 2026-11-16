@@ -38,7 +38,7 @@ class DashboardScreen extends ConsumerWidget {
             destinations: const [
               NavigationRailDestination(icon: Icon(Icons.dashboard_outlined), label: Text('Accueil')),
               NavigationRailDestination(icon: Icon(Icons.people_outline), label: Text('Élèves')),
-              NavigationRailDestination(icon: Icon(Icons.school_outlined), label: Text('Pédagogie')),
+              NavigationRailDestination(icon: Icon(Icons.fact_check_outlined), label: Text('Présences')),
               NavigationRailDestination(icon: Icon(Icons.payments_outlined), label: Text('Finances')),
               NavigationRailDestination(icon: Icon(Icons.settings_outlined), label: Text('Paramètres')),
             ],
@@ -46,6 +46,9 @@ class DashboardScreen extends ConsumerWidget {
               switch (i) {
                 case 1:
                   context.go('/students');
+                  break;
+                case 2:
+                  context.go('/attendance');
                   break;
                 default:
                   break;

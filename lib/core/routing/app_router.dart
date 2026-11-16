@@ -7,6 +7,7 @@ import 'package:fianarana/features/auth/presentation/login_screen.dart';
 import 'package:fianarana/features/dashboard/presentation/dashboard_screen.dart';
 import 'package:fianarana/features/setup/presentation/bootstrap_screen.dart';
 import 'package:fianarana/features/setup/presentation/setup_screen.dart';
+import 'package:fianarana/features/attendance/presentation/attendance_screen.dart';
 import 'package:fianarana/features/students/presentation/student_detail_screen.dart';
 import 'package:fianarana/features/students/presentation/students_screen.dart';
 
@@ -58,6 +59,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             builder: (context, state) => StudentDetailScreen(studentId: state.pathParameters['id']),
           ),
         ],
+      ),
+      GoRoute(
+        path: '/attendance',
+        builder: (context, state) => const AttendanceScreen(),
       ),
     ],
     errorBuilder: (context, state) => Scaffold(

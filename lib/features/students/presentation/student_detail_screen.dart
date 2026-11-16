@@ -56,6 +56,7 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> {
         actorUsername: auth.username,
       );
       ref.invalidate(studentsListProvider);
+      ref.invalidate(studentDetailProvider);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Élève enregistré')));
         context.go('/students');

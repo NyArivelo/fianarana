@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:fianarana/core/database/database_provider.dart';
+import 'package:fianarana/features/auth/application/auth_controller.dart';
 import 'package:fianarana/features/students/data/students_repository.dart';
 
 final studentsRepositoryProvider = Provider<StudentsRepository>((ref) {
@@ -12,17 +13,21 @@ final classesProvider = FutureProvider((ref) {
 });
 
 final studentsListProvider = FutureProvider.family<List<StudentListItem>, ({String? query, String? classId})>((ref, args) {
-  return ref.watch(studentsRepositoryProvider).list(query: args.query, classId: args.classId);
+  final userId = ref.watch(authControllerProvider).userId;
+  return ref.watch(studentsRepositoryProvider).list(actorUserId: userId, query: args.query, classId: args.classId);
 });
 
 final studentDetailProvider = FutureProvider.family((ref, String id) {
-  return ref.watch(studentsRepositoryProvider).getById(id);
+  final userId = ref.watch(authControllerProvider).userId;
+  return ref.watch(studentsRepositoryProvider).getById(id, actorUserId: userId);
 });
 
 final studentEnrollmentsProvider = FutureProvider.family((ref, String studentId) {
-  return ref.watch(studentsRepositoryProvider).enrollmentsOf(studentId);
+  final userId = ref.watch(authControllerProvider).userId;
+  return ref.watch(studentsRepositoryProvider).enrollmentsOf(studentId, actorUserId: userId);
 });
 
 final studentGuardiansProvider = FutureProvider.family((ref, String studentId) {
-  return ref.watch(studentsRepositoryProvider).guardiansOf(studentId);
+  final userId = ref.watch(authControllerProvider).userId;
+  return ref.watch(studentsRepositoryProvider).guardiansOf(studentId, actorUserId: userId);
 });
