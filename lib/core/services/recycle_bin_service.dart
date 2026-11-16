@@ -35,19 +35,45 @@ class RecycleBinService {
   }
 
   Future<void> restore(String entity, String id, {String? actorUserId, String? actorUsername}) async {
-    Future<void> upd<T extends Table, D>(TableInfo<T, D> t, GeneratedColumn<String> idCol, GeneratedColumn<bool> delCol, GeneratedColumn<DateTime> updCol, GeneratedColumn<DateTime?> delAtCol) async {
-      await (db.update(t)..where((_) => idCol.equals(id))).write(RawValuesInsertable({
-        delCol.$name: const Variable(false),
-        delAtCol.$name: const Variable<DateTime?>(null),
-        updCol.$name: Variable(DateTime.now()),
-      }));
+    Future<void> upd<T extends Table, D>(TableInfo<T, D> table, {required String Function(T) idSelector, required bool Function(D) isDeletedSelector, required DateTime Function(D) updatedAtSelector, required DateTime? Function(D) deletedAtSelector}) async {
+      // no-op, version simplifiée pour éviter les incompatibilités de type Drift sur les tables composées
     }
     switch (entity) {
-      case 'Élèves': await upd(db.students, db.students.id, db.students.isDeleted, db.students.updatedAt, db.students.deletedAt); break;
-      case 'Paiements': await upd(db.payments, db.payments.id, db.payments.isDeleted, db.payments.updatedAt, db.payments.deletedAt); break;
-      case 'Notes': await upd(db.evaluations, db.evaluations.id, db.evaluations.isDeleted, db.evaluations.updatedAt, db.evaluations.deletedAt); break;
-      case 'Inscriptions': await upd(db.enrollments, db.enrollments.id, db.enrollments.isDeleted, db.enrollments.updatedAt, db.enrollments.deletedAt); break;
-      case 'Classes': await upd(db.classes, db.classes.id, db.classes.isDeleted, db.classes.updatedAt, db.classes.deletedAt); break;
+      case 'Élèves':
+        await (db.update(db.students)..where((t) => t.id.equals(id))).write(StudentsCompanion(
+          isDeleted: const Value(false),
+          deletedAt: const Value.absent(),
+          updatedAt: Value(DateTime.now()),
+        ));
+        break;
+      case 'Paiements':
+        await (db.update(db.payments)..where((t) => t.id.equals(id))).write(PaymentsCompanion(
+          isDeleted: const Value(false),
+          deletedAt: const Value.absent(),
+          updatedAt: Value(DateTime.now()),
+        ));
+        break;
+      case 'Notes':
+        await (db.update(db.evaluations)..where((t) => t.id.equals(id))).write(EvaluationsCompanion(
+          isDeleted: const Value(false),
+          deletedAt: const Value.absent(),
+          updatedAt: Value(DateTime.now()),
+        ));
+        break;
+      case 'Inscriptions':
+        await (db.update(db.enrollments)..where((t) => t.id.equals(id))).write(EnrollmentsCompanion(
+          isDeleted: const Value(false),
+          deletedAt: const Value.absent(),
+          updatedAt: Value(DateTime.now()),
+        ));
+        break;
+      case 'Classes':
+        await (db.update(db.classes)..where((t) => t.id.equals(id))).write(ClassesCompanion(
+          isDeleted: const Value(false),
+          deletedAt: const Value.absent(),
+          updatedAt: Value(DateTime.now()),
+        ));
+        break;
     }
     await _audit.log(userId: actorUserId, username: actorUsername, module: 'Corbeille', targetObject: '$entity:$id', description: 'Restauration élément', result: 'Succès');
   }

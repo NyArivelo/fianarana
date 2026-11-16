@@ -19,7 +19,6 @@ class AppTheme {
       primary: _brand,
       secondary: _brandDark,
       surface: Colors.white,
-      background: _slate100,
       brightness: Brightness.light,
     );
     return ThemeData(
@@ -35,7 +34,7 @@ class AppTheme {
         surfaceTintColor: Colors.transparent,
         titleTextStyle: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: _slate900),
       ),
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         color: Colors.white,
         elevation: 0,
         surfaceTintColor: Colors.transparent,
@@ -105,7 +104,6 @@ class AppTheme {
       primary: const Color(0xFF60A5FA), // blue-400 for contrast
       secondary: _brand,
       surface: _slate900,
-      background: _slate950,
       brightness: Brightness.dark,
     );
     return ThemeData(
@@ -120,7 +118,7 @@ class AppTheme {
         surfaceTintColor: Colors.transparent,
         titleTextStyle: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: Colors.white),
       ),
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         color: _slate900,
         elevation: 0,
         surfaceTintColor: Colors.transparent,

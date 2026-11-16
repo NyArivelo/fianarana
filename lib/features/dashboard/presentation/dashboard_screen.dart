@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:fianarana/core/workspace/tab_workspace.dart';
+import 'package:fianarana/core/workspace/workspace_shell.dart';
 import 'package:fianarana/features/attendance/presentation/attendance_screen.dart';
 import 'package:fianarana/features/auth/application/auth_controller.dart';
 import 'package:fianarana/features/facilities/presentation/facilities_screen.dart';
@@ -91,7 +92,7 @@ class DashboardScreen extends ConsumerWidget {
               ]),
             ),
             const SizedBox(width: 8),
-            IconButton(tooltip: 'Verrouiller (Ctrl+L)', onPressed: () => ref.read(authControllerProvider.notifier).lock(), icon: const Icon(Icons.lock_outline, size: 18)),
+            IconButton(onPressed: () => ref.read(authControllerProvider.notifier).lock(), icon: const Icon(Icons.lock_outline, size: 18)),
             Container(width: 1, height: 24, color: border, margin: const EdgeInsets.symmetric(horizontal: 4)),
             CircleAvatar(radius: 13, backgroundColor: const Color(0xFF2563EB), child: Text((auth.fullName ?? auth.username ?? 'U').characters.first.toUpperCase(), style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold))),
             const SizedBox(width: 6),
@@ -99,7 +100,7 @@ class DashboardScreen extends ConsumerWidget {
               Text(auth.fullName ?? auth.username ?? 'Utilisateur', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: isDark ? Colors.white : const Color(0xFF0F172A))),
               Text(auth.scopeType ?? 'Session', style: const TextStyle(fontSize: 10, color: Color(0xFF2563EB))),
             ]),
-            IconButton(tooltip: 'Déconnexion', onPressed: () => ref.read(authControllerProvider.notifier).logout(), icon: const Icon(Icons.logout, size: 18)),
+            IconButton(onPressed: () => ref.read(authControllerProvider.notifier).logout(), icon: const Icon(Icons.logout, size: 18)),
           ]),
         ),
       ),
@@ -167,10 +168,10 @@ class DashboardScreen extends ConsumerWidget {
                       ]),
                       const SizedBox(height: 16),
                       Wrap(spacing: 12, runSpacing: 12, children: [
-                        _kpi('Élèves inscrits', '325', Icons.people_outline, const Color(0xFF2563EB), 'Données seed importées'),
-                        _kpi('Classes actives', '11', Icons.layers_outlined, const Color(0xFF7C3AED), '3ème à Terminale'),
-                        _kpi('Évaluations', '940', Icons.grading_outlined, const Color(0xFF059669), 'Notes & bulletins'),
-                        _kpi('Transactions', '325', Icons.payments_outlined, const Color(0xFFD97706), 'Paiements & caisse'),
+                        _kpi(context, 'Élèves inscrits', '325', Icons.people_outline, const Color(0xFF2563EB), 'Données seed importées'),
+                        _kpi(context, 'Classes actives', '11', Icons.layers_outlined, const Color(0xFF7C3AED), '3ème à Terminale'),
+                        _kpi(context, 'Évaluations', '940', Icons.grading_outlined, const Color(0xFF059669), 'Notes & bulletins'),
+                        _kpi(context, 'Transactions', '325', Icons.payments_outlined, const Color(0xFFD97706), 'Paiements & caisse'),
                       ]),
                       const SizedBox(height: 16),
                       Wrap(spacing: 12, runSpacing: 12, children: const [
@@ -243,7 +244,7 @@ class DashboardScreen extends ConsumerWidget {
     );
   }
 
-  Widget _kpi(String label, String value, IconData icon, Color color, String hint) {
+  Widget _kpi(BuildContext context, String label, String value, IconData icon, Color color, String hint) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return SizedBox(width: 230, child: Container(
       padding: const EdgeInsets.all(14),

@@ -93,7 +93,7 @@ class TimetableRepository {
     await _require(actorUserId, 'settings.update');
     final sid = id ?? newUuid();
     await db.into(db.timetableSessions).insertOnConflictUpdate(TimetableSessionsCompanion.insert(
-      id: sid,
+      id: Value(sid),
       classId: Value(classId),
       subjectId: Value(subjectId),
       teacherId: Value(teacherId),

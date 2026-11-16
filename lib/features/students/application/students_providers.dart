@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:fianarana/core/database/app_database.dart';
 import 'package:fianarana/core/database/database_provider.dart';
 import 'package:fianarana/features/auth/application/auth_controller.dart';
 import 'package:fianarana/features/students/data/students_repository.dart';
@@ -8,7 +9,7 @@ final studentsRepositoryProvider = Provider<StudentsRepository>((ref) {
   return StudentsRepository(ref.watch(appDatabaseProvider));
 });
 
-final classesProvider = FutureProvider((ref) {
+final classesProvider = FutureProvider<List<ClassesData>>((ref) {
   return ref.watch(studentsRepositoryProvider).allClasses();
 });
 

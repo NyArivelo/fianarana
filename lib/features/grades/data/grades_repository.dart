@@ -122,7 +122,7 @@ class GradesRepository {
     final now = DateTime.now();
     final gid = id ?? newUuid();
     await db.into(db.evaluations).insertOnConflictUpdate(EvaluationsCompanion.insert(
-      id: gid,
+      id: Value(gid),
       studentId: studentId,
       classId: Value(classId),
       subjectId: Value(subjectId),
@@ -200,7 +200,7 @@ class GradesRepository {
     await _require(actorUserId, 'grades.validate');
     final cid = id ?? newUuid();
     await db.into(db.classCouncils).insertOnConflictUpdate(ClassCouncilsCompanion.insert(
-      id: cid,
+      id: Value(cid),
       classId: classId,
       periodId: periodId,
       councilDate: Value(councilDate),
@@ -227,7 +227,7 @@ class GradesRepository {
     await _require(actorUserId, 'grades.validate');
     final did = id ?? newUuid();
     await db.into(db.councilDecisions).insertOnConflictUpdate(CouncilDecisionsCompanion.insert(
-      id: did,
+      id: Value(did),
       councilId: councilId,
       studentId: studentId,
       decision: Value(decision),

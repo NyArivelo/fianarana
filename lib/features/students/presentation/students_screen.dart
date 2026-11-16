@@ -74,12 +74,10 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
                 ),
                 const SizedBox(width: 8),
                 IconButton(
-                  tooltip: 'Rechercher',
                   onPressed: () => setState(() => _query = _searchCtrl.text),
                   icon: const Icon(Icons.filter_alt),
                 ),
                 IconButton(
-                  tooltip: 'Réinitialiser',
                   onPressed: () {
                     _searchCtrl.clear();
                     setState(() {

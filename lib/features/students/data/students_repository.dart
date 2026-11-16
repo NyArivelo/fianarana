@@ -115,7 +115,7 @@ class StudentsRepository {
     return res.map((r) => r.readTable(db.guardians)).toList();
   }
 
-  Future<List<Class>> allClasses() {
+  Future<List<ClassesData>> allClasses() {
     return (db.select(db.classes)..where((t) => t.isDeleted.equals(false))..orderBy([(t) => OrderingTerm.asc(t.label)])).get();
   }
 
@@ -136,7 +136,7 @@ class StudentsRepository {
     final now = DateTime.now();
     await db.transaction(() async {
       await db.into(db.students).insert(StudentsCompanion.insert(
-        id: id,
+        id: Value(id),
         matricule: matricule,
         lastName: lastName,
         firstName: firstName,
@@ -150,7 +150,7 @@ class StudentsRepository {
       ));
       if (classId != null && classId.isNotEmpty) {
         await db.into(db.enrollments).insert(EnrollmentsCompanion.insert(
-          id: newUuid(),
+          id: Value(newUuid()),
           studentId: id,
           classId: Value(classId),
           status: const Value('Validée'),

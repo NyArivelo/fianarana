@@ -49,7 +49,7 @@ class WorkspaceShell extends ConsumerWidget {
                     },
                   ),
                 ),
-                IconButton(tooltip: 'Fermer l\'onglet (Ctrl+W)', icon: const Icon(Icons.tab_close), onPressed: () => ref.read(tabWorkspaceProvider.notifier).closeActive()),
+                IconButton(icon: const Icon(Icons.close), onPressed: () => ref.read(tabWorkspaceProvider.notifier).closeActive()),
               ],
             ),
           ),

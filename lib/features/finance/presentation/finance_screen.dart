@@ -221,7 +221,6 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
                               DataCell(Text(r.method ?? '-')),
                               DataCell(Text(r.closeStatus ?? r.scheduleStatus ?? '-')),
                               DataCell(IconButton(
-                                tooltip: 'Imprimer le reçu PDF',
                                 icon: const Icon(Icons.print_outlined),
                                 onPressed: () async {
                                   final bytes = await ReceiptService().generateReceipt(ReceiptData(

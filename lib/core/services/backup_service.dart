@@ -46,7 +46,7 @@ class BackupService {
     final bytes = await outFile.readAsBytes();
     final checksum = sha256.convert(bytes).toString();
     await db.into(db.backupRecords).insert(BackupRecordsCompanion.insert(
-      id: newUuid(),
+      id: Value(newUuid()),
       filePath: outFile.path,
       createdAtBackup: ts,
       type: Value(type),

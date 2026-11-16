@@ -38,7 +38,7 @@ class StaffRepository {
     await _require(actorUserId, id == null ? 'staff.create' : 'staff.update');
     final sid = id ?? newUuid();
     await db.into(db.staffMembers).insertOnConflictUpdate(StaffMembersCompanion.insert(
-      id: sid,
+      id: Value(sid),
       staffNumber: staffNumber,
       lastName: lastName,
       firstName: firstName,

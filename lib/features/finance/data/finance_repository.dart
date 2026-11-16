@@ -143,7 +143,7 @@ class FinanceRepository {
     final balance = (amountDueMga - amountPaidMga).clamp(0, 1 << 30);
     final now = paymentDate ?? DateTime.now();
     await db.into(db.payments).insert(PaymentsCompanion.insert(
-      id: id,
+      id: Value(id),
       receiptNumber: receipt,
       studentId: studentId,
       classId: Value(classId),
@@ -200,7 +200,7 @@ class FinanceRepository {
     final d = date ?? DateTime.now();
     await db.transaction(() async {
       await db.into(db.cashClosures).insert(CashClosuresCompanion.insert(
-        id: id,
+        id: Value(id),
         cashierUserId: cashierUserId,
         closureDate: d,
         totalCash: Value(totalCash),

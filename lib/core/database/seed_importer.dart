@@ -97,7 +97,7 @@ class SeedImporter {
       if (type.toLowerCase().contains('tablissement') || type.toLowerCase().contains('etablissement')) {
         estId = id;
         await db.into(db.establishments).insertOnConflictUpdate(EstablishmentsCompanion.insert(
-          id: id,
+          id: Value(id),
           code: _s(r, ['Code']).isEmpty ? 'ETAB-01' : _s(r, ['Code']),
           name: _s(r, ['Libellé', 'Libelle', 'Nom']),
           address: Value(_s(r, ['Valeur_1', 'Adresse'])),
@@ -110,7 +110,7 @@ class SeedImporter {
       } else if (type.toLowerCase().contains('ann')) {
         yearId = id;
         await db.into(db.schoolYears).insertOnConflictUpdate(SchoolYearsCompanion.insert(
-          id: id,
+          id: Value(id),
           establishmentId: estId ?? 'establishment',
           code: _s(r, ['Code']),
           label: _s(r, ['Libellé', 'Libelle']),
@@ -121,7 +121,7 @@ class SeedImporter {
         n++;
       } else if (type.toLowerCase().contains('riode') || type.toLowerCase().contains('periode') || type.toLowerCase().contains('trimestre')) {
         await db.into(db.periods).insertOnConflictUpdate(PeriodsCompanion.insert(
-          id: id,
+          id: Value(id),
           schoolYearId: yearId ?? '',
           name: _s(r, ['Libellé', 'Libelle', 'Code']),
           sequence: Value(_i(r, ['Valeur_1', 'Ordre'], 1)),
@@ -150,7 +150,7 @@ class SeedImporter {
         roleId = 'role-${roleName.toLowerCase().replaceAll(RegExp(r"[^a-z0-9]+"), "-")}';
         roleCache[roleName] = roleId;
         await db.into(db.roles).insertOnConflictUpdate(RolesCompanion.insert(
-          id: roleId,
+          id: Value(roleId),
           name: roleName,
           description: const Value(null),
           isSystem: Value(roleName == 'Administrateur'),
@@ -158,7 +158,7 @@ class SeedImporter {
       }
       final pin = _s(r, ['PIN_QuickSwitch', 'PIN']);
       await db.into(db.users).insertOnConflictUpdate(UsersCompanion.insert(
-        id: userId,
+        id: Value(userId),
         username: username,
         fullName: _s(r, ['Nom_Complet', 'Nom']),
         email: Value(_s(r, ['Email']).isEmpty ? null : _s(r, ['Email'])),
@@ -190,14 +190,14 @@ class SeedImporter {
           levelId = 'lvl-${levelKey.hashCode.abs()}';
           levelIds[levelKey] = levelId;
           await db.into(db.levels).insertOnConflictUpdate(LevelsCompanion.insert(
-            id: levelId,
+            id: Value(levelId),
             name: levelName.isEmpty ? 'Niveau' : levelName,
             cycle: Value(_s(r, ['Niveau_Ou_Domaine'])),
             track: Value(_s(r, ['Série_Ou_Code', 'Serie_Ou_Code'])),
           ));
         }
         await db.into(db.classes).insertOnConflictUpdate(ClassesCompanion.insert(
-          id: id,
+          id: Value(id),
           levelId: Value(levelId),
           label: _s(r, ['Libellé', 'Libelle']),
           capacity: Value(_i(r, ['Capacité_Ou_Coef_Sec2', 'Capacite_Ou_Coef_Sec2'], 0)),
@@ -207,7 +207,7 @@ class SeedImporter {
       } else if (cat.contains('mati')) {
         final code = _s(r, ['Série_Ou_Code', 'Serie_Ou_Code', 'Code']).isEmpty ? id.substring(0, 8) : _s(r, ['Série_Ou_Code', 'Serie_Ou_Code', 'Code']);
         await db.into(db.subjects).insertOnConflictUpdate(SubjectsCompanion.insert(
-          id: id,
+          id: Value(id),
           code: code,
           name: _s(r, ['Libellé', 'Libelle', 'Nom']),
           coefficientSec2: Value(_d(r, ['Capacité_Ou_Coef_Sec2', 'Capacite_Ou_Coef_Sec2'], 1)),
@@ -217,7 +217,7 @@ class SeedImporter {
         n++;
       } else if (cat.contains('niveau')) {
         await db.into(db.levels).insertOnConflictUpdate(LevelsCompanion.insert(
-          id: id,
+          id: Value(id),
           name: _s(r, ['Libellé', 'Libelle', 'Niveau']),
           cycle: Value(_s(r, ['Niveau_Ou_Domaine'])),
           track: Value(_s(r, ['Série_Ou_Code', 'Serie_Ou_Code'])),
@@ -235,7 +235,7 @@ class SeedImporter {
       final id = _s(r, ['UUID_Personnel', 'UUID']);
       if (id.isEmpty) continue;
       await db.into(db.staffMembers).insertOnConflictUpdate(StaffMembersCompanion.insert(
-        id: id,
+        id: Value(id),
         userId: Value(_s(r, ['UUID_Utilisateur_Lié', 'UUID_Utilisateur_Lie']).isEmpty ? null : _s(r, ['UUID_Utilisateur_Lié', 'UUID_Utilisateur_Lie'])),
         staffNumber: _s(r, ['Matricule_RH', 'Matricule']),
         lastName: _s(r, ['Nom']),
@@ -259,7 +259,7 @@ class SeedImporter {
       final id = _s(r, ['UUID_Responsable', 'UUID']);
       if (id.isEmpty) continue;
       await db.into(db.guardians).insertOnConflictUpdate(GuardiansCompanion.insert(
-        id: id,
+        id: Value(id),
         lastName: _s(r, ['Nom']),
         firstName: _s(r, ['Prénom', 'Prenom']),
         relationship: Value(_s(r, ['Lien_Parenté', 'Lien_Parente'])),
@@ -284,7 +284,7 @@ class SeedImporter {
       final id = _s(r, ['UUID_Élève', 'UUID_Eleve', 'UUID']);
       if (id.isEmpty) continue;
       await db.into(db.students).insertOnConflictUpdate(StudentsCompanion.insert(
-        id: id,
+        id: Value(id),
         matricule: _s(r, ['Matricule']),
         lastName: _s(r, ['Nom']),
         firstName: _s(r, ['Prénom', 'Prenom']),
@@ -299,7 +299,7 @@ class SeedImporter {
       final classId = _s(r, ['UUID_Classe']);
       if (classId.isNotEmpty) {
         await db.into(db.enrollments).insertOnConflictUpdate(EnrollmentsCompanion.insert(
-          id: 'enr-$id',
+          id: Value('enr-$id'),
           studentId: id,
           schoolYearId: Value(activeYearId),
           classId: Value(classId),
@@ -327,7 +327,7 @@ class SeedImporter {
       final studentId = _s(r, ['UUID_Élève', 'UUID_Eleve']);
       if (id.isEmpty || studentId.isEmpty) continue;
       await db.into(db.evaluations).insertOnConflictUpdate(EvaluationsCompanion.insert(
-        id: id,
+        id: Value(id),
         studentId: studentId,
         periodId: Value(_s(r, ['UUID_Période', 'UUID_Periode']).isEmpty ? null : _s(r, ['UUID_Période', 'UUID_Periode'])),
         subjectId: Value(_s(r, ['UUID_Matière', 'UUID_Matiere']).isEmpty ? null : _s(r, ['UUID_Matière', 'UUID_Matiere'])),
@@ -352,7 +352,7 @@ class SeedImporter {
       final studentId = _s(r, ['UUID_Élève', 'UUID_Eleve']);
       if (id.isEmpty || studentId.isEmpty) continue;
       await db.into(db.attendanceEvents).insertOnConflictUpdate(AttendanceEventsCompanion.insert(
-        id: id,
+        id: Value(id),
         category: _s(r, ['Catégorie', 'Categorie']).isEmpty ? 'Appel / Présence' : _s(r, ['Catégorie', 'Categorie']),
         studentId: studentId,
         date: _dt(r, ['Date']) ?? DateTime.now(),
@@ -375,7 +375,7 @@ class SeedImporter {
       final studentId = _s(r, ['UUID_Élève', 'UUID_Eleve']);
       if (id.isEmpty || studentId.isEmpty) continue;
       await db.into(db.payments).insertOnConflictUpdate(PaymentsCompanion.insert(
-        id: id,
+        id: Value(id),
         receiptNumber: _s(r, ['Numéro_Reçu', 'Numero_Recu', 'Recu']).isEmpty ? 'REC-$n' : _s(r, ['Numéro_Reçu', 'Numero_Recu', 'Recu']),
         studentId: studentId,
         feeLabel: _s(r, ['Libellé_Frais', 'Libelle_Frais']).isEmpty ? 'Frais' : _s(r, ['Libellé_Frais', 'Libelle_Frais']),
@@ -402,7 +402,7 @@ class SeedImporter {
       if (id.isEmpty) continue;
       if (domain.toLowerCase().contains('biblio')) {
         await db.into(db.libraryItems).insertOnConflictUpdate(LibraryItemsCompanion.insert(
-          id: id,
+            id: Value(id),
           domain: Value(domain.isEmpty ? 'Bibliothèque' : domain),
           codeOrIsbn: Value(_s(r, ['Code_Ou_ISBN'])),
           title: _s(r, ['Désignation_Ou_Titre', 'Designation_Ou_Titre', 'Titre']).isEmpty ? 'Document' : _s(r, ['Désignation_Ou_Titre', 'Designation_Ou_Titre', 'Titre']),
@@ -414,7 +414,7 @@ class SeedImporter {
         final borrower = _s(r, ['UUID_Emprunteur']);
         if (borrower.isNotEmpty) {
           await db.into(db.libraryLoans).insertOnConflictUpdate(LibraryLoansCompanion.insert(
-            id: 'loan-$id',
+              id: Value('loan-$id'),
             itemId: id,
             borrowerStudentId: Value(borrower),
             borrowerRef: Value(_s(r, ['Ref_Emprunteur_Ou_Cycle'])),
@@ -426,7 +426,7 @@ class SeedImporter {
         n++;
       } else {
         await db.into(db.facilities).insertOnConflictUpdate(FacilitiesCompanion.insert(
-          id: id,
+            id: Value(id),
           domain: domain.isEmpty ? 'Local' : domain,
           code: Value(_s(r, ['Code_Ou_ISBN'])),
           name: _s(r, ['Désignation_Ou_Titre', 'Designation_Ou_Titre']).isEmpty ? 'Espace' : _s(r, ['Désignation_Ou_Titre', 'Designation_Ou_Titre']),
@@ -470,7 +470,7 @@ class SeedImporter {
         final id = _s(r, ['UUID_Conseil', 'UUID']);
         if (id.isEmpty) continue;
         await db.into(db.classCouncils).insertOnConflictUpdate(ClassCouncilsCompanion.insert(
-          id: id,
+          id: Value(id),
           classId: _s(r, ['UUID_Classe']),
           periodId: _s(r, ['UUID_Periode']),
           councilDate: Value(_dt(r, ['Date_Conseil'])),
@@ -493,7 +493,7 @@ class SeedImporter {
         final id = _s(r, ['UUID_Decision', 'UUID']);
         if (id.isEmpty) continue;
         await db.into(db.councilDecisions).insertOnConflictUpdate(CouncilDecisionsCompanion.insert(
-          id: id,
+          id: Value(id),
           councilId: _s(r, ['UUID_Conseil']),
           studentId: _s(r, ['UUID_Eleve']),
           decision: Value(_s(r, ['Decision'])),
@@ -519,7 +519,7 @@ class SeedImporter {
         final studentId = _s(r, ['UUID_Eleve']);
         if (id.isEmpty || studentId.isEmpty) continue;
         await db.into(db.paymentSchedules).insertOnConflictUpdate(PaymentSchedulesCompanion.insert(
-          id: id,
+          id: Value(id),
           studentId: studentId,
           classId: Value(_s(r, ['UUID_Classe']).isEmpty ? null : _s(r, ['UUID_Classe'])),
           label: _s(r, ['Libelle']).isEmpty ? 'Échéance' : _s(r, ['Libelle']),
@@ -546,7 +546,7 @@ class SeedImporter {
         final id = _s(r, ['UUID_Session', 'UUID']);
         if (id.isEmpty) continue;
         await db.into(db.timetableSessions).insertOnConflictUpdate(TimetableSessionsCompanion.insert(
-          id: id,
+          id: Value(id),
           classId: Value(_s(r, ['UUID_Classe']).isEmpty ? null : _s(r, ['UUID_Classe'])),
           subjectId: Value(_s(r, ['UUID_Matiere']).isEmpty ? null : _s(r, ['UUID_Matiere'])),
           teacherId: Value(_s(r, ['UUID_Enseignant']).isEmpty ? null : _s(r, ['UUID_Enseignant'])),

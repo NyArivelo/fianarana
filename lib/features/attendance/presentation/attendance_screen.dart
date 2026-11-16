@@ -63,15 +63,18 @@ class _AttendanceScreenState extends ConsumerState<AttendanceScreen> {
                 SizedBox(
                   width: 260,
                   child: classesAsync.when(
-                    data: (classes) => DropdownButtonFormField<String?>(
-                      value: _classId,
-                      decoration: const InputDecoration(labelText: 'Classe'),
-                      items: [
-                        const DropdownMenuItem(value: null, child: Text('Toutes')),
-                        ...classes.map((c) => DropdownMenuItem(value: c.id, child: Text(c.label))),
-                      ],
-                      onChanged: (v) => setState(() => _classId = v),
-                    ),
+                    data: (classes) {
+                      final list = classes ?? const [];
+                      return DropdownButtonFormField<String?>(
+                        initialValue: _classId,
+                        decoration: const InputDecoration(labelText: 'Classe'),
+                        items: [
+                          const DropdownMenuItem(value: null, child: Text('Toutes')),
+                          ...list.map((c) => DropdownMenuItem(value: c.id, child: Text(c.label))),
+                        ],
+                        onChanged: (v) => setState(() => _classId = v),
+                      );
+                    },
                     loading: () => const LinearProgressIndicator(),
                     error: (e, _) => Text('Erreur: $e'),
                   ),
@@ -93,10 +96,7 @@ class _AttendanceScreenState extends ConsumerState<AttendanceScreen> {
                 if (_date != null)
                   IconButton(onPressed: () => setState(() => _date = null), icon: const Icon(Icons.clear)),
                 const Spacer(),
-                const Tooltip(
-                  message: 'Saisie rapide de l’appel (grille clavier) à compléter',
-                  child: Chip(label: Text('Module MVP en cours')),
-                ),
+                const Chip(label: Text('Module MVP en cours')),
               ],
             ),
             const SizedBox(height: 12),

@@ -117,15 +117,18 @@ class _GradesScreenState extends ConsumerState<GradesScreen> {
               SizedBox(
                 width: 260,
                 child: classesAsync.when(
-                  data: (classes) => DropdownButtonFormField<String?>(
-                    value: _classId,
-                    decoration: const InputDecoration(labelText: 'Classe'),
-                    items: [
-                      const DropdownMenuItem(value: null, child: Text('Toutes')),
-                      ...classes.map((c) => DropdownMenuItem(value: c.id, child: Text(c.label))),
-                    ],
-                    onChanged: (v) => setState(() => _classId = v),
-                  ),
+                  data: (classes) {
+                    final list = classes ?? const [];
+                    return DropdownButtonFormField<String?>(
+                      initialValue: _classId,
+                      decoration: const InputDecoration(labelText: 'Classe'),
+                      items: [
+                        const DropdownMenuItem(value: null, child: Text('Toutes')),
+                        ...list.map((c) => DropdownMenuItem(value: c.id, child: Text(c.label))),
+                      ],
+                      onChanged: (v) => setState(() => _classId = v),
+                    );
+                  },
                   loading: () => const LinearProgressIndicator(),
                   error: (e, _) => Text('Erreur: $e'),
                 ),
@@ -180,8 +183,8 @@ class _GradesScreenState extends ConsumerState<GradesScreen> {
                                 DataCell(Icon(r.isExempt ? Icons.check_circle : Icons.remove_circle_outline, size: 18)),
                                 DataCell(Text(r.validationStatus)),
                                 DataCell(Row(mainAxisSize: MainAxisSize.min, children: [
-                                  IconButton(tooltip: 'Éditer la note', icon: const Icon(Icons.edit_outlined), onPressed: () => _quickEdit(r)),
-                                  IconButton(tooltip: 'Bulletin PDF (élève)', icon: const Icon(Icons.picture_as_pdf_outlined), onPressed: () => _generateBulletin(r)),
+                                  IconButton(icon: const Icon(Icons.edit_outlined), onPressed: () => _quickEdit(r)),
+                                  IconButton(icon: const Icon(Icons.picture_as_pdf_outlined), onPressed: () => _generateBulletin(r)),
                                 ])),
                               ])).toList(),
                             ),

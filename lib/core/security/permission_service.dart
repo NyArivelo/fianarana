@@ -65,7 +65,7 @@ class PermissionService {
 
   Future<void> ensurePermission(String id, String code, String module, String action, [String? description]) async {
     await db.into(db.permissions).insertOnConflictUpdate(PermissionsCompanion.insert(
-      id: id,
+      id: Value(id),
       code: code,
       module: module,
       action: action,

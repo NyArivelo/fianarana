@@ -95,17 +95,23 @@ class _CouncilsScreenState extends ConsumerState<CouncilsScreen> {
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Wrap(spacing: 12, runSpacing: 8, crossAxisAlignment: WrapCrossAlignment.center, children: [
             SizedBox(width: 240, child: classesAsync.when(
-              data: (c) => DropdownButtonFormField<String?>(value: _classId, decoration: const InputDecoration(labelText: 'Classe'), items: [
-                const DropdownMenuItem(value: null, child: Text('Toutes')),
-                ...c.map((x)=>DropdownMenuItem(value: x.id, child: Text(x.label))),
-              ], onChanged: (v)=>setState(()=>_classId=v)),
+              data: (c) {
+                final list = c ?? const [];
+                return DropdownButtonFormField<String?>(initialValue: _classId, decoration: const InputDecoration(labelText: 'Classe'), items: [
+                  const DropdownMenuItem(value: null, child: Text('Toutes')),
+                  ...list.map((x)=>DropdownMenuItem(value: x.id, child: Text(x.label))),
+                ], onChanged: (v)=>setState(()=>_classId=v));
+              },
               loading: ()=>const LinearProgressIndicator(), error: (e,_)=>Text('$e'),
             )),
             SizedBox(width: 240, child: periodsAsync.when(
-              data: (p) => DropdownButtonFormField<String?>(value: _periodId, decoration: const InputDecoration(labelText: 'Période'), items: [
-                const DropdownMenuItem(value: null, child: Text('Toutes')),
-                ...p.map((x)=>DropdownMenuItem(value: x.id, child: Text('${x.name}${x.isClosed ? " (verrouillée)" : ""}'))),
-              ], onChanged: (v)=>setState(()=>_periodId=v)),
+              data: (p) {
+                final list = p ?? const [];
+                return DropdownButtonFormField<String?>(initialValue: _periodId, decoration: const InputDecoration(labelText: 'Période'), items: [
+                  const DropdownMenuItem(value: null, child: Text('Toutes')),
+                  ...list.map((x)=>DropdownMenuItem(value: x.id, child: Text('${x.name}${x.isClosed ? " (verrouillée)" : ""}'))),
+                ], onChanged: (v)=>setState(()=>_periodId=v));
+              },
               loading: ()=>const LinearProgressIndicator(), error: (e,_)=>Text('$e'),
             )),
             FilledButton.icon(onPressed: _createCouncil, icon: const Icon(Icons.add), label: const Text('Nouveau conseil')),

@@ -1,3 +1,5 @@
+import 'package:drift/drift.dart';
+
 import 'package:fianarana/core/database/app_database.dart';
 import 'package:fianarana/core/database/uuid.dart';
 import 'package:fianarana/core/security/permission_service.dart';
@@ -36,7 +38,7 @@ class RbacSeed {
       if (existing != null) return existing.id;
       final id = newUuid();
       await db.into(db.roles).insert(RolesCompanion.insert(
-        id: id,
+        id: Value(id),
         name: name,
         description: Value(desc),
         isSystem: Value(system),

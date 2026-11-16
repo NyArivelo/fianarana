@@ -107,7 +107,7 @@ class AttendanceRepository {
     await _require(actorUserId, 'attendance.create');
     final id = newUuid();
     await db.into(db.attendanceEvents).insert(AttendanceEventsCompanion.insert(
-      id: id,
+      id: Value(id),
       category: category,
       studentId: studentId,
       classId: Value(classId),

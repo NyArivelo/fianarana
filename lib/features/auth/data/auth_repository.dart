@@ -97,7 +97,7 @@ class AuthRepository {
     final userId = AppDatabase.ensureId(null);
     await db.transaction(() async {
       await db.into(db.roles).insertOnConflictUpdate(RolesCompanion.insert(
-        id: adminRoleId,
+        id: Value(adminRoleId),
         name: 'Administrateur',
         description: const Value('Accès complet au système'),
         isSystem: const Value(true),
@@ -105,7 +105,7 @@ class AuthRepository {
         updatedAt: Value(now),
       ));
       await db.into(db.users).insert(UsersCompanion.insert(
-        id: userId,
+        id: Value(userId),
         username: username,
         fullName: fullName,
         email: Value(email),
