@@ -14,49 +14,57 @@ class WorkspaceShell extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final ws = ref.watch(tabWorkspaceProvider);
     // Si aucun onglet géré, on affiche le contenu routé normalement.
-    if (ws.tabs.isEmpty) return child;
+    if (ws.tabs.isEmpty) {
+      return Material(
+        color: Colors.transparent,
+        child: child,
+      );
+    }
 
-    return Column(
-      children: [
-        Material(
-          color: Theme.of(context).colorScheme.surfaceContainerHighest,
-          child: SizedBox(
-            height: 40,
-            child: Row(
-              children: [
-                Expanded(
-                  child: ListView.builder(
-                    scrollDirection: Axis.horizontal,
-                    itemCount: ws.tabs.length,
-                    itemBuilder: (context, i) {
-                      final t = ws.tabs[i];
-                      final active = i == ws.activeIndex;
-                      return InkWell(
-                        onTap: () => ref.read(tabWorkspaceProvider.notifier).activate(i),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12),
-                          alignment: Alignment.center,
-                          decoration: BoxDecoration(
-                            border: Border(bottom: BorderSide(color: active ? Theme.of(context).colorScheme.primary : Colors.transparent, width: 2)),
+    return Material(
+      color: Colors.transparent,
+      child: Column(
+        children: [
+          Material(
+            color: Theme.of(context).colorScheme.surfaceContainerHighest,
+            child: SizedBox(
+              height: 40,
+              child: Row(
+                children: [
+                  Expanded(
+                    child: ListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: ws.tabs.length,
+                      itemBuilder: (context, i) {
+                        final t = ws.tabs[i];
+                        final active = i == ws.activeIndex;
+                        return InkWell(
+                          onTap: () => ref.read(tabWorkspaceProvider.notifier).activate(i),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 12),
+                            alignment: Alignment.center,
+                            decoration: BoxDecoration(
+                              border: Border(bottom: BorderSide(color: active ? Theme.of(context).colorScheme.primary : Colors.transparent, width: 2)),
+                            ),
+                            child: Row(children: [
+                              Text(t.title),
+                              const SizedBox(width: 6),
+                              InkWell(onTap: () => ref.read(tabWorkspaceProvider.notifier).closeTab(t.id), child: const Icon(Icons.close, size: 14)),
+                            ]),
                           ),
-                          child: Row(children: [
-                            Text(t.title),
-                            const SizedBox(width: 6),
-                            InkWell(onTap: () => ref.read(tabWorkspaceProvider.notifier).closeTab(t.id), child: const Icon(Icons.close, size: 14)),
-                          ]),
-                        ),
-                      );
-                    },
+                        );
+                      },
+                    ),
                   ),
-                ),
-                IconButton(icon: const Icon(Icons.close), onPressed: () => ref.read(tabWorkspaceProvider.notifier).closeActive()),
-              ],
+                  IconButton(icon: const Icon(Icons.close), onPressed: () => ref.read(tabWorkspaceProvider.notifier).closeActive()),
+                ],
+              ),
             ),
           ),
-        ),
-        const Divider(height: 1),
-        Expanded(child: ws.tabs[ws.activeIndex].builder(context)),
-      ],
+          const Divider(height: 1),
+          Expanded(child: ws.tabs[ws.activeIndex].builder(context)),
+        ],
+      ),
     );
   }
 }

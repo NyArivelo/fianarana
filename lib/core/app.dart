@@ -116,15 +116,18 @@ class _FianaranaAppState extends ConsumerState<FianaranaApp> with WidgetsBinding
                   return null;
                 }),
               },
-              child: Stack(
-                children: [
-                  if (child != null) WorkspaceShell(child: child),
-                  if (auth.isAuthenticated && auth.isLocked)
-                    _LockOverlay(
-                      onUnlockPassword: (pwd) => ref.read(authControllerProvider.notifier).unlockWithPassword(pwd),
-                      onUnlockPin: (pin) => ref.read(authControllerProvider.notifier).unlockWithPin(pin),
-                    ),
-                ],
+              child: Material(
+                color: Colors.transparent,
+                child: Stack(
+                  children: [
+                    if (child != null) WorkspaceShell(child: child),
+                    if (auth.isAuthenticated && auth.isLocked)
+                      _LockOverlay(
+                        onUnlockPassword: (pwd) => ref.read(authControllerProvider.notifier).unlockWithPassword(pwd),
+                        onUnlockPin: (pin) => ref.read(authControllerProvider.notifier).unlockWithPin(pin),
+                      ),
+                  ],
+                ),
               ),
             ),
           );
