@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:printing/printing.dart';
 
 import 'package:fianarana/features/auth/application/auth_controller.dart';
 import 'package:fianarana/features/finance/application/finance_providers.dart';
+import 'package:fianarana/features/finance/data/finance_repository.dart';
+import 'package:fianarana/features/finance/services/receipt_service.dart';
 import 'package:fianarana/features/students/application/students_providers.dart';
 
 class FinanceScreen extends ConsumerStatefulWidget {
@@ -137,6 +141,8 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
       appBar: AppBar(
         title: const Text('Finances & Caisse'),
         actions: [
+          OutlinedButton.icon(onPressed: () => context.go('/finance/schedules'), icon: const Icon(Icons.event_note_outlined), label: const Text('Échéanciers')),
+          const SizedBox(width: 8),
           OutlinedButton.icon(onPressed: _closeCashDesk, icon: const Icon(Icons.lock_clock), label: const Text('Clôture Z')),
           const SizedBox(width: 8),
           FilledButton.icon(onPressed: _newPayment, icon: const Icon(Icons.add_card), label: const Text('Encaissement')),
@@ -194,6 +200,7 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
                               DataColumn(label: Text('Reste')),
                               DataColumn(label: Text('Mode')),
                               DataColumn(label: Text('État caisse')),
+                              DataColumn(label: Text('Action')),
                             ],
                             rows: rows.map((r) => DataRow(cells: [
                               DataCell(Text(r.receipt)),
@@ -206,6 +213,26 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
                               DataCell(Text('${r.balance}')),
                               DataCell(Text(r.method ?? '-')),
                               DataCell(Text(r.closeStatus ?? r.scheduleStatus ?? '-')),
+                              DataCell(IconButton(
+                                tooltip: 'Imprimer le reçu PDF',
+                                icon: const Icon(Icons.print_outlined),
+                                onPressed: () async {
+                                  final bytes = await ReceiptService().generateReceipt(ReceiptData(
+                                    receiptNumber: r.receipt,
+                                    date: r.date,
+                                    studentName: r.studentName,
+                                    matricule: r.matricule,
+                                    classLabel: r.classLabel,
+                                    feeLabel: r.feeLabel,
+                                    amountDue: r.due,
+                                    amountPaid: r.paid,
+                                    balance: r.balance,
+                                    paymentMethod: r.method,
+                                    cashier: null,
+                                  ), establishmentName: 'Établissement');
+                                  await Printing.layoutPdf(onLayout: (_) async => bytes, name: 'recu_${r.receipt}.pdf');
+                                },
+                              )),
                             ])).toList(),
                           ),
                         ),
