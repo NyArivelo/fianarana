@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:printing/printing.dart';
 
 import 'package:fianarana/features/auth/application/auth_controller.dart';
@@ -101,7 +102,13 @@ class _GradesScreenState extends ConsumerState<GradesScreen> {
     final gradesAsync = ref.watch(gradesListProvider((classId: _classId, subjectId: _subjectId)));
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Évaluations & Notes')),
+      appBar: AppBar(
+        title: const Text('Évaluations & Notes'),
+        actions: [
+          OutlinedButton.icon(onPressed: () => context.go('/grades/councils'), icon: const Icon(Icons.groups_outlined), label: const Text('Conseils & périodes')),
+          const SizedBox(width: 8),
+        ],
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
