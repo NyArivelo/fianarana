@@ -43,18 +43,33 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> {
     try {
       final auth = ref.read(authControllerProvider);
       final repo = ref.read(studentsRepositoryProvider);
-      await repo.createStudent(
-        matricule: _matricule.text.trim(),
-        lastName: _lastName.text.trim(),
-        firstName: _firstName.text.trim(),
-        sex: _sex,
-        birthDate: _birthDate,
-        birthPlace: _birthPlace.text.trim().isEmpty ? null : _birthPlace.text.trim(),
-        classId: _classId,
-        medicalNotes: _medical.text.trim().isEmpty ? null : _medical.text.trim(),
-        actorUserId: auth.userId,
-        actorUsername: auth.username,
-      );
+      if (isNew) {
+        await repo.createStudent(
+          matricule: _matricule.text.trim(),
+          lastName: _lastName.text.trim(),
+          firstName: _firstName.text.trim(),
+          sex: _sex,
+          birthDate: _birthDate,
+          birthPlace: _birthPlace.text.trim().isEmpty ? null : _birthPlace.text.trim(),
+          classId: _classId,
+          medicalNotes: _medical.text.trim().isEmpty ? null : _medical.text.trim(),
+          actorUserId: auth.userId,
+          actorUsername: auth.username,
+        );
+      } else {
+        await repo.updateStudent(
+          studentId: widget.studentId!,
+          matricule: _matricule.text.trim(),
+          lastName: _lastName.text.trim(),
+          firstName: _firstName.text.trim(),
+          sex: _sex,
+          birthDate: _birthDate,
+          birthPlace: _birthPlace.text.trim().isEmpty ? null : _birthPlace.text.trim(),
+          medicalNotes: _medical.text.trim().isEmpty ? null : _medical.text.trim(),
+          actorUserId: auth.userId,
+          actorUsername: auth.username,
+        );
+      }
       ref.invalidate(studentsListProvider);
       ref.invalidate(studentDetailProvider);
       if (mounted) {
@@ -110,14 +125,14 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> {
                           Text(isNew ? 'Inscription / création de dossier' : 'Informations élève', style: Theme.of(context).textTheme.titleLarge),
                           const SizedBox(height: 12),
                           Wrap(spacing: 12, runSpacing: 12, children: [
-                            SizedBox(width: 220, child: TextFormField(controller: _matricule, decoration: const InputDecoration(labelText: 'Matricule *'), validator: (v) => v==null||v.trim().isEmpty?'Requis':null, enabled: isNew)),
-                            SizedBox(width: 260, child: TextFormField(controller: _lastName, decoration: const InputDecoration(labelText: 'Nom *'), validator: (v) => v==null||v.trim().isEmpty?'Requis':null, enabled: isNew)),
-                            SizedBox(width: 260, child: TextFormField(controller: _firstName, decoration: const InputDecoration(labelText: 'Prénom *'), validator: (v) => v==null||v.trim().isEmpty?'Requis':null, enabled: isNew)),
+                            SizedBox(width: 220, child: TextFormField(controller: _matricule, decoration: const InputDecoration(labelText: 'Matricule *'), validator: (v) => v==null||v.trim().isEmpty?'Requis':null)),
+                            SizedBox(width: 260, child: TextFormField(controller: _lastName, decoration: const InputDecoration(labelText: 'Nom *'), validator: (v) => v==null||v.trim().isEmpty?'Requis':null)),
+                            SizedBox(width: 260, child: TextFormField(controller: _firstName, decoration: const InputDecoration(labelText: 'Prénom *'), validator: (v) => v==null||v.trim().isEmpty?'Requis':null)),
                             SizedBox(width: 140, child: DropdownButtonFormField<String>(value: _sex, decoration: const InputDecoration(labelText: 'Sexe'), items: const [
                               DropdownMenuItem(value: 'M', child: Text('M')),
                               DropdownMenuItem(value: 'F', child: Text('F')),
-                            ], onChanged: isNew ? (v)=>setState(()=>_sex=v) : null)),
-                            SizedBox(width: 260, child: TextFormField(controller: _birthPlace, decoration: const InputDecoration(labelText: 'Lieu de naissance'), enabled: isNew)),
+                            ], onChanged: (v)=>setState(()=>_sex=v))),
+                            SizedBox(width: 260, child: TextFormField(controller: _birthPlace, decoration: const InputDecoration(labelText: 'Lieu de naissance'))),
                           ]),
                           const SizedBox(height: 12),
                           classesAsync.when(
@@ -137,16 +152,13 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> {
                             error: (e, _) => Text('Erreur classes: $e'),
                           ),
                           const SizedBox(height: 12),
-                          TextFormField(controller: _medical, decoration: const InputDecoration(labelText: 'Observations médicales / suivi'), maxLines: 2, enabled: isNew),
+                          TextFormField(controller: _medical, decoration: const InputDecoration(labelText: 'Observations médicales / suivi'), maxLines: 2),
                           const SizedBox(height: 16),
-                          if (isNew)
-                            FilledButton.icon(
-                              onPressed: _saving ? null : _save,
-                              icon: _saving ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2)) : const Icon(Icons.save),
-                              label: const Text('Enregistrer l\'élève'),
-                            )
-                          else
-                            const Text('Consultation du dossier (édition complète et transfert/quitus à enrichir).'),
+                          FilledButton.icon(
+                            onPressed: _saving ? null : _save,
+                            icon: _saving ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2)) : const Icon(Icons.save),
+                            label: Text(isNew ? 'Enregistrer l\'élève' : 'Enregistrer les modifications'),
+                          ),
                         ],
                       ),
                     ),

@@ -177,6 +177,32 @@ class StudentsRepository {
     await _audit.log(userId: actorUserId, username: actorUsername, module: 'Inscriptions', targetObject: enrollmentId, description: 'Mise à jour statut inscription: $status', result: 'Succès');
   }
 
+  Future<void> updateStudent({
+    required String studentId,
+    required String matricule,
+    required String lastName,
+    required String firstName,
+    String? sex,
+    DateTime? birthDate,
+    String? birthPlace,
+    String? medicalNotes,
+    String? actorUserId,
+    String? actorUsername,
+  }) async {
+    await _require(actorUserId, 'students.update');
+    await (db.update(db.students)..where((t) => t.id.equals(studentId))).write(StudentsCompanion(
+      matricule: Value(matricule),
+      lastName: Value(lastName),
+      firstName: Value(firstName),
+      sex: Value(sex),
+      birthDate: Value(birthDate),
+      birthPlace: Value(birthPlace),
+      medicalNotes: Value(medicalNotes),
+      updatedAt: Value(DateTime.now()),
+    ));
+    await _audit.log(userId: actorUserId, username: actorUsername, module: 'Élèves', targetObject: studentId, description: 'Mise à jour élève $matricule $lastName $firstName', result: 'Succès');
+  }
+
   /// Procédure de transfert/radiation (vérifications quitus à renforcer côté service métier)
   Future<void> transferStudent({
     required String studentId,
