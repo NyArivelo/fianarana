@@ -58,6 +58,7 @@ class TabWorkspaceController extends StateNotifier<TabWorkspaceState> {
   void openTab(WorkspaceTab tab) {
     final idx = state.tabs.indexWhere((t) => t.id == tab.id || t.route == tab.route);
     if (idx >= 0) {
+      if (state.activeIndex == idx) return; // déjà actif: éviter persistance/émission inutile
       _emit(state.copyWith(activeIndex: idx));
       return;
     }

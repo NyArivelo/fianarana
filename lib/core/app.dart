@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fianarana/core/database/database_provider.dart';
 import 'package:fianarana/core/services/recycle_bin_service.dart';
 import 'package:fianarana/core/settings/app_config.dart';
+import 'package:go_router/go_router.dart';
 import 'package:fianarana/core/routing/app_router.dart';
 import 'package:fianarana/core/services/backup_service.dart';
 import 'package:fianarana/core/settings/ui_settings.dart';
@@ -26,6 +27,8 @@ class _FianaranaAppState extends ConsumerState<FianaranaApp> with WidgetsBinding
   Timer? _autoBackup;
   Duration _inactivityTimeout = const Duration(minutes: 5);
   bool _autoBackupEnabled = true;
+  GoRouter? _routerForSync;
+  VoidCallback? _routeSyncListener;
 
   @override
   void initState() {
@@ -33,6 +36,31 @@ class _FianaranaAppState extends ConsumerState<FianaranaApp> with WidgetsBinding
     WidgetsBinding.instance.addObserver(this);
     _resetInactivity();
     _loadConfigAndMaintenance();
+  }
+
+  void _attachRouterSync(GoRouter router) {
+    if (_routerForSync == router) {
+      _syncMdiWithRoute(router);
+      return;
+    }
+    if (_routerForSync != null && _routeSyncListener != null) {
+      _routerForSync!.routeInformationProvider.removeListener(_routeSyncListener!);
+    }
+    _routerForSync = router;
+    _routeSyncListener = () => _syncMdiWithRoute(router);
+    router.routeInformationProvider.addListener(_routeSyncListener!);
+    _syncMdiWithRoute(router);
+  }
+
+  void _syncMdiWithRoute(GoRouter router) {
+    try {
+      final uri = router.routeInformationProvider.value.uri;
+      final loc = uri.toString();
+      final path = uri.path;
+      // Ne pas ouvrir d'onglets pour les écrans hors shell/auth
+      if (path == '/login' || path == '/bootstrap' || path == '/setup') return;
+      openRouteTab(ref, loc);
+    } catch (_) {}
   }
 
   Future<void> _loadConfigAndMaintenance() async {
@@ -74,6 +102,9 @@ class _FianaranaAppState extends ConsumerState<FianaranaApp> with WidgetsBinding
     WidgetsBinding.instance.removeObserver(this);
     _inactivity?.cancel();
     _autoBackup?.cancel();
+    if (_routerForSync != null && _routeSyncListener != null) {
+      _routerForSync!.routeInformationProvider.removeListener(_routeSyncListener!);
+    }
     super.dispose();
   }
 
@@ -105,6 +136,7 @@ class _FianaranaAppState extends ConsumerState<FianaranaApp> with WidgetsBinding
     final router = ref.watch(appRouterProvider);
     final auth = ref.watch(authControllerProvider);
     final uiScale = ref.watch(uiScaleProvider).valueOrNull ?? kDefaultUiScale;
+    _attachRouterSync(router);
 
     return Listener(
       onPointerDown: (_) => _resetInactivity(),
