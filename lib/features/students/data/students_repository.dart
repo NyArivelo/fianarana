@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 
 import 'package:fianarana/core/database/app_database.dart';
 import 'package:fianarana/core/database/uuid.dart';
+import 'package:fianarana/core/security/affectation_scope.dart';
 import 'package:fianarana/core/security/audit_service.dart';
 import 'package:fianarana/core/security/permission_service.dart';
 
@@ -82,6 +83,11 @@ class StudentsRepository {
     int limit = 400,
   }) async {
     await _require(actorUserId, 'students.read');
+    final scopeClasses = await AffectationScope(db).allowedClassIdsForUser(actorUserId);
+    if (scopeClasses != null) {
+      if (scopeClasses.isEmpty) return const <StudentListItem>[];
+      if (classId != null && classId.isNotEmpty && !scopeClasses.contains(classId)) return const <StudentListItem>[];
+    }
     final s = db.students;
     final e = db.enrollments;
     final c = db.classes;
@@ -93,6 +99,8 @@ class StudentsRepository {
     join.where(s.isDeleted.equals(false));
     if (classId != null && classId.isNotEmpty) {
       join.where(e.classId.equals(classId));
+    } else if (scopeClasses != null) {
+      join.where(e.classId.isIn(scopeClasses));
     }
     if (status != null && status.isNotEmpty) {
       join.where(e.status.equals(status) | s.status.equals(status));

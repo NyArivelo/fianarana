@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 
 import 'package:fianarana/core/database/app_database.dart';
 import 'package:fianarana/core/database/uuid.dart';
+import 'package:fianarana/core/security/affectation_scope.dart';
 import 'package:fianarana/core/security/audit_service.dart';
 import 'package:fianarana/core/security/permission_service.dart';
 
@@ -66,6 +67,11 @@ class GradesRepository {
 
   Future<List<GradeRow>> list({String? actorUserId, String? classId, String? subjectId, int limit = 500}) async {
     await _require(actorUserId, 'grades.read');
+    final scopeClasses = await AffectationScope(db).allowedClassIdsForUser(actorUserId);
+    if (scopeClasses != null) {
+      if (scopeClasses.isEmpty) return const <GradeRow>[];
+      if (classId != null && classId.isNotEmpty && !scopeClasses.contains(classId)) return const <GradeRow>[];
+    }
     final e = db.evaluations;
     final s = db.students;
     final c = db.classes;
@@ -76,7 +82,11 @@ class GradesRepository {
       leftOuterJoin(sub, sub.id.equalsExp(e.subjectId)),
     ]);
     j.where(e.isDeleted.equals(false));
-    if (classId != null && classId.isNotEmpty) j.where(e.classId.equals(classId));
+    if (classId != null && classId.isNotEmpty) {
+      j.where(e.classId.equals(classId));
+    } else if (scopeClasses != null) {
+      j.where(e.classId.isIn(scopeClasses));
+    }
     if (subjectId != null && subjectId.isNotEmpty) j.where(e.subjectId.equals(subjectId));
     j.orderBy([OrderingTerm.asc(s.lastName), OrderingTerm.asc(e.label)]);
     j.limit(limit);

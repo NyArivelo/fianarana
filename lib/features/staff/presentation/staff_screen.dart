@@ -6,12 +6,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:fianarana/core/database/app_database.dart';
+import 'package:fianarana/core/database/database_provider.dart';
 import 'package:fianarana/core/utils/csv_export.dart';
 import 'package:fianarana/core/utils/xlsx_export.dart';
 import 'package:fianarana/features/auth/application/auth_controller.dart';
 import 'package:fianarana/features/staff/application/staff_providers.dart';
 import 'package:fianarana/features/staff/services/staff_import_service.dart';
 import 'package:fianarana/features/timetable/application/timetable_providers.dart';
+import 'package:fianarana/features/timetable/data/timetable_repository.dart';
 
 class StaffScreen extends ConsumerStatefulWidget {
   const StaffScreen({super.key});
@@ -89,6 +91,28 @@ class _StaffScreenState extends ConsumerState<StaffScreen> with SingleTickerProv
     )));
     if (ok == true && teacherId != null) {
       try {
+        // Vérification simple des conflits pour le remplacement (enseignant/salle)
+        if (substituteId != null && startT.text.trim().isNotEmpty && endT.text.trim().isNotEmpty) {
+          final ttRepo = TimetableRepository(ref.read(appDatabaseProvider));
+          final all = await ttRepo.listEntries(actorUserId: auth.userId);
+          int toMin(String hhmm) { final p = hhmm.split(':'); if (p.length!=2) return 0; return (int.tryParse(p[0])??0)*60+(int.tryParse(p[1])??0); }
+          bool overlap(String s1,String e1,String s2,String e2){ final a1=toMin(s1),a2=toMin(e1),b1=toMin(s2),b2=toMin(e2); return a1<b2 && b1<a2; }
+          final conflicts = <String>[];
+          for (final e in all) {
+            if (e.dayOfWeek != day) continue;
+            if (!overlap(startT.text.trim(), endT.text.trim(), e.startTime, e.endTime)) continue;
+            if (substituteId == e.teacherId) conflicts.add('Enseignant remplaçant déjà occupé (${e.startTime}-${e.endTime}, ${e.classLabel ?? ''})');
+            if (roomId != null && roomId == e.roomId) conflicts.add('Salle déjà occupée (${e.startTime}-${e.endTime}, ${e.classLabel ?? ''})');
+          }
+          if (conflicts.isNotEmpty && mounted) {
+            final proceed = await showDialog<bool>(context: context, builder: (ctx)=>AlertDialog(
+              title: const Text('Conflits détectés (remplacement)'),
+              content: SizedBox(width: 520, child: Text(conflicts.join('\n') + '\n\nContinuer quand même ? (vous pourrez ajuster dans l\'emploi du temps)')),
+              actions: [TextButton(onPressed: ()=>Navigator.pop(ctx,false), child: const Text('Annuler')), FilledButton(onPressed: ()=>Navigator.pop(ctx,true), child: const Text('Continuer'))],
+            ));
+            if (proceed != true) return;
+          }
+        }
         await repo.declareAbsenceAndReplacement(
           teacherId: teacherId!,
           startDate: start, endDate: end, reason: reason.text.trim(),
@@ -98,7 +122,7 @@ class _StaffScreenState extends ConsumerState<StaffScreen> with SingleTickerProv
         );
         ref.invalidate(teacherAbsencesProvider);
         ref.invalidate(timetableEntriesProvider);
-        if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Absence enregistrée (remplacement/rattrapage créé si renseigné). Vérifiez les conflits dans l\'emploi du temps.')));
+        if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Absence enregistrée (remplacement/rattrapage créé si renseigné).')));
       } catch (e) { if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erreur: $e'))); }
     }
   }
