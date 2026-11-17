@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:printing/printing.dart';
@@ -118,26 +119,32 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> {
     final enrollmentsAsync = !isNew ? ref.watch(studentEnrollmentsProvider(widget.studentId!)) : const AsyncValue.data(<dynamic>[]);
     final guardiansAsync = !isNew ? ref.watch(studentGuardiansProvider(widget.studentId!)) : const AsyncValue.data(<dynamic>[]);
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(isNew ? 'Nouvel élève' : 'Dossier élève'),
-        leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => context.go('/students')),
-        actions: [
-          if (!isNew)
-            PopupMenuButton<String>(
-              tooltip: 'Générer un document (modèle)',
-              icon: const Icon(Icons.description_outlined),
-              onSelected: (t) => _generateFromTemplate(student, t),
-              itemBuilder: (ctx) => const [
-                PopupMenuItem(value: 'attestation', child: Text('Attestation de scolarité')),
-                PopupMenuItem(value: 'carte', child: Text('Carte scolaire')),
-                PopupMenuItem(value: 'certificat', child: Text('Certificat / attestation (modèle)')),
-                PopupMenuItem(value: 'bulletin', child: Text('Bulletin (modèle générique)')),
-              ],
-            ),
-        ],
-      ),
-      body: detailAsync.when(
+    return CallbackShortcuts(
+      bindings: <ShortcutActivator, VoidCallback>{
+        const SingleActivator(LogicalKeyboardKey.keyS, control: true): () { if (!_saving) _save(); },
+      },
+      child: Focus(
+        autofocus: true,
+        child: Scaffold(
+          appBar: AppBar(
+            title: Text(isNew ? 'Nouvel élève' : 'Dossier élève'),
+            leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => context.go('/students')),
+            actions: [
+              if (!isNew)
+                PopupMenuButton<String>(
+                  tooltip: 'Générer un document (modèle)',
+                  icon: const Icon(Icons.description_outlined),
+                  onSelected: (t) => _generateFromTemplate(student, t),
+                  itemBuilder: (ctx) => const [
+                    PopupMenuItem(value: 'attestation', child: Text('Attestation de scolarité')),
+                    PopupMenuItem(value: 'carte', child: Text('Carte scolaire')),
+                    PopupMenuItem(value: 'certificat', child: Text('Certificat / attestation (modèle)')),
+                    PopupMenuItem(value: 'bulletin', child: Text('Bulletin (modèle générique)')),
+                  ],
+                ),
+            ],
+          ),
+          body: detailAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('Erreur: $e')),
         data: (student) {
@@ -317,6 +324,8 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> {
             ),
           );
         },
+      ),
+        ),
       ),
     );
   }
