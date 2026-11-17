@@ -628,8 +628,8 @@ class _AttendanceScreenState extends ConsumerState<AttendanceScreen> {
                               : null,
                           action: rows.isEmpty
                               ? FilledButton(
-                                  onPressed: _openAppel,
-                                  child: const Text('Faire l\'appel'),
+                                  onPressed: canCreate ? _openAppel : null,
+                                  child: const Text("Faire l'appel"),
                                 )
                               : null,
                         )

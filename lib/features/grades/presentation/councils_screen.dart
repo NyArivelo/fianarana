@@ -238,6 +238,8 @@ class _DecisionsPanel extends ConsumerWidget {
     final studentsAsync = ref.watch(studentsListProvider((query: null, classId: classId, status: null)));
     final repo = ref.watch(gradesRepositoryProvider);
     final auth = ref.watch(authControllerProvider);
+    final perms = ref.watch(currentPermissionsProvider).valueOrNull ?? const <String>{};
+    final canManage = perms.contains('grades.validate') || perms.contains('grades.create') || perms.contains('grades.update') || perms.contains('grades.publish');
     final students = studentsAsync.valueOrNull ?? const <StudentListItem>[];
     final names = {for (final s in students) s.id: s.fullName};
 
@@ -251,7 +253,7 @@ class _DecisionsPanel extends ConsumerWidget {
             error: (_, __) => const Text('Décisions individuelles', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
           ),
           const Spacer(),
-          TextButton.icon(onPressed: () => _editDecision(context, ref, repo, auth, students, null), icon: const Icon(Icons.add, size: 16), label: const Text('Ajouter')),
+          TextButton.icon(onPressed: canManage ? () => _editDecision(context, ref, repo, auth, students, null) : null, icon: const Icon(Icons.add, size: 16), label: const Text('Ajouter')),
         ]),
         decisionsAsync.when(
           data: (decisions) {
@@ -268,7 +270,7 @@ class _DecisionsPanel extends ConsumerWidget {
                   subtitle: Text('${d.decision ?? "-"}${d.mention == null ? '' : ' • ${d.mention}'}${d.average == null ? '' : ' • moyenne ${d.average!.toStringAsFixed(2)}'}${d.rank == null ? '' : ' • rang ${d.rank}'}', style: const TextStyle(fontSize: 11)),
                   trailing: Wrap(spacing: 4, crossAxisAlignment: WrapCrossAlignment.center, children: [
                     if (d.appreciation != null) SizedBox(width: 220, child: Text(d.appreciation!, maxLines: 2, overflow: TextOverflow.ellipsis, textAlign: TextAlign.right, style: const TextStyle(fontSize: 10))),
-                    IconButton(tooltip: 'Modifier', icon: const Icon(Icons.edit_outlined, size: 18), onPressed: () => _editDecision(context, ref, repo, auth, students, d)),
+                    IconButton(tooltip: 'Modifier', icon: const Icon(Icons.edit_outlined, size: 18), onPressed: canManage ? () => _editDecision(context, ref, repo, auth, students, d) : null),
                   ]),
                 ),
             ]);
