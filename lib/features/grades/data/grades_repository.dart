@@ -177,8 +177,20 @@ class GradesRepository {
     await _require(actorUserId, 'grades.validate');
     // empêcher modification si période verrouillée
     final grade = await (db.select(db.evaluations)..where((t) => t.id.equals(gradeId))).getSingleOrNull();
-    if (grade?.periodId != null) {
-      await _ensurePeriodUnlocked(grade!.periodId!);
+    if (grade == null) throw StateError('Note introuvable');
+    final scopeClasses = await AffectationScope(db).allowedClassIdsForUser(actorUserId);
+    if (scopeClasses != null) {
+      String? effectiveClassId = grade.classId;
+      if (effectiveClassId == null || effectiveClassId.isEmpty) {
+        final enr = await (db.select(db.enrollments)..where((t)=>t.studentId.equals(grade.studentId) & t.isDeleted.equals(false))..orderBy([(t)=>OrderingTerm.desc(t.updatedAt)])).get();
+        if (enr.isNotEmpty) effectiveClassId = enr.first.classId;
+      }
+      if (effectiveClassId == null || !scopeClasses.contains(effectiveClassId)) {
+        throw StateError('Action non autorisée (portée affectations)');
+      }
+    }
+    if (grade.periodId != null) {
+      await _ensurePeriodUnlocked(grade.periodId!);
     }
     await (db.update(db.evaluations)..where((t) => t.id.equals(gradeId))).write(
       EvaluationsCompanion(validationStatus: Value(status), updatedAt: Value(DateTime.now())),

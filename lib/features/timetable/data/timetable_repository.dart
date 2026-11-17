@@ -277,6 +277,16 @@ class TimetableRepository {
     String? actorUsername,
   }) async {
     await _require(actorUserId, 'settings.update');
+    final scopeClasses = await AffectationScope(db).allowedClassIdsForUser(actorUserId);
+    if (scopeClasses != null) {
+      if (classId != null && classId.isNotEmpty && !scopeClasses.contains(classId)) {
+        throw StateError('Action non autorisée (portée affectations)');
+      }
+      if (classId == null || classId.isEmpty) {
+        // pour les utilisateurs à portée affectations, une séance doit être rattachée à une classe autorisée
+        if (scopeClasses.isEmpty) throw StateError('Action non autorisée (portée affectations)');
+      }
+    }
     final sid = id ?? newUuid();
     await db.into(db.timetableSessions).insertOnConflictUpdate(TimetableSessionsCompanion.insert(
           id: Value(sid),
@@ -306,6 +316,13 @@ class TimetableRepository {
 
   Future<void> deleteSession(String id, {String? actorUserId, String? actorUsername}) async {
     await _require(actorUserId, 'settings.update');
+    final scopeClasses = await AffectationScope(db).allowedClassIdsForUser(actorUserId);
+    if (scopeClasses != null) {
+      final existing = await (db.select(db.timetableSessions)..where((t)=>t.id.equals(id))).getSingleOrNull();
+      if (existing?.classId == null || !scopeClasses.contains(existing!.classId!)) {
+        throw StateError('Action non autorisée (portée affectations)');
+      }
+    }
     await (db.update(db.timetableSessions)..where((t) => t.id.equals(id))).write(
       TimetableSessionsCompanion(isDeleted: const Value(true), deletedAt: Value(DateTime.now())),
     );
