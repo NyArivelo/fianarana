@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:fianarana/features/calendar/application/calendar_providers.dart';
+import 'package:fianarana/core/security/permission_providers.dart';
 import 'package:fianarana/features/students/application/students_providers.dart';
 import 'package:fianarana/features/timetable/application/timetable_providers.dart';
 
