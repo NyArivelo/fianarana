@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'dart:io';
+import 'package:file_picker/file_picker.dart';
+import 'package:fianarana/core/utils/xlsx_export.dart';
+import 'package:fianarana/features/attendance/services/attendance_import_service.dart';
 
 import 'package:fianarana/core/utils/csv_export.dart';
 import 'package:fianarana/core/widgets/app_ui.dart';
@@ -404,6 +408,18 @@ class _AttendanceScreenState extends ConsumerState<AttendanceScreen> {
         title: const Text('Présences & Discipline'),
         actions: [
           OutlinedButton.icon(
+            onPressed: _downloadAttendanceTemplate,
+            icon: const Icon(Icons.description_outlined, size: 16),
+            label: const Text('Modèle import'),
+          ),
+          const SizedBox(width: 8),
+          OutlinedButton.icon(
+            onPressed: canCreate ? _importAttendance : null,
+            icon: const Icon(Icons.upload_file_outlined, size: 16),
+            label: const Text('Importer'),
+          ),
+          const SizedBox(width: 8),
+          OutlinedButton.icon(
             onPressed: canCreate ? _openEvent : null,
             icon: const Icon(Icons.edit_note_outlined, size: 16),
             label: const Text('Événement'),
@@ -412,7 +428,7 @@ class _AttendanceScreenState extends ConsumerState<AttendanceScreen> {
           FilledButton.icon(
             onPressed: canCreate ? _openAppel : null,
             icon: const Icon(Icons.playlist_add_check, size: 16),
-            label: const Text('Faire l\'appel'),
+            label: const Text("Faire l'appel"),
           ),
           const SizedBox(width: 12),
         ],
