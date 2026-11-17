@@ -56,9 +56,9 @@ class DashboardScreen extends ConsumerWidget {
         Wrap(spacing: 12, runSpacing: 12, children: [
           _quickCard(context, title: 'Élèves & Inscriptions', subtitle: 'Liste maître-détail, filtres, soldes, export CSV, dossiers complets.',
               icon: Icons.people_outline, route: '/students'),
-          _quickCard(context, title: 'Emplois du temps', subtitle: 'Vues globale, par classe et par enseignante, conflits, création de séances.',
+          _quickCard(context, title: 'Emplois du temps & planning', subtitle: 'Emploi du temps par classe, planning des enseignantes (par classe/par enseignante), conflits.',
               icon: Icons.calendar_month_outlined, route: '/timetable'),
-          _quickCard(context, title: 'Calendrier & éphéméride', subtitle: 'Calendrier scolaire par classe et éphéméride globale de l\'année.',
+          _quickCard(context, title: 'Calendrier & éphéméride', subtitle: 'Calendrier scolaire par classe et éphéméride (vue bimestrielle, trimestrielle, annuelle).',
               icon: Icons.event_note_outlined, route: '/calendar'),
           _quickCard(context, title: 'Présences & Discipline', subtitle: 'Consultation, filtres et saisie rapide des appels/événements.',
               icon: Icons.fact_check_outlined, route: '/attendance'),

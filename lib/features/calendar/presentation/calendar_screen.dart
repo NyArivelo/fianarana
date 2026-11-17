@@ -35,11 +35,14 @@ class CalendarScreen extends ConsumerStatefulWidget {
   ConsumerState<CalendarScreen> createState() => _CalendarScreenState();
 }
 
+enum _EphemerisGrouping { bimestriel, trimestriel, annuel }
+
 class _CalendarScreenState extends ConsumerState<CalendarScreen> with SingleTickerProviderStateMixin {
   late final TabController _tab = TabController(length: 2, vsync: this);
   DateTime _month = DateTime(DateTime.now().year, DateTime.now().month, 1);
   String? _classId;
   DateTime? _selectedDay;
+  _EphemerisGrouping _ephemerisGrouping = _EphemerisGrouping.trimestriel;
 
   @override
   void dispose() {
@@ -334,34 +337,79 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> with SingleTick
       from: null,
       to: null,
     )));
+    final periodsAsync = ref.watch(calendarPeriodsProvider);
+    final yearAsync = ref.watch(activeSchoolYearProvider);
     return Padding(
       padding: const EdgeInsets.all(16),
       child: entriesAsync.when(
         data: (entries) {
-          if (entries.isEmpty) return const Center(child: Text('Aucun éphéméride enregistré.'));
-          final byMonth = <String, List<CalendarEntry>>{};
-          for (final e in entries) {
-            byMonth.putIfAbsent(_monthLabel(e.event.startDate), () => []).add(e);
-          }
-          final months = byMonth.keys.toList()..sort((a, b) {
-              final ea = byMonth[a]!.first.event.startDate;
-              final eb = byMonth[b]!.first.event.startDate;
-              return ea.compareTo(eb);
-            });
-          return ListView(
-            children: [
-              _ephemerisBanner(context, entries),
-              const SizedBox(height: 12),
-              ...months.expand((m) => [
-                    Padding(
-                      padding: const EdgeInsets.only(top: 8, bottom: 6),
-                      child: Text(m.toUpperCase(),
-                          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, letterSpacing: 0.8, color: Color(0xFF64748B))),
+          final periods = periodsAsync.valueOrNull ?? const <Period>[];
+          final year = yearAsync.valueOrNull;
+          final groups = _buildEphemerisGroups(entries, periods, year);
+          return Column(children: [
+            _ephemerisBanner(context, entries, year),
+            const SizedBox(height: 10),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: SegmentedButton<_EphemerisGrouping>(
+                segments: const [
+                  ButtonSegment(value: _EphemerisGrouping.bimestriel, icon: Icon(Icons.view_week_outlined, size: 16), label: Text('Bimestriel')),
+                  ButtonSegment(value: _EphemerisGrouping.trimestriel, icon: Icon(Icons.view_agenda_outlined, size: 16), label: Text('Trimestriel')),
+                  ButtonSegment(value: _EphemerisGrouping.annuel, icon: Icon(Icons.calendar_view_month_outlined, size: 16), label: Text('Annuel')),
+                ],
+                selected: {_ephemerisGrouping},
+                onSelectionChanged: (s) => setState(() => _ephemerisGrouping = s.first),
+              ),
+            ),
+            const SizedBox(height: 10),
+            Expanded(
+              child: entries.isEmpty
+                  ? const Center(child: Text('Aucun éphéméride enregistré.'))
+                  : ListView.builder(
+                      itemCount: groups.length,
+                      itemBuilder: (context, i) {
+                        final g = groups[i];
+                        final isDark = Theme.of(context).brightness == Brightness.dark;
+                        return Container(
+                          margin: const EdgeInsets.only(bottom: 12),
+                          decoration: BoxDecoration(
+                            color: isDark ? const Color(0xFF0F172A) : Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0)),
+                          ),
+                          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(14, 12, 14, 6),
+                              child: Row(children: [
+                                Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                                  Text(g.label, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
+                                  Text(g.subtitle, style: const TextStyle(fontSize: 11, color: Color(0xFF64748B))),
+                                ])),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                  decoration: BoxDecoration(color: const Color(0xFF0EA5E9).withValues(alpha: 0.12), borderRadius: BorderRadius.circular(999)),
+                                  child: Text('${g.entries.length} date(s)', style: const TextStyle(fontSize: 10, color: Color(0xFF0284C7), fontWeight: FontWeight.w600)),
+                                ),
+                              ]),
+                            ),
+                            const Divider(height: 1),
+                            if (g.entries.isEmpty)
+                              const Padding(
+                                padding: EdgeInsets.all(14),
+                                child: Text('Aucune date dans cette période.', style: TextStyle(fontSize: 11, color: Color(0xFF94A3B8))),
+                              )
+                            else
+                              ...g.entries.map((e) => Padding(
+                                    padding: const EdgeInsets.fromLTRB(10, 6, 10, 2),
+                                    child: _ephemerisTile(context, e),
+                                  )),
+                            const SizedBox(height: 6),
+                          ]),
+                        );
+                      },
                     ),
-                    ...byMonth[m]!.map((e) => _ephemerisTile(context, e)),
-                  ]),
-            ],
-          );
+            ),
+          ]);
         },
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('Erreur éphéméride: $e')),
@@ -369,8 +417,73 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> with SingleTick
     );
   }
 
-  Widget _ephemerisBanner(BuildContext context, List<CalendarEntry> entries) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+  List<EphemerisPeriodGroup> _buildEphemerisGroups(List<CalendarEntry> entries, List<Period> periods, SchoolYear? year) {
+    final sorted = [...entries]..sort((a, b) => a.event.startDate.compareTo(b.event.startDate));
+    DateTime d(DateTime dt) => DateTime(dt.year, dt.month, dt.day);
+    bool inRange(DateTime date, DateTime start, DateTime end) {
+      final dd = d(date);
+      return !dd.isBefore(d(start)) && !dd.isAfter(d(end));
+    }
+
+    if (_ephemerisGrouping == _EphemerisGrouping.annuel) {
+      final start = year?.startDate ?? (sorted.isNotEmpty ? sorted.first.event.startDate : DateTime(DateTime.now().year, 1, 1));
+      final end = year?.endDate ?? (sorted.isNotEmpty ? sorted.last.event.startDate : DateTime(DateTime.now().year, 12, 31));
+      return [EphemerisPeriodGroup(
+        label: 'Éphéméride annuel',
+        subtitle: '${year?.label ?? 'Année scolaire'} • ${_dateLabel(start)} → ${_dateLabel(end)}',
+        start: start, end: end, entries: sorted,
+      )];
+    }
+
+    // Construire des périodes de référence (trimestres) si possible, sinon fallback sur l'année.
+    final basePeriods = periods.where((p) => p.startDate != null && p.endDate != null).toList();
+    if (basePeriods.isEmpty) {
+      final start = year?.startDate ?? DateTime(DateTime.now().year, 1, 1);
+      final end = year?.endDate ?? DateTime(DateTime.now().year, 12, 31);
+      return [EphemerisPeriodGroup(label: 'Année scolaire', subtitle: '${_dateLabel(start)} → ${_dateLabel(end)}', start: start, end: end, entries: sorted)];
+    }
+
+    if (_ephemerisGrouping == _EphemerisGrouping.trimestriel) {
+      return basePeriods.map((p) {
+        final start = p.startDate!;
+        final end = p.endDate!;
+        final list = sorted.where((e) => inRange(e.event.startDate, start, end)).toList();
+        return EphemerisPeriodGroup(label: p.name, subtitle: '${_dateLabel(start)} → ${_dateLabel(end)}', start: start, end: end, entries: list);
+      }).toList();
+    }
+
+    // Bimestriel: découper chaque trimestre en 2 bimestres
+    final groups = <EphemerisPeriodGroup>[];
+    var idx = 1;
+    for (final p in basePeriods) {
+      final start = d(p.startDate!);
+      final end = d(p.endDate!);
+      final totalDays = end.difference(start).inDays + 1;
+      final split = start.add(Duration(days: (totalDays / 2).ceil() - 1));
+      final b1End = split.isAfter(end) ? end : split;
+      final b2Start = b1End.add(const Duration(days: 1)).isAfter(end) ? end : b1End.add(const Duration(days: 1));
+      final ranges = <({DateTime s, DateTime e})>[
+        (s: start, e: b1End),
+        (s: b2Start.isAfter(end) ? end : b2Start, e: end),
+      ];
+      for (var i = 0; i < ranges.length; i++) {
+        final r = ranges[i];
+        final label = 'Bimestre $idx';
+        final subtitle = '${p.name} (${i + 1}/2) • ${_dateLabel(r.s)} → ${_dateLabel(r.e)}';
+        groups.add(EphemerisPeriodGroup(
+          label: label,
+          subtitle: subtitle,
+          start: r.s,
+          end: r.e,
+          entries: sorted.where((e) => inRange(e.event.startDate, r.s, r.e)).toList(),
+        ));
+        idx++;
+      }
+    }
+    return groups;
+  }
+
+  Widget _ephemerisBanner(BuildContext context, List<CalendarEntry> entries, SchoolYear? year) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -384,11 +497,10 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> with SingleTick
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             const Text('Éphéméride de l\'établissement', style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w700)),
             const SizedBox(height: 2),
-            Text('${entries.length} dates à célébrer ou à commémorer au fil de l\'année scolaire 2026-2027.',
+            Text('${entries.length} dates à célébrer ou à commémorer — ${year?.label ?? 'année scolaire 2026-2027'} (vue ${_ephemerisGrouping.name}).',
                 style: TextStyle(color: Colors.white.withValues(alpha: 0.9), fontSize: 11)),
           ]),
         ),
-        if (!isDark) const SizedBox.shrink(),
         FilledButton.tonalIcon(
           onPressed: () => _openEventDialog(ephemeris: true),
           icon: const Icon(Icons.add, size: 16),

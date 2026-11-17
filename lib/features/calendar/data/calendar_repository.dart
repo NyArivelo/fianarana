@@ -15,6 +15,22 @@ class CalendarEntry {
   bool get isEphemeris => event.isEphemeris;
 }
 
+/// Regroupement d'éphémérides par période (bimestriel / trimestriel / annuel).
+class EphemerisPeriodGroup {
+  final String label;
+  final String subtitle;
+  final DateTime start;
+  final DateTime end;
+  final List<CalendarEntry> entries;
+  const EphemerisPeriodGroup({
+    required this.label,
+    required this.subtitle,
+    required this.start,
+    required this.end,
+    required this.entries,
+  });
+}
+
 class CalendarRepository {
   final AppDatabase db;
   late final AuditService _audit = AuditService(db);
@@ -146,6 +162,26 @@ class CalendarRepository {
       description: 'Suppression (corbeille) d\'un événement',
       result: 'Succès',
     );
+  }
+
+  /// Périodes scolaires (trimestres), pour l'éphéméride.
+  Future<List<Period>> listPeriods({String? schoolYearId}) async {
+    final q = db.select(db.periods)..where((t) => t.isDeleted.equals(false));
+    if (schoolYearId != null && schoolYearId.isNotEmpty) {
+      q.where((t) => t.schoolYearId.equals(schoolYearId));
+    }
+    q.orderBy([(t) => OrderingTerm.asc(t.sequence)]);
+    return q.get();
+  }
+
+  Future<SchoolYear?> activeSchoolYear() async {
+    final q = db.select(db.schoolYears)..where((t) => t.isDeleted.equals(false));
+    q.orderBy([(t) => OrderingTerm.desc(t.startDate)]);
+    final years = await q.get();
+    for (final y in years) {
+      if (y.status.toLowerCase().contains('cours')) return y;
+    }
+    return years.isEmpty ? null : years.first;
   }
 }
 

@@ -11,6 +11,16 @@ final calendarClassesProvider = FutureProvider<List<ClassesData>>((ref) {
   return ref.watch(calendarRepositoryProvider).allClasses();
 });
 
+final calendarPeriodsProvider = FutureProvider<List<Period>>((ref) async {
+  final repo = ref.watch(calendarRepositoryProvider);
+  final year = await repo.activeSchoolYear();
+  return repo.listPeriods(schoolYearId: year?.id);
+});
+
+final activeSchoolYearProvider = FutureProvider<SchoolYear?>((ref) {
+  return ref.watch(calendarRepositoryProvider).activeSchoolYear();
+});
+
 /// Événements filtrés par classe, par fenêtre de dates et par type.
 final calendarEventsProvider = FutureProvider.family<List<CalendarEntry>, ({
   String? classId,

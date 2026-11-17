@@ -5,7 +5,8 @@ import 'package:fianarana/features/auth/application/auth_controller.dart';
 import 'package:fianarana/features/timetable/application/timetable_providers.dart';
 import 'package:fianarana/features/timetable/data/timetable_repository.dart';
 
-enum _TimetableMode { global, parClasse, parEnseignante }
+enum _TimetableMode { global, emploiTempsClasse, planningEnseignantes }
+enum _TeacherPlanningView { parEnseignante, parClasse }
 
 const _days = <String>['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
 
@@ -30,6 +31,7 @@ class TimetableScreen extends ConsumerStatefulWidget {
 
 class _TimetableScreenState extends ConsumerState<TimetableScreen> {
   _TimetableMode _mode = _TimetableMode.global;
+  _TeacherPlanningView _teacherView = _TeacherPlanningView.parEnseignante;
   String? _classId;
   String? _teacherId;
   String _agendaDay = 'Lundi';
@@ -39,14 +41,21 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
     super.initState();
     _classId = widget.initialClassId;
     _teacherId = widget.initialTeacherId;
-    if (widget.initialClassId != null) _mode = _TimetableMode.parClasse;
-    if (widget.initialTeacherId != null) _mode = _TimetableMode.parEnseignante;
+    if (_teacherId != null) _mode = _TimetableMode.planningEnseignantes;
+    if (_classId != null && _teacherId == null) _mode = _TimetableMode.emploiTempsClasse;
   }
 
-  ({String? classId, String? teacherId}) get _filter {
-    if (_mode == _TimetableMode.parClasse) return (classId: _classId, teacherId: null);
-    if (_mode == _TimetableMode.parEnseignante) return (classId: null, teacherId: _teacherId);
-    return (classId: null, teacherId: null);
+  ({String? classId, String? teacherId, String? day}) get _filter {
+    if (_mode == _TimetableMode.emploiTempsClasse) {
+      return (classId: _classId, teacherId: null, day: null);
+    }
+    if (_mode == _TimetableMode.planningEnseignantes) {
+      if (_teacherView == _TeacherPlanningView.parEnseignante) {
+        return (classId: null, teacherId: _teacherId, day: null);
+      }
+      return (classId: _classId, teacherId: null, day: null);
+    }
+    return (classId: null, teacherId: null, day: _agendaDay);
   }
 
   void _invalidate() => ref.invalidate(timetableEntriesProvider);
@@ -191,8 +200,8 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final args = (classId: _filter.classId, teacherId: _filter.teacherId, day: null);
-    final entriesAsync = ref.watch(timetableEntriesProvider(args));
+    final f = _filter;
+    final entriesAsync = ref.watch(timetableEntriesProvider((classId: f.classId, teacherId: f.teacherId, day: f.day)));
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final border = isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0);
 
@@ -224,18 +233,18 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
               runSpacing: 10,
               crossAxisAlignment: WrapCrossAlignment.center,
               children: [
-                SegmentedButton<_TimetableMode>(
+                 SegmentedButton<_TimetableMode>(
                   segments: const [
-                    ButtonSegment(value: _TimetableMode.global, icon: Icon(Icons.public, size: 16), label: Text('Globale')),
-                    ButtonSegment(value: _TimetableMode.parClasse, icon: Icon(Icons.groups_outlined, size: 16), label: Text('Par classe')),
-                    ButtonSegment(value: _TimetableMode.parEnseignante, icon: Icon(Icons.person_outline, size: 16), label: Text('Par enseignante')),
+                    ButtonSegment(value: _TimetableMode.global, icon: Icon(Icons.public, size: 16), label: Text('Vue globale')),
+                    ButtonSegment(value: _TimetableMode.emploiTempsClasse, icon: Icon(Icons.table_chart_outlined, size: 16), label: Text('Emploi du temps (classe)')),
+                    ButtonSegment(value: _TimetableMode.planningEnseignantes, icon: Icon(Icons.person_outline, size: 16), label: Text('Planning enseignantes')),
                   ],
                   selected: {_mode},
                   onSelectionChanged: (s) => setState(() => _mode = s.first),
                 ),
-                if (_mode == _TimetableMode.parClasse)
+                if (_mode == _TimetableMode.emploiTempsClasse)
                   SizedBox(
-                    width: 240,
+                    width: 260,
                     height: 38,
                     child: ref.watch(timetableClassesProvider).when(
                           data: (classes) => DropdownButtonFormField<String?>(
@@ -243,7 +252,7 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
                             isDense: true,
                             decoration: const InputDecoration(labelText: 'Classe'),
                             items: [
-                              const DropdownMenuItem<String?>(value: null, child: Text('Toutes les classes')),
+                              const DropdownMenuItem<String?>(value: null, child: Text('Sélectionner une classe')),
                               ...classes.map((c) => DropdownMenuItem<String?>(value: c.id, child: Text(c.label))),
                             ],
                             onChanged: (v) => setState(() => _classId = v),
@@ -252,28 +261,57 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
                           error: (e, _) => Text('Erreur: $e'),
                         ),
                   ),
-                if (_mode == _TimetableMode.parEnseignante)
-                  SizedBox(
-                    width: 300,
-                    height: 38,
-                    child: ref.watch(timetableTeachersProvider).when(
-                          data: (teachers) => DropdownButtonFormField<String?>(
-                            value: _teacherId,
-                            isDense: true,
-                            decoration: const InputDecoration(labelText: 'Enseignante'),
-                            items: [
-                              const DropdownMenuItem<String?>(value: null, child: Text('Toutes les enseignantes')),
-                              ...teachers.map((t) => DropdownMenuItem<String?>(
-                                    value: t.id,
-                                    child: Text('${t.lastName} ${t.firstName}', overflow: TextOverflow.ellipsis),
-                                  )),
-                            ],
-                            onChanged: (v) => setState(() => _teacherId = v),
-                          ),
-                          loading: () => const LinearProgressIndicator(),
-                          error: (e, _) => Text('Erreur: $e'),
-                        ),
+                if (_mode == _TimetableMode.planningEnseignantes) ...[
+                  SegmentedButton<_TeacherPlanningView>(
+                    segments: const [
+                      ButtonSegment(value: _TeacherPlanningView.parEnseignante, icon: Icon(Icons.person_search_outlined, size: 16), label: Text('Par enseignante')),
+                      ButtonSegment(value: _TeacherPlanningView.parClasse, icon: Icon(Icons.groups_2_outlined, size: 16), label: Text('Par classe')),
+                    ],
+                    selected: {_teacherView},
+                    onSelectionChanged: (s) => setState(() => _teacherView = s.first),
                   ),
+                  if (_teacherView == _TeacherPlanningView.parEnseignante)
+                    SizedBox(
+                      width: 300,
+                      height: 38,
+                      child: ref.watch(timetableTeachersProvider).when(
+                            data: (teachers) => DropdownButtonFormField<String?>(
+                              value: _teacherId,
+                              isDense: true,
+                              decoration: const InputDecoration(labelText: 'Enseignante'),
+                              items: [
+                                const DropdownMenuItem<String?>(value: null, child: Text('Toutes les enseignantes')),
+                                ...teachers.map((t) => DropdownMenuItem<String?>(
+                                      value: t.id,
+                                      child: Text('${t.lastName} ${t.firstName}', overflow: TextOverflow.ellipsis),
+                                    )),
+                              ],
+                              onChanged: (v) => setState(() => _teacherId = v),
+                            ),
+                            loading: () => const LinearProgressIndicator(),
+                            error: (e, _) => Text('Erreur: $e'),
+                          ),
+                    ),
+                  if (_teacherView == _TeacherPlanningView.parClasse)
+                    SizedBox(
+                      width: 260,
+                      height: 38,
+                      child: ref.watch(timetableClassesProvider).when(
+                            data: (classes) => DropdownButtonFormField<String?>(
+                              value: _classId,
+                              isDense: true,
+                              decoration: const InputDecoration(labelText: 'Classe'),
+                              items: [
+                                const DropdownMenuItem<String?>(value: null, child: Text('Sélectionner une classe')),
+                                ...classes.map((c) => DropdownMenuItem<String?>(value: c.id, child: Text(c.label))),
+                              ],
+                              onChanged: (v) => setState(() => _classId = v),
+                            ),
+                            loading: () => const LinearProgressIndicator(),
+                            error: (e, _) => Text('Erreur: $e'),
+                          ),
+                    ),
+                ],
                 if (_mode == _TimetableMode.global)
                   Wrap(spacing: 6, children: _days.map((d) {
                     final selected = d == _agendaDay;
@@ -283,10 +321,7 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
                       onSelected: (_) => setState(() => _agendaDay = d),
                     );
                   }).toList()),
-              ],
-            ),
-          ),
-          const SizedBox(height: 12),
+const SizedBox(height: 12),
           Expanded(
             child: entriesAsync.when(
               data: (entries) {
@@ -298,7 +333,9 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
                   Expanded(
                     child: _mode == _TimetableMode.global
                         ? _agendaView(context, entries)
-                        : _weeklyGrid(context, entries),
+                        : (_mode == _TimetableMode.planningEnseignantes && _teacherView == _TeacherPlanningView.parClasse)
+                            ? _teacherPlanningByClassView(context, entries)
+                            : _weeklyGrid(context, entries),
                   ),
                 ]);
               },
@@ -528,6 +565,74 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
           ),
         );
       }),
+    );
+  }
+
+
+  /// Planning des enseignantes par classe: séances groupées par enseignante.
+  Widget _teacherPlanningByClassView(BuildContext context, List<TimetableEntry> entries) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final border = isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0);
+    if (_classId == null) {
+      return Container(
+        decoration: BoxDecoration(color: isDark ? const Color(0xFF0F172A) : Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: border)),
+        child: const Center(child: Text('Sélectionnez une classe pour afficher le planning des enseignantes.', style: TextStyle(color: Color(0xFF64748B)))),
+      );
+    }
+    if (entries.isEmpty) {
+      return Container(
+        decoration: BoxDecoration(color: isDark ? const Color(0xFF0F172A) : Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: border)),
+        child: const Center(child: Text('Aucune séance pour cette classe.', style: TextStyle(color: Color(0xFF64748B)))),
+      );
+    }
+    final byTeacher = <String, List<TimetableEntry>>{};
+    for (final e in entries) {
+      final key = (e.teacherName == null || e.teacherName!.isEmpty) ? 'Enseignante non définie' : e.teacherName!;
+      byTeacher.putIfAbsent(key, () => []).add(e);
+    }
+    final teachers = byTeacher.keys.toList()..sort();
+    return ListView.builder(
+      itemCount: teachers.length,
+      itemBuilder: (context, i) {
+        final name = teachers[i];
+        final list = [...byTeacher[name]!]..sort((a, b) {
+          final da = _days.indexOf(a.dayOfWeek), db = _days.indexOf(b.dayOfWeek);
+          final c = da.compareTo(db);
+          return c != 0 ? c : a.startTime.compareTo(b.startTime);
+        });
+        final subjects = list.map((e) => e.subjectName).whereType<String>().toSet().join(', ');
+        return Container(
+          margin: const EdgeInsets.only(bottom: 10),
+          decoration: BoxDecoration(color: isDark ? const Color(0xFF0F172A) : Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: border)),
+          child: ExpansionTile(
+            tilePadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+            childrenPadding: const EdgeInsets.fromLTRB(14, 0, 14, 12),
+            leading: CircleAvatar(radius: 14, backgroundColor: const Color(0xFF2563EB).withValues(alpha: 0.12), child: const Icon(Icons.person, size: 16, color: Color(0xFF2563EB))),
+            title: Text(name, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
+            subtitle: Text(' séance(s) • ', style: const TextStyle(fontSize: 11, color: Color(0xFF64748B))),
+            children: [
+              Wrap(spacing: 8, runSpacing: 8, children: list.map((e) {
+                final color = _subjectColor(e.subjectName);
+                return InkWell(
+                  onTap: () => _openSessionDialog(entry: e),
+                  borderRadius: BorderRadius.circular(8),
+                  child: Container(
+                    width: 240,
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(color: color.withValues(alpha: 0.08), borderRadius: BorderRadius.circular(8), border: Border(left: BorderSide(color: color, width: 3))),
+                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                      Text(e.subjectName ?? 'Matière', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: color)),
+                      const SizedBox(height: 2),
+                      Text(' • -', style: const TextStyle(fontSize: 10, color: Color(0xFF334155))),
+                      if (e.roomLabel != null) Text(e.roomLabel!, style: const TextStyle(fontSize: 9, color: Color(0xFF94A3B8))),
+                    ]),
+                  ),
+                );
+              }).toList()),
+            ],
+          ),
+        );
+      },
     );
   }
 
