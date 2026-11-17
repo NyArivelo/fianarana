@@ -748,24 +748,51 @@ class _GradesScreenState extends ConsumerState<GradesScreen> {
                   return r.studentName.toLowerCase().contains(_query) ||
                       r.matricule.toLowerCase().contains(_query);
                 }).toList();
-                return Card(
-                  clipBehavior: Clip.antiAlias,
-                  child: filtered.isEmpty
-                      ? AppEmptyState(
-                          icon: Icons.grading_outlined,
-                          title: rows.isEmpty
-                              ? 'Aucune note'
-                              : 'Aucune note dans ce filtre',
-                          message: rows.isEmpty
-                              ? 'Importez les données de test (940 évaluations) ou saisissez une note.'
-                              : null,
-                          action: rows.isEmpty
-                              ? FilledButton(
-                                  onPressed: _newGrade,
-                                  child: const Text('Nouvelle note'))
-                              : null,
-                        )
-                      : SingleChildScrollView(
+                if (filtered.isEmpty) {
+                  return Card(
+                    clipBehavior: Clip.antiAlias,
+                    child: AppEmptyState(
+                      icon: Icons.grading_outlined,
+                      title: rows.isEmpty ? 'Aucune note' : 'Aucune note dans ce filtre',
+                      message: rows.isEmpty
+                          ? 'Importez les données de test (940 évaluations) ou saisissez une note.'
+                          : null,
+                      action: rows.isEmpty
+                          ? FilledButton(onPressed: _newGrade, child: const Text('Nouvelle note'))
+                          : null,
+                    ),
+                  );
+                }
+                final masteryCounts = <String, int>{};
+                int exemptCount = 0;
+                final compSet = <String>{};
+                for (final r in filtered) {
+                  if (r.isExempt) exemptCount++;
+                  final ml = (r.masteryLevel ?? '').trim();
+                  if (ml.isNotEmpty) masteryCounts[ml] = (masteryCounts[ml] ?? 0) + 1;
+                  final cc = (r.competencyCode ?? '').trim();
+                  if (cc.isNotEmpty) compSet.add(cc);
+                }
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    AppSectionCard(
+                      padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+                      title: 'Synthèse compétences / maîtrise',
+                      subtitle: '${filtered.length} note(s) • ${compSet.length} compétence(s) renseignée(s) • $exemptCount dispense(s)',
+                      child: Wrap(spacing: 8, runSpacing: 8, children: [
+                        for (final e in masteryCounts.entries)
+                          AppBadge('${e.key} : ${e.value}', tone: AppTone.info),
+                        if (masteryCounts.isEmpty)
+                          Text('Aucun niveau de maîtrise renseigné sur ce filtre.',
+                              style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.onSurfaceVariant)),
+                      ]),
+                    ),
+                    const SizedBox(height: 8),
+                    Expanded(
+                      child: Card(
+                        clipBehavior: Clip.antiAlias,
+                        child: SingleChildScrollView(
                           scrollDirection: Axis.horizontal,
                           child: SingleChildScrollView(
                             child: DataTable(
@@ -872,6 +899,9 @@ class _GradesScreenState extends ConsumerState<GradesScreen> {
                             ),
                           ),
                         ),
+                      ),
+                    ),
+                  ],
                 );
               },
               loading: () => const Center(child: CircularProgressIndicator()),
