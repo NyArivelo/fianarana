@@ -120,7 +120,7 @@ class _FacilitiesScreenState extends ConsumerState<FacilitiesScreen> {
                 onPressed: () => Navigator.pop(ctx, false),
                 child: const Text('Annuler')),
             FilledButton(
-                onPressed: canEdit ? () => Navigator.pop(ctx, true) : null,
+                onPressed: () => Navigator.pop(ctx, true),
                 child: const Text('Enregistrer')),
           ],
         ),
