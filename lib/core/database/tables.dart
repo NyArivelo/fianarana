@@ -416,3 +416,17 @@ class YearClosures extends Table with UuidPrimaryKey, AuditColumns {
   TextColumn get status => text().withDefault(const Constant('Clôturée'))();
   TextColumn get summaryJson => text().nullable()();
 }
+
+// --- Bulletins publiés (snapshot figé au moment de la publication) ---
+class BulletinSnapshots extends Table with UuidPrimaryKey, AuditColumns {
+  TextColumn get studentId => text().references(Students, #id)();
+  TextColumn get classId => text().nullable().references(Classes, #id)();
+  TextColumn get periodId => text().nullable().references(Periods, #id)();
+  TextColumn get docType => text().withDefault(const Constant('bulletin'))();
+  /// Données complètes figées (élève, notes, moyennes, rang, mention, décision/appréciation, etc.)
+  TextColumn get snapshotJson => text()();
+  DateTimeColumn get publishedAt => dateTime()();
+  TextColumn get publishedByUserId => text().nullable()();
+  TextColumn get status => text().withDefault(const Constant('Publié'))();
+  TextColumn get hashSha256 => text().nullable()();
+}

@@ -49,21 +49,29 @@ class _GradesScreenState extends ConsumerState<GradesScreen> {
   }
 
   Future<void> _generateBulletin(GradeRow row) async {
+    final repo = ref.read(gradesRepositoryProvider);
+    final auth = ref.read(authControllerProvider);
+    final all = await ref.read(gradesListProvider((classId: _classId, subjectId: _subjectId)).future);
+    final studentRows = all.where((g) => g.studentId == row.studentId).toList();
+    final periodIds = studentRows.map((g)=>g.periodId).whereType<String>().toSet();
+    final inferredPeriodId = periodIds.length == 1 ? periodIds.first : null;
+
+    final snap = await repo.latestBulletinSnapshot(studentId: row.studentId, classId: row.classId ?? _classId, periodId: inferredPeriodId);
     final choice = await showDialog<String>(
       context: context,
       builder: (ctx) => SimpleDialog(
-        title: const Text('Générer le bulletin'),
+        title: const Text('Bulletin'),
         children: [
-          SimpleDialogOption(onPressed: () => Navigator.pop(ctx, 'standard'), child: const ListTile(leading: Icon(Icons.picture_as_pdf_outlined), title: Text('Bulletin PDF (standard)'))),
-          SimpleDialogOption(onPressed: () => Navigator.pop(ctx, 'studio'), child: const ListTile(leading: Icon(Icons.auto_awesome_mosaic_outlined), title: Text('Bulletin via Document Studio (modèle)'))),
+          if (snap != null)
+            SimpleDialogOption(onPressed: () => Navigator.pop(ctx, 'print_snapshot'), child: ListTile(leading: const Icon(Icons.verified_outlined), title: const Text('Imprimer le bulletin publié (snapshot figé)'), subtitle: Text('Publié le ${snap.publishedAt.toLocal()}'))),
+          SimpleDialogOption(onPressed: () => Navigator.pop(ctx, 'standard'), child: const ListTile(leading: Icon(Icons.picture_as_pdf_outlined), title: Text('Générer PDF (données actuelles)'))),
+          SimpleDialogOption(onPressed: () => Navigator.pop(ctx, 'studio'), child: const ListTile(leading: Icon(Icons.auto_awesome_mosaic_outlined), title: Text('Générer via Document Studio (données actuelles)'))),
+          SimpleDialogOption(onPressed: () => Navigator.pop(ctx, 'publish'), child: const ListTile(leading: Icon(Icons.publish_outlined), title: Text('Publier / figer le bulletin (snapshot)'))),
         ],
       ),
     );
     if (choice == null) return;
-    final all = await ref.read(
-        gradesListProvider((classId: _classId, subjectId: _subjectId)).future);
-    final studentRows = all.where((g) => g.studentId == row.studentId).toList();
-    final avg = GradesRepository.weightedAverage(studentRows);
+
     String mentionFor(double? a) {
       if (a == null) return '';
       if (a >= 16) return 'Très bien';
@@ -72,66 +80,112 @@ class _GradesScreenState extends ConsumerState<GradesScreen> {
       if (a >= 10) return 'Passable';
       return 'Insuffisant';
     }
-    final mention = mentionFor(avg);
 
+    Map<String, dynamic> buildSnapshot() {
+      final avg = GradesRepository.weightedAverage(studentRows);
+      final mention = mentionFor(avg);
+      final subjects = studentRows.map((g)=> {
+        'subject': g.subjectName ?? g.label,
+        'score': g.score,
+        'maxScore': g.maxScore,
+        'coefficient': g.coefficient,
+        'isExempt': g.isExempt,
+        'masteryLevel': g.masteryLevel,
+        'observation': g.observation,
+        'label': g.label,
+      }).toList();
+      return {
+        'student': {'id': row.studentId, 'name': row.studentName, 'matricule': row.matricule, 'classId': row.classId ?? _classId, 'classLabel': row.classLabel},
+        'periodId': inferredPeriodId,
+        'periodLabel': 'Période (filtre courant)',
+        'subjects': subjects,
+        'average': avg,
+        'mention': mention.isEmpty ? null : mention,
+        'generatedAt': DateTime.now().toIso8601String(),
+        'establishmentName': 'Établissement scolaire',
+      };
+    }
+
+    Future<void> renderStandard(Map<String, dynamic> data) async {
+      final subs = (data['subjects'] as List).cast<dynamic>().map((m0){
+        final m = (m0 as Map).cast<String,dynamic>();
+        return BulletinSubjectLine(
+          subject: (m['subject'] ?? '').toString(),
+          score: (m['score'] as num?)?.toDouble(),
+          maxScore: (m['maxScore'] as num?)?.toDouble() ?? 20,
+          coefficient: (m['coefficient'] as num?)?.toDouble() ?? 1,
+          isExempt: m['isExempt'] == true,
+          masteryLevel: m['masteryLevel'] as String?,
+          observation: m['observation'] as String?,
+        );
+      }).toList();
+      final student = (data['student'] as Map).cast<String,dynamic>();
+      final b = BulletinStudentData(
+        fullName: (student['name'] ?? row.studentName).toString(),
+        matricule: (student['matricule'] ?? row.matricule).toString(),
+        classLabel: student['classLabel'] as String?,
+        periodLabel: data['periodLabel'] as String?,
+        subjects: subs,
+        average: (data['average'] as num?)?.toDouble(),
+        mention: data['mention'] as String?,
+        councilDecision: data['councilDecision'] as String?,
+        appreciation: data['appreciation'] as String?,
+        rank: (data['rank'] as num?)?.toInt(),
+      );
+      final bytes = await BulletinService().generateStudentBulletin(b, establishmentName: (data['establishmentName'] ?? 'Établissement scolaire').toString());
+      await Printing.layoutPdf(onLayout: (_) async => bytes, name: 'bulletin_${row.matricule}.pdf');
+    }
+
+    if (choice == 'publish') {
+      try {
+        final data = buildSnapshot();
+        await repo.publishBulletinSnapshot(studentId: row.studentId, classId: row.classId ?? _classId, periodId: inferredPeriodId, snapshot: data, actorUserId: auth.userId, actorUsername: auth.username);
+        _snack('Bulletin publié et figé (snapshot). Les réimpressions utiliseront cette version.');
+      } catch (e) { _snack('Erreur publication bulletin : $e'); }
+      return;
+    }
+
+    if (choice == 'print_snapshot' && snap != null) {
+      try {
+        final data = jsonDecode(snap.snapshotJson) as Map<String, dynamic>;
+        await renderStandard(data);
+      } catch (e) { _snack('Erreur impression snapshot : $e'); }
+      return;
+    }
+
+    final live = buildSnapshot();
     if (choice == 'studio') {
       try {
-        final auth = ref.read(authControllerProvider);
         final docRepo = ref.read(documentRepositoryProvider);
         final tpl = await docRepo.defaultTemplate('bulletin', actorUserId: auth.userId);
-        if (tpl == null) {
-          _snack('Aucun modèle "bulletin" actif trouvé dans Document Studio.');
-          return;
-        }
+        if (tpl == null) { _snack('Aucun modèle "bulletin" actif trouvé dans Document Studio.'); return; }
         final content = jsonDecode(tpl.contentJson as String) as Map<String, dynamic>;
         final pdf = DocumentStudioPdfService();
-        final lines = studentRows.map((g) => '- ${g.subjectName ?? g.label}: ${g.isExempt ? "Dispensé" : (g.score?.toStringAsFixed(2) ?? "-")}${g.masteryLevel != null && g.masteryLevel!.isNotEmpty ? " (${g.masteryLevel})" : ""}').join('\n');
+        final subjects = (live['subjects'] as List).cast<dynamic>();
+        final lines = subjects.map((g0){ final m=(g0 as Map).cast<String,dynamic>(); final sc=m['score']; final exempt=m['isExempt']==true; final ml=(m['masteryLevel']??'').toString(); return '- ${m['subject']}: ${exempt ? "Dispensé" : (sc!=null ? (sc as num).toDouble().toStringAsFixed(2) : "-")}${ml.isNotEmpty ? " ($ml)" : ""}'; }).join('\n');
         final now = DateTime.now();
+        final student = (live['student'] as Map).cast<String,dynamic>();
         final ctx = <String, dynamic>{
-          'etablissement': {'nom': 'Établissement scolaire', 'adresse': ''},
-          'eleve': {'nom': row.studentName, 'matricule': row.matricule, 'classe': row.classLabel ?? ''},
+          'etablissement': {'nom': live['establishmentName'] ?? 'Établissement scolaire', 'adresse': ''},
+          'eleve': {'nom': student['name'] ?? row.studentName, 'matricule': student['matricule'] ?? row.matricule, 'classe': student['classLabel'] ?? row.classLabel ?? ''},
           'annee': {'libelle': '2026-2027'},
-          'periode': {'libelle': 'Période (filtre courant)'},
+          'periode': {'libelle': live['periodLabel'] ?? 'Période'},
           'date': {'jour': '${now.day.toString().padLeft(2,'0')}/${now.month.toString().padLeft(2,'0')}/${now.year}'},
           'resultats': {
-            'moyenne': avg?.toStringAsFixed(2) ?? '-',
-            'rang': '',
-            'mention': mention,
-            'appreciation': '',
+            'moyenne': live['average'] != null ? (live['average'] as num).toDouble().toStringAsFixed(2) : '-',
+            'rang': live['rank']?.toString() ?? '',
+            'mention': (live['mention'] ?? '').toString(),
+            'appreciation': (live['appreciation'] ?? '').toString(),
             'details': lines,
           },
         };
         final bytes = await pdf.renderTemplate(templateContent: content, context: ctx, pageFormat: tpl.pageFormat);
         await Printing.layoutPdf(onLayout: (_) async => bytes, name: 'bulletin_studio_${row.matricule}.pdf');
-      } catch (e) {
-        _snack('Erreur bulletin (modèle): $e');
-      }
+      } catch (e) { _snack('Erreur bulletin (modèle): $e'); }
       return;
     }
 
-    final data = BulletinStudentData(
-      fullName: row.studentName,
-      matricule: row.matricule,
-      classLabel: row.classLabel,
-      periodLabel: 'Période (filtre courant)',
-      subjects: studentRows
-          .map((g) => BulletinSubjectLine(
-                subject: g.subjectName ?? g.label,
-                score: g.score,
-                maxScore: g.maxScore,
-                coefficient: g.coefficient,
-                isExempt: g.isExempt,
-                masteryLevel: g.masteryLevel,
-                observation: g.observation,
-              ))
-          .toList(),
-      average: avg,
-      mention: mention.isEmpty ? null : mention,
-    );
-    final bytes = await BulletinService().generateStudentBulletin(data,
-        establishmentName: 'Établissement scolaire');
-    await Printing.layoutPdf(
-        onLayout: (_) async => bytes, name: 'bulletin_${row.matricule}.pdf');
+    await renderStandard(live);
   }
 
   Future<void> _quickEdit(GradeRow row) async {

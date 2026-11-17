@@ -1,3 +1,6 @@
+import 'dart:convert';
+
+import 'package:crypto/crypto.dart';
 import 'package:drift/drift.dart';
 
 import 'package:fianarana/core/database/app_database.dart';
@@ -319,4 +322,60 @@ class GradesRepository {
     if (coef == 0) return null;
     return (sum / coef);
   }
+
+
+  Future<BulletinSnapshot?> latestBulletinSnapshot({
+    required String studentId,
+    String? classId,
+    String? periodId,
+  }) async {
+    final q = db.select(db.bulletinSnapshots)..where((t)=>t.studentId.equals(studentId) & t.isDeleted.equals(false) & t.docType.equals('bulletin'));
+    if (classId != null && classId.isNotEmpty) q.where((t)=>t.classId.equals(classId));
+    if (periodId != null && periodId.isNotEmpty) q.where((t)=>t.periodId.equals(periodId));
+    q.orderBy([(t)=>OrderingTerm.desc(t.publishedAt)]);
+    q.limit(1);
+    return q.getSingleOrNull();
+  }
+
+  Future<String> publishBulletinSnapshot({
+    required String studentId,
+    String? classId,
+    String? periodId,
+    required Map<String, dynamic> snapshot,
+    String? actorUserId,
+    String? actorUsername,
+  }) async {
+    await _require(actorUserId, 'grades.publish');
+    final scopeClasses = await AffectationScope(db).allowedClassIdsForUser(actorUserId);
+    if (scopeClasses != null) {
+      String? effectiveClassId = classId;
+      if (effectiveClassId == null || effectiveClassId.isEmpty) {
+        final enr = await (db.select(db.enrollments)..where((t)=>t.studentId.equals(studentId) & t.isDeleted.equals(false))..orderBy([(t)=>OrderingTerm.desc(t.updatedAt)])).get();
+        if (enr.isNotEmpty) effectiveClassId = enr.first.classId;
+      }
+      if (effectiveClassId == null || !scopeClasses.contains(effectiveClassId)) {
+        throw StateError('Action non autorisée (portée affectations)');
+      }
+      classId = effectiveClassId;
+    }
+    final id = newUuid();
+    final jsonStr = jsonEncode(snapshot);
+    final hash = sha256.convert(utf8.encode(jsonStr)).toString();
+    await db.into(db.bulletinSnapshots).insert(BulletinSnapshotsCompanion.insert(
+      id: Value(id),
+      studentId: studentId,
+      classId: Value(classId),
+      periodId: Value(periodId),
+      docType: const Value('bulletin'),
+      snapshotJson: jsonStr,
+      publishedAt: DateTime.now(),
+      publishedByUserId: Value(actorUserId),
+      status: const Value('Publié'),
+      hashSha256: Value(hash),
+      updatedAt: Value(DateTime.now()),
+    ));
+    await _audit.log(userId: actorUserId, username: actorUsername, module: 'Notes', targetObject: id, description: 'Publication bulletin (snapshot figé) pour élève ', result: 'Succès', metadata: {'hash': hash});
+    return id;
+  }
+
 }
