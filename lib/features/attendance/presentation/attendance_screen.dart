@@ -21,6 +21,7 @@ class _AttendanceScreenState extends ConsumerState<AttendanceScreen> {
   String? _classId;
   DateTime? _date;
   String _statusFilter = 'Tous';
+  String _categoryFilter = 'Tous';
   final _searchCtrl = TextEditingController();
   String _query = '';
 

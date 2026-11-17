@@ -11,3 +11,7 @@ final councilsProvider =
       .watch(gradesRepositoryProvider)
       .listCouncils(classId: args.classId, periodId: args.periodId);
 });
+
+final councilDecisionsProvider = FutureProvider.family((ref, String councilId) {
+  return ref.watch(gradesRepositoryProvider).decisionsOf(councilId);
+});

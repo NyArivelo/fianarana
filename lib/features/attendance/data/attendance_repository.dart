@@ -138,7 +138,35 @@ class AttendanceRepository {
       details: Value(details),
       authorUserId: Value(actorUserId),
     ));
-    await _audit.log(userId: actorUserId, username: actorUsername, module: 'Présences', targetObject: id, description: 'Saisie présence/événement: $status pour élève $studentId', result: 'Succès');
+    await _audit.log(userId: actorUserId, username: actorUsername, module: 'Présences', targetObject: id, description: 'Saisie présence/événement: $status ($category) pour élève $studentId', result: 'Succès');
+  }
+
+  Future<void> updateEvent({
+    required String id,
+    required String status,
+    String? justification,
+    String? details,
+    String? slotOrFacts,
+    String? actorUserId,
+    String? actorUsername,
+  }) async {
+    await _require(actorUserId, 'attendance.update');
+    final existing = await (db.select(db.attendanceEvents)..where((t) => t.id.equals(id))).getSingleOrNull();
+    if (existing == null) throw StateError('Événement introuvable');
+    final scopeClasses = await AffectationScope(db).allowedClassIdsForUser(actorUserId);
+    if (scopeClasses != null) {
+      if (existing.classId == null || !scopeClasses.contains(existing.classId!)) {
+        throw StateError('Action non autorisée (portée affectations)');
+      }
+    }
+    await (db.update(db.attendanceEvents)..where((t) => t.id.equals(id))).write(AttendanceEventsCompanion(
+      status: Value(status),
+      justificationOrSanction: Value(justification),
+      details: Value(details),
+      slotOrFacts: Value(slotOrFacts),
+      updatedAt: Value(DateTime.now()),
+    ));
+    await _audit.log(userId: actorUserId, username: actorUsername, module: 'Présences', targetObject: id, description: 'Mise à jour événement/discipline: $status', result: 'Succès');
   }
 
   /// Enregistre l'appel d'une classe pour une date donnée.
