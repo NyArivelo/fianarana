@@ -12,6 +12,7 @@ import 'package:printing/printing.dart';
 import 'package:fianarana/core/utils/csv_export.dart';
 import 'package:fianarana/core/utils/xlsx_export.dart';
 import 'package:fianarana/features/auth/application/auth_controller.dart';
+import 'package:fianarana/core/security/permission_providers.dart';
 import 'package:fianarana/features/documents/application/document_providers.dart';
 import 'package:fianarana/features/documents/services/document_studio_pdf_service.dart';
 import 'package:fianarana/features/students/application/students_providers.dart';
@@ -87,20 +88,23 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
     final isDark = theme.brightness == Brightness.dark;
     final classesAsync = ref.watch(classesProvider);
     final studentsAsync = ref.watch(studentsListProvider((query: _query, classId: _classId, status: _status)));
+    final perms = ref.watch(currentPermissionsProvider).valueOrNull ?? const <String>{};
+    final canCreate = perms.contains('students.create') || perms.contains('enrollments.create');
+    final canExport = perms.contains('students.export');
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF020617) : const Color(0xFFF8FAFC),
       appBar: AppBar(
         title: const Text('Élèves & Inscriptions'),
         actions: [
-                      OutlinedButton.icon(
-              onPressed: _downloadStudentTemplate,
-              icon: const Icon(Icons.download_outlined, size: 16),
-              label: const Text('Modèle import'),
-            ),
-            const SizedBox(width: 8),
-FilledButton.icon(
-            onPressed: () => context.go('/students/new'),
+          OutlinedButton.icon(
+            onPressed: _downloadStudentTemplate,
+            icon: const Icon(Icons.download_outlined, size: 16),
+            label: const Text('Modèle import'),
+          ),
+          const SizedBox(width: 8),
+          FilledButton.icon(
+            onPressed: canCreate ? () => context.go('/students/new') : null,
             icon: const Icon(Icons.person_add_alt_1, size: 16),
             label: const Text('Inscrire un élève'),
           ),
@@ -152,6 +156,8 @@ FilledButton.icon(
   }
 
   Widget _toolbar(BuildContext context, AsyncValue classesAsync, AsyncValue<List<StudentListItem>> studentsAsync) {
+    final perms = ref.watch(currentPermissionsProvider).valueOrNull ?? const <String>{};
+    final canExport = perms.contains('students.export');
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final border = isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0);
     return Container(
@@ -223,17 +229,17 @@ FilledButton.icon(
             icon: const Icon(Icons.filter_alt_off_outlined, size: 20),
           ),
           OutlinedButton.icon(
-            onPressed: () => _importStudents(),
+            onPressed: (perms.contains('students.create') || perms.contains('students.update')) ? () => _importStudents() : null,
             icon: const Icon(Icons.upload_file_outlined, size: 16),
             label: const Text('Importer (CSV/XLSX)'),
           ),
           OutlinedButton.icon(
-            onPressed: studentsAsync.maybeWhen(data: (items) => items.isEmpty ? null : () => _exportCsv(items), orElse: () => null),
+            onPressed: canExport ? studentsAsync.maybeWhen(data: (items) => items.isEmpty ? null : () => _exportCsv(items), orElse: () => null) : null,
             icon: const Icon(Icons.download_outlined, size: 16),
             label: const Text('Export CSV'),
           ),
           OutlinedButton.icon(
-            onPressed: studentsAsync.maybeWhen(data: (items) => items.isEmpty ? null : () => _exportXlsx(items), orElse: () => null),
+            onPressed: canExport ? studentsAsync.maybeWhen(data: (items) => items.isEmpty ? null : () => _exportXlsx(items), orElse: () => null) : null,
             icon: const Icon(Icons.grid_on_outlined, size: 16),
             label: const Text('Export XLSX'),
           ),

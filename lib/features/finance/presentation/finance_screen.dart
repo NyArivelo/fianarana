@@ -8,6 +8,7 @@ import 'dart:convert';
 import 'package:fianarana/core/utils/csv_export.dart';
 import 'package:fianarana/core/widgets/app_ui.dart';
 import 'package:fianarana/features/auth/application/auth_controller.dart';
+import 'package:fianarana/core/security/permission_providers.dart';
 import 'package:fianarana/features/documents/application/document_providers.dart';
 import 'package:fianarana/features/documents/services/document_studio_pdf_service.dart';
 import 'package:fianarana/features/finance/application/finance_providers.dart';
@@ -341,6 +342,10 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
     final theme = Theme.of(context);
     final totalsAsync = ref.watch(financeTotalsProvider);
     final listAsync = ref.watch(paymentsProvider(_query));
+    final perms = ref.watch(currentPermissionsProvider).valueOrNull ?? const <String>{};
+    final canCreate = perms.contains('finance.create');
+    final canClose = perms.contains('finance.close_cash_desk');
+    final canExport = perms.contains('finance.export');
 
     return Scaffold(
       backgroundColor:
@@ -361,13 +366,13 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
           ),
           const SizedBox(width: 8),
           OutlinedButton.icon(
-            onPressed: _closeCashDesk,
+            onPressed: canClose ? _closeCashDesk : null,
             icon: const Icon(Icons.lock_clock, size: 16),
             label: const Text('Clôture Z'),
           ),
           const SizedBox(width: 8),
           FilledButton.icon(
-            onPressed: _newPayment,
+            onPressed: canCreate ? _newPayment : null,
             icon: const Icon(Icons.add_card, size: 16),
             label: const Text('Encaissement'),
           ),
@@ -460,10 +465,12 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
             ),
             const SizedBox(width: 8),
             OutlinedButton.icon(
-              onPressed: listAsync.maybeWhen(
-                data: (rows) => rows.isEmpty ? null : () => _export(rows),
-                orElse: () => null,
-              ),
+              onPressed: canExport
+                  ? listAsync.maybeWhen(
+                      data: (rows) => rows.isEmpty ? null : () => _export(rows),
+                      orElse: () => null,
+                    )
+                  : null,
               icon: const Icon(Icons.download_outlined, size: 16),
               label: const Text('Export CSV'),
             ),

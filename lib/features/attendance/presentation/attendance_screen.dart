@@ -6,6 +6,7 @@ import 'package:fianarana/core/widgets/app_ui.dart';
 import 'package:fianarana/features/attendance/application/attendance_providers.dart';
 import 'package:fianarana/features/attendance/data/attendance_repository.dart';
 import 'package:fianarana/features/auth/application/auth_controller.dart';
+import 'package:fianarana/core/security/permission_providers.dart';
 import 'package:fianarana/features/students/application/students_providers.dart';
 
 const _appelStatuses = <String>['Présent', 'Absent', 'Retard', 'Incident'];
@@ -372,6 +373,10 @@ class _AttendanceScreenState extends ConsumerState<AttendanceScreen> {
     final theme = Theme.of(context);
     final classesAsync = ref.watch(classesProvider);
     final listAsync = ref.watch(attendanceListProvider((classId: _classId, date: _date)));
+    final perms = ref.watch(currentPermissionsProvider).valueOrNull ?? const <String>{};
+    final canCreate = perms.contains('attendance.create');
+    final canUpdate = perms.contains('attendance.update');
+    final canExport = perms.contains('attendance.export');
 
     return Scaffold(
       backgroundColor:
@@ -380,13 +385,13 @@ class _AttendanceScreenState extends ConsumerState<AttendanceScreen> {
         title: const Text('Présences & Discipline'),
         actions: [
           OutlinedButton.icon(
-            onPressed: _openEvent,
+            onPressed: canCreate ? _openEvent : null,
             icon: const Icon(Icons.edit_note_outlined, size: 16),
             label: const Text('Événement'),
           ),
           const SizedBox(width: 8),
           FilledButton.icon(
-            onPressed: _openAppel,
+            onPressed: canCreate ? _openAppel : null,
             icon: const Icon(Icons.playlist_add_check, size: 16),
             label: const Text('Faire l\'appel'),
           ),
@@ -506,10 +511,12 @@ class _AttendanceScreenState extends ConsumerState<AttendanceScreen> {
             ),
             const Spacer(),
             OutlinedButton.icon(
-              onPressed: listAsync.maybeWhen(
-                data: (rows) => rows.isEmpty ? null : () => _export(rows),
-                orElse: () => null,
-              ),
+              onPressed: canExport
+                  ? listAsync.maybeWhen(
+                      data: (rows) => rows.isEmpty ? null : () => _export(rows),
+                      orElse: () => null,
+                    )
+                  : null,
               icon: const Icon(Icons.download_outlined, size: 16),
               label: const Text('Exporter'),
             ),
