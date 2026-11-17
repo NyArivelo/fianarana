@@ -295,5 +295,30 @@
     "PIN_QuickSwitch": "1357",
     "Compte_Actif": true,
     "Dernière_Connexion_UTC": "2026-11-16 08:30:00"
+  },
+  {
+    "UUID_Utilisateur": "8b2d7a4e-3f11-4c9a-b2e1-7d4f9a1c6e20",
+    "Identifiant": "test.echecs",
+    "Nom_Complet": "UTILISATEUR Test Échecs",
+    "Email": "test.echecs@etablissement.mg",
+    "Rôle_Principal": "Secrétariat",
+    "Portée_Scope": "Globale",
+    "PIN_QuickSwitch": "2468",
+    "Compte_Actif": true,
+    "Dernière_Connexion_UTC": "2026-11-16 08:00:00",
+    "Echecs_Connexion": 3
+  },
+  {
+    "UUID_Utilisateur": "c4e19b72-8a55-4d0e-9f33-2b7c8d1e4a55",
+    "Identifiant": "test.verrouille",
+    "Nom_Complet": "UTILISATEUR Test Verrouillé",
+    "Email": "test.verrouille@etablissement.mg",
+    "Rôle_Principal": "Surveillant",
+    "Portée_Scope": "Globale",
+    "PIN_QuickSwitch": "1359",
+    "Compte_Actif": true,
+    "Dernière_Connexion_UTC": "2026-11-16 08:00:00",
+    "Echecs_Connexion": 5,
+    "Verrouille_Jusqu": "2099-12-31 23:59:59"
   }
 ]

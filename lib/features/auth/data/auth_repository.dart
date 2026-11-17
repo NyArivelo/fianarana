@@ -31,17 +31,25 @@ class AuthRepository {
     final user = await (db.select(db.users)
           ..where((u) => u.username.equals(username) & u.isDeleted.equals(false)))
         .getSingleOrNull();
+    // Ralentissement léger anti-énumération/bruteforce (réponse non instantanée sur échec)
+    Future<void> throttle([int level = 1]) async {
+      final ms = (250 * level).clamp(250, 1500);
+      await Future<void>.delayed(Duration(milliseconds: ms));
+    }
     if (user == null) {
-      await _audit.log(module: 'Sécurité', targetObject: 'Session', description: 'Tentative de connexion échouée (utilisateur inconnu: $username)', result: 'Échec');
+      await throttle();
+      await _audit.log(module: 'Sécurité', targetObject: 'Session', description: 'Tentative de connexion échouée (utilisateur inconnu)', result: 'Échec', metadata: {'username': username});
       return null;
     }
     if (!user.isActive || (user.lockedUntil != null && user.lockedUntil!.isAfter(DateTime.now()))) {
-      await _audit.log(userId: user.id, username: user.username, module: 'Sécurité', targetObject: 'Session', description: 'Connexion refusée (compte inactif ou verrouillé)', result: 'Échec');
+      await throttle((user.failedLoginCount).clamp(1, 6));
+      await _audit.log(userId: user.id, username: user.username, module: 'Sécurité', targetObject: 'Session', description: 'Connexion refusée (compte inactif ou verrouillé temporairement)', result: 'Échec');
       return null;
     }
     if (!passwordHasher.verify(password, user.passwordHash)) {
-      await _registerFailedLogin(user);
-      await _audit.log(userId: user.id, username: user.username, module: 'Sécurité', targetObject: 'Session', description: 'Connexion échouée (mot de passe invalide)', result: 'Échec');
+      final lockInfo = await _registerFailedLogin(user);
+      await throttle(lockInfo.count.clamp(1, 6));
+      await _audit.log(userId: user.id, username: user.username, module: 'Sécurité', targetObject: 'Session', description: lockInfo.locked ? 'Connexion échouée (verrouillage temporaire déclenché)' : 'Connexion échouée (identifiants invalides)', result: 'Échec');
       return null;
     }
     await (db.update(db.users)..where((u) => u.id.equals(user.id))).write(
@@ -63,9 +71,10 @@ class AuthRepository {
     );
   }
 
-  Future<void> _registerFailedLogin(User user) async {
+  Future<({int count, bool locked})> _registerFailedLogin(User user) async {
     final count = user.failedLoginCount + 1;
-    final lock = count >= 5 ? DateTime.now().add(const Duration(minutes: 15)) : null;
+    final locked = count >= 5;
+    final lock = locked ? DateTime.now().add(const Duration(minutes: 15)) : null;
     await (db.update(db.users)..where((u) => u.id.equals(user.id))).write(
       UsersCompanion(
         failedLoginCount: Value(count),
@@ -73,6 +82,10 @@ class AuthRepository {
         updatedAt: Value(DateTime.now()),
       ),
     );
+    if (locked) {
+      await _audit.log(userId: user.id, username: user.username, module: 'Sécurité', targetObject: user.id, description: 'Compte verrouillé temporairement après $count tentatives échouées', result: 'Alerte');
+    }
+    return (count: count, locked: locked);
   }
 
   Future<bool> verifyPin(String userId, String pin) async {

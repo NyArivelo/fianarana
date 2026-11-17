@@ -59,7 +59,7 @@ class AuthController extends StateNotifier<AuthState> {
         state = state.copyWith(
           isLoading: false,
           isAuthenticated: false,
-          error: 'Identifiant ou mot de passe invalide, ou compte inactif/verrouillé.',
+          error: 'Identifiants invalides ou compte indisponible.',
         );
         return false;
       }

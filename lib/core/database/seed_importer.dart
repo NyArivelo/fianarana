@@ -166,6 +166,8 @@ class SeedImporter {
         ));
       }
       final pin = _s(r, ['PIN_QuickSwitch', 'PIN']);
+      final failed = _i(r, ['Echecs_Connexion', 'failedLoginCount'], 0);
+      final lockedUntil = _dt(r, ['Verrouille_Jusqu', 'lockedUntil']);
       await db.into(db.users).insertOnConflictUpdate(UsersCompanion.insert(
         id: Value(userId),
         username: username,
@@ -176,6 +178,8 @@ class SeedImporter {
         isActive: Value(_b(r, ['Compte_Actif']) || _s(r, ['Compte_Actif']).isEmpty),
         scopeType: Value(_s(r, ['Portée_Scope', 'Portee_Scope']).isEmpty ? 'Globale' : _s(r, ['Portée_Scope', 'Portee_Scope'])),
         lastLoginAt: Value(_dt(r, ['Dernière_Connexion_UTC', 'Derniere_Connexion_UTC'])),
+        failedLoginCount: Value(failed),
+        lockedUntil: Value(lockedUntil),
       ));
       await db.into(db.userRoles).insertOnConflictUpdate(UserRolesCompanion.insert(userId: userId, roleId: roleId));
       n++;
