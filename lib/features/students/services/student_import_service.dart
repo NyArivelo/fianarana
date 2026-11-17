@@ -48,6 +48,23 @@ class StudentImportRow {
 }
 
 class StudentImportService {
+  static const templateHeaders = <String>[
+    'Matricule',
+    'Nom',
+    'Prenom',
+    'Sexe',
+    'Date_Naissance',
+    'Lieu_Naissance',
+    'Classe',
+    'Statut',
+    'Numero_Acte_Naissance',
+    'Numero_ID_National',
+  ];
+
+  static const templateSample = <List<String>>[
+    ['ELEVE-TEST-001', 'RAKOTO', 'Jean', 'M', '2012-05-10', 'Antananarivo', '6ème A', 'Actif', '', ''],
+  ];
+
   Future<List<Map<String, String>>> parseFile(File file) async {
     final path = file.path.toLowerCase();
     if (path.endsWith('.xlsx') || path.endsWith('.xls')) {
@@ -105,23 +122,38 @@ class StudentImportService {
 
   List<StudentImportRow> toRows(List<Map<String, String>> raw, Set<String> existingMatricules) {
     final seen = <String>{};
+    final allowedSex = {'M', 'F', 'H', 'G', 'MASCULIN', 'FEMININ', 'FÉMININ', 'GARÇON', 'FILLE'};
+    final allowedStatus = {'ACTIF', 'INACTIF', 'RADIÉ', 'RADIE', 'TRANSFÉRÉ', 'TRANSFERE', 'SUSPENDU', 'DIPLOMÉ', 'DIPLOME'};
     return raw.map((m) {
       final matricule = _pick(m, ['Matricule', 'matricule', 'MATRICULE']) ?? '';
       final last = _pick(m, ['Nom', 'lastName', 'nom']) ?? '';
       final first = _pick(m, ['Prenom', 'Prénom', 'firstName', 'prenom']) ?? '';
+      final sex = _pick(m, ['Sexe', 'sex']);
+      final birthDate = _pick(m, ['Date_Naissance', 'DateNaissance', 'birthDate']);
+      final status = _pick(m, ['Statut', 'status']);
       String? err;
       if (matricule.isEmpty) err = 'Matricule requis';
       if (last.isEmpty || first.isEmpty) err = (err == null) ? 'Nom et prénom requis' : '$err; nom/prénom requis';
+      if (sex != null && sex.isNotEmpty && !allowedSex.contains(sex.toUpperCase())) {
+        err = (err == null) ? 'Sexe invalide (M/F)' : '$err; sexe invalide';
+      }
+      if (status != null && status.isNotEmpty && !allowedStatus.contains(status.toUpperCase())) {
+        err = (err == null) ? 'Statut invalide' : '$err; statut invalide';
+      }
+      if (birthDate != null && birthDate.isNotEmpty) {
+        final ok = RegExp(r'^\d{4}-\d{2}-\d{2}$').hasMatch(birthDate) && DateTime.tryParse(birthDate) != null;
+        if (!ok) err = (err == null) ? 'Date de naissance invalide (AAAA-MM-JJ)' : '$err; date invalide';
+      }
       final dup = matricule.isNotEmpty && (existingMatricules.contains(matricule) || !seen.add(matricule));
       return StudentImportRow(
         matricule: matricule,
         lastName: last,
         firstName: first,
-        sex: _pick(m, ['Sexe', 'sex']),
-        birthDate: _pick(m, ['Date_Naissance', 'DateNaissance', 'birthDate']),
+        sex: sex,
+        birthDate: birthDate,
         birthPlace: _pick(m, ['Lieu_Naissance', 'LieuNaissance', 'birthPlace']),
         classLabel: _pick(m, ['Classe', 'class']),
-        status: _pick(m, ['Statut', 'status']),
+        status: status,
         birthCertificateNumber: _pick(m, ['Numero_Acte_Naissance', 'Acte_Naissance']),
         nationalIdNumber: _pick(m, ['Numero_ID_National', 'ID_National', 'CIN']),
         duplicateMatricule: dup,

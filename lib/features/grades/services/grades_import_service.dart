@@ -43,6 +43,23 @@ class GradeImportRow {
 }
 
 class GradesImportService {
+  static const templateHeaders = <String>[
+    'Matricule_Eleve',
+    'Matiere',
+    'Periode',
+    'Libelle_Evaluation',
+    'Note',
+    'Bareme',
+    'Coefficient',
+    'Dispense',
+    'Niveau_Maitrise',
+    'Observation',
+  ];
+
+  static const templateSample = <List<String>>[
+    ['ELEVE-001', 'Mathématiques', 'Trimestre 1', 'Devoir 1', '14.5', '20', '1', 'Non', 'Acquis', 'Bon travail'],
+  ];
+
   Future<List<Map<String, String>>> parseFile(File file) async {
     final path = file.path.toLowerCase();
     if (path.endsWith('.xlsx') || path.endsWith('.xls')) {
@@ -133,6 +150,11 @@ class GradesImportService {
       if (subjectId == null && subj.isNotEmpty) err = (err == null) ? 'Matière introuvable ($subj)' : '$err; matière introuvable';
       if (per.isEmpty) err = (err == null) ? 'Période requise' : '$err; période requise';
       if (periodId == null && per.isNotEmpty) err = (err == null) ? 'Période introuvable ($per)' : '$err; période introuvable';
+      if (maxScore <= 0) err = (err == null) ? 'Barème invalide (> 0)' : '$err; barème invalide';
+      if (coef <= 0) err = (err == null) ? 'Coefficient invalide (> 0)' : '$err; coefficient invalide';
+      if (score != null && (score < 0 || score > maxScore)) {
+        err = (err == null) ? 'Note hors bornes (0..barème)' : '$err; note hors bornes';
+      }
       if (!isExempt && score == null && (mastery == null || mastery.isEmpty)) {
         err = (err == null) ? 'Note ou niveau de maîtrise requis (ou dispense)' : '$err; note/maîtrise manquante';
       }

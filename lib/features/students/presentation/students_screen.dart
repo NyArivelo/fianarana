@@ -467,6 +467,26 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
 
   String _date(DateTime d) => '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}/${d.year}';
 
+  Future<void> _downloadStudentTemplate() async {
+    try {
+      final choice = await showDialog<String>(context: context, builder: (ctx)=>SimpleDialog(title: const Text('Modèle d\'import élèves'), children: [
+        SimpleDialogOption(onPressed: ()=>Navigator.pop(ctx,'csv'), child: const ListTile(leading: Icon(Icons.description_outlined), title: Text('Télécharger modèle CSV (exemple inclus)'))),
+        SimpleDialogOption(onPressed: ()=>Navigator.pop(ctx,'xlsx'), child: const ListTile(leading: Icon(Icons.grid_on_outlined), title: Text('Télécharger modèle Excel XLSX (exemple inclus)'))),
+      ]));
+      if (choice == null) return;
+      final ts = DateTime.now().millisecondsSinceEpoch;
+      File file;
+      if (choice == 'xlsx') {
+        file = await XlsxExport.export(filename: 'modele_import_eleves_$ts.xlsx', sheetName: 'Eleves', headers: StudentImportService.templateHeaders, rows: StudentImportService.templateSample);
+      } else {
+        file = await CsvExport.export(filename: 'modele_import_eleves_$ts.csv', headers: StudentImportService.templateHeaders, rows: StudentImportService.templateSample);
+      }
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Modèle enregistré : ${file.path}')));
+    } catch (e) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erreur modèle : $e')));
+    }
+  }
+
   Future<void> _importStudents() async {
     final pick = await FilePicker.platform.pickFiles(type: FileType.custom, allowedExtensions: ['csv', 'xlsx', 'xls']);
     if (pick == null || pick.files.single.path == null) return;

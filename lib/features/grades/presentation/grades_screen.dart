@@ -503,6 +503,26 @@ class _GradesScreenState extends ConsumerState<GradesScreen> {
     }
   }
 
+  Future<void> _downloadGradeTemplate() async {
+    try {
+      final choice = await showDialog<String>(context: context, builder: (ctx)=>SimpleDialog(title: const Text('Modèle d\'import notes'), children: [
+        SimpleDialogOption(onPressed: ()=>Navigator.pop(ctx,'csv'), child: const ListTile(leading: Icon(Icons.description_outlined), title: Text('Télécharger modèle CSV (exemple inclus)'))),
+        SimpleDialogOption(onPressed: ()=>Navigator.pop(ctx,'xlsx'), child: const ListTile(leading: Icon(Icons.grid_on_outlined), title: Text('Télécharger modèle Excel XLSX (exemple inclus)'))),
+      ]));
+      if (choice == null) return;
+      final ts = DateTime.now().millisecondsSinceEpoch;
+      File file;
+      if (choice == 'xlsx') {
+        file = await XlsxExport.export(filename: 'modele_import_notes_$ts.xlsx', sheetName: 'Notes', headers: GradesImportService.templateHeaders, rows: GradesImportService.templateSample);
+      } else {
+        file = await CsvExport.export(filename: 'modele_import_notes_$ts.csv', headers: GradesImportService.templateHeaders, rows: GradesImportService.templateSample);
+      }
+      if (mounted) _snack('Modèle enregistré : ${file.path}');
+    } catch (e) {
+      _snack('Erreur modèle : $e');
+    }
+  }
+
   Future<void> _importGrades() async {
     final pick = await FilePicker.platform.pickFiles(type: FileType.custom, allowedExtensions: ['csv', 'xlsx', 'xls']);
     if (pick == null || pick.files.single.path == null) return;

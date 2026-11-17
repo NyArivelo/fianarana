@@ -191,6 +191,26 @@ class _StaffScreenState extends ConsumerState<StaffScreen> with SingleTickerProv
     );
   }
 
+  Future<void> _downloadStaffTemplate() async {
+    try {
+      final choice = await showDialog<String>(context: context, builder: (ctx)=>SimpleDialog(title: const Text('Modèle d\'import personnel'), children: [
+        SimpleDialogOption(onPressed: ()=>Navigator.pop(ctx,'csv'), child: const ListTile(leading: Icon(Icons.description_outlined), title: Text('Télécharger modèle CSV (exemple inclus)'))),
+        SimpleDialogOption(onPressed: ()=>Navigator.pop(ctx,'xlsx'), child: const ListTile(leading: Icon(Icons.grid_on_outlined), title: Text('Télécharger modèle Excel XLSX (exemple inclus)'))),
+      ]));
+      if (choice == null) return;
+      final ts = DateTime.now().millisecondsSinceEpoch;
+      File file;
+      if (choice == 'xlsx') {
+        file = await XlsxExport.export(filename: 'modele_import_personnel_$ts.xlsx', sheetName: 'Personnel', headers: StaffImportService.templateHeaders, rows: StaffImportService.templateSample);
+      } else {
+        file = await CsvExport.export(filename: 'modele_import_personnel_$ts.csv', headers: StaffImportService.templateHeaders, rows: StaffImportService.templateSample);
+      }
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Modèle enregistré : ${file.path}')));
+    } catch (e) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erreur modèle : $e')));
+    }
+  }
+
   Future<void> _importStaff() async {
     final pick = await FilePicker.platform.pickFiles(type: FileType.custom, allowedExtensions: ['csv', 'xlsx', 'xls']);
     if (pick == null || pick.files.single.path == null) return;
@@ -322,6 +342,7 @@ class _StaffScreenState extends ConsumerState<StaffScreen> with SingleTickerProv
       Padding(padding: const EdgeInsets.all(12), child: Row(children:[
         FilledButton.icon(onPressed: ()=>_addOrEdit(), icon: const Icon(Icons.person_add_alt_1, size:16), label: const Text('Nouveau')),
         const SizedBox(width: 8),
+        OutlinedButton.icon(onPressed: _downloadStaffTemplate, icon: const Icon(Icons.download_outlined, size:16), label: const Text('Modèle import')), const SizedBox(width:8),
         OutlinedButton.icon(onPressed: _importStaff, icon: const Icon(Icons.upload_file_outlined, size:16), label: const Text('Importer CSV/XLSX')),
         const SizedBox(width: 8),
         list.maybeWhen(data: (rows)=> Wrap(spacing: 8, children: [

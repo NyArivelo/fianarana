@@ -31,6 +31,21 @@ class StaffImportRow {
 }
 
 class StaffImportService {
+  static const templateHeaders = <String>[
+    'Matricule_Personnel',
+    'Nom',
+    'Prenom',
+    'Sexe',
+    'Fonction',
+    'Departement_Matiere',
+    'Telephone',
+    'Statut',
+  ];
+
+  static const templateSample = <List<String>>[
+    ['PERS-TEST-001', 'RABE', 'Marie', 'F', 'Enseignant', 'Mathématiques', '0340000000', 'Actif'],
+  ];
+
   Future<List<Map<String, String>>> parseFile(File file) async {
     final path = file.path.toLowerCase();
     if (path.endsWith('.xlsx') || path.endsWith('.xls')) {
@@ -87,23 +102,33 @@ class StaffImportService {
 
   List<StaffImportRow> toRows(List<Map<String, String>> raw, Set<String> existingNumbers) {
     final seen = <String>{};
+    final allowedSex = {'M', 'F', 'H', 'G', 'MASCULIN', 'FEMININ', 'FÉMININ'};
+    final allowedStatus = {'ACTIF', 'INACTIF', 'SUSPENDU', 'CONGÉ', 'CONGE', 'RADIÉ', 'RADIE'};
     return raw.map((m) {
       final num = _pick(m, ['Matricule_Personnel', 'Matricule', 'staffNumber', 'matricule']) ?? '';
       final last = _pick(m, ['Nom', 'lastName']) ?? '';
       final first = _pick(m, ['Prenom', 'Prénom', 'firstName']) ?? '';
+      final sex = _pick(m, ['Sexe', 'sex']);
+      final status = _pick(m, ['Statut', 'status']);
       String? err;
       if (num.isEmpty) err = 'Matricule requis';
       if (last.isEmpty || first.isEmpty) err = (err == null) ? 'Nom et prénom requis' : '$err; nom/prénom requis';
+      if (sex != null && sex.isNotEmpty && !allowedSex.contains(sex.toUpperCase())) {
+        err = (err == null) ? 'Sexe invalide (M/F)' : '$err; sexe invalide';
+      }
+      if (status != null && status.isNotEmpty && !allowedStatus.contains(status.toUpperCase())) {
+        err = (err == null) ? 'Statut invalide' : '$err; statut invalide';
+      }
       final dup = num.isNotEmpty && (existingNumbers.contains(num) || !seen.add(num));
       return StaffImportRow(
         staffNumber: num,
         lastName: last,
         firstName: first,
-        sex: _pick(m, ['Sexe', 'sex']),
+        sex: sex,
         functionTitle: _pick(m, ['Fonction', 'functionTitle']),
         departmentOrSubject: _pick(m, ['Departement_Matiere', 'Matiere', 'Service', 'departmentOrSubject']),
         phone: _pick(m, ['Telephone', 'phone']),
-        status: _pick(m, ['Statut', 'status']),
+        status: status,
         duplicate: dup,
         error: err ?? (dup ? 'Doublon matricule (existant ou fichier)' : null),
       );
