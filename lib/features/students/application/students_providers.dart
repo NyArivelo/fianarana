@@ -10,7 +10,8 @@ final studentsRepositoryProvider = Provider<StudentsRepository>((ref) {
 });
 
 final classesProvider = FutureProvider<List<ClassesData>>((ref) {
-  return ref.watch(studentsRepositoryProvider).allClasses();
+  final userId = ref.watch(authControllerProvider).userId;
+  return ref.watch(studentsRepositoryProvider).allClasses(actorUserId: userId);
 });
 
 final studentsListProvider = FutureProvider.family<List<StudentListItem>, ({String? query, String? classId, String? status})>((ref, args) {

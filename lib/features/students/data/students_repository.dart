@@ -224,8 +224,15 @@ class StudentsRepository {
     return res.map((r) => r.readTable(db.guardians)).toList();
   }
 
-  Future<List<ClassesData>> allClasses() {
-    return (db.select(db.classes)..where((t) => t.isDeleted.equals(false))..orderBy([(t) => OrderingTerm.asc(t.label)])).get();
+  Future<List<ClassesData>> allClasses({String? actorUserId}) async {
+    final scopeClasses = await AffectationScope(db).allowedClassIdsForUser(actorUserId);
+    final q = db.select(db.classes)..where((t) => t.isDeleted.equals(false));
+    if (scopeClasses != null) {
+      if (scopeClasses.isEmpty) return const <ClassesData>[];
+      q.where((t) => t.id.isIn(scopeClasses));
+    }
+    q.orderBy([(t) => OrderingTerm.asc(t.label)]);
+    return q.get();
   }
 
   Future<String> createStudent({
