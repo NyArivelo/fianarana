@@ -83,6 +83,31 @@ class AuthController extends StateNotifier<AuthState> {
     state = const AuthState();
   }
 
+  /// Changement rapide d'utilisateur (Quick Switch): authentifie un autre compte et remplace la session.
+  Future<bool> switchUser({required String username, required String password}) async {
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      final user = await _repo.authenticate(username, password);
+      if (user == null) {
+        state = state.copyWith(isLoading: false, error: 'Identifiants invalides pour le changement d\'utilisateur.');
+        return false;
+      }
+      state = AuthState(
+        isAuthenticated: true,
+        isLocked: false,
+        isLoading: false,
+        userId: user.id,
+        username: user.username,
+        fullName: user.fullName,
+        scopeType: user.scopeType,
+      );
+      return true;
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: 'Erreur changement d\'utilisateur: $e');
+      return false;
+    }
+  }
+
   /// Verrouillage rapide (Ctrl+L): conserve l'identité/session logique, demande déverrouillage.
   void lock() {
     if (state.isAuthenticated) {

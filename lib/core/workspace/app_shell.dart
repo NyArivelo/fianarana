@@ -141,10 +141,20 @@ class AppShell extends ConsumerWidget {
               style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: isDark ? Colors.white : const Color(0xFF0F172A))),
           Text(auth.scopeType ?? 'Session', style: const TextStyle(fontSize: 10, color: _brand)),
         ]),
-        IconButton(
-          tooltip: 'Déconnexion',
-          onPressed: () => ref.read(authControllerProvider.notifier).logout(),
-          icon: const Icon(Icons.logout, size: 18),
+        PopupMenuButton<String>(
+          tooltip: 'Session',
+          icon: const Icon(Icons.more_vert, size: 18),
+          onSelected: (v) async {
+            if (v == 'switch') {
+              await _showQuickSwitch(context, ref);
+            } else if (v == 'logout') {
+              ref.read(authControllerProvider.notifier).logout();
+            }
+          },
+          itemBuilder: (ctx) => const [
+            PopupMenuItem(value: 'switch', child: ListTile(leading: Icon(Icons.switch_account_outlined), title: Text('Changement rapide d\'utilisateur'))),
+            PopupMenuItem(value: 'logout', child: ListTile(leading: Icon(Icons.logout), title: Text('Déconnexion'))),
+          ],
         ),
       ]),
     );

@@ -1,12 +1,20 @@
+import 'dart:convert';
+import 'dart:io';
+
+import 'package:crypto/crypto.dart';
 import 'package:drift/drift.dart' show OrderingTerm;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
 
 import 'package:fianarana/core/database/app_database.dart';
 import 'package:fianarana/core/database/database_provider.dart';
 import 'package:fianarana/core/database/seed_importer.dart';
 import 'package:fianarana/core/services/backup_service.dart';
 import 'package:fianarana/core/services/recycle_bin_service.dart';
+import 'package:fianarana/core/settings/ui_settings.dart';
+import 'package:fianarana/core/utils/csv_export.dart';
 import 'package:fianarana/core/widgets/app_ui.dart';
 import 'package:fianarana/features/auth/application/auth_controller.dart';
 
@@ -253,6 +261,89 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
+
+  Future<void> _exportAudit({required bool asJson}) async {
+    setState(() { _busy = true; _msg = null; });
+    try {
+      final db = ref.read(appDatabaseProvider);
+      final logs = await (db.select(db.auditLogs)..orderBy([(t) => OrderingTerm.desc(t.timestampUtc)])).get();
+      final dir = await getApplicationDocumentsDirectory();
+      final outDir = Directory(p.join(dir.path, 'fianarana_exports'));
+      if (!outDir.existsSync()) outDir.createSync(recursive: true);
+      final ts = DateTime.now();
+      final stamp = '${ts.year}${ts.month.toString().padLeft(2,'0')}${ts.day.toString().padLeft(2,'0')}_${ts.hour.toString().padLeft(2,'0')}${ts.minute.toString().padLeft(2,'0')}';
+      late String content;
+      late String ext;
+      if (asJson) {
+        ext = 'json';
+        content = const JsonEncoder.withIndent('  ').convert(logs.map((l) => {
+          'id': l.id,
+          'timestampUtc': l.timestampUtc.toIso8601String(),
+          'userId': l.userId,
+          'username': l.username,
+          'module': l.module,
+          'targetObject': l.targetObject,
+          'description': l.description,
+          'result': l.result,
+          'hashSha256_entree': l.hashSha256,
+        }).toList());
+      } else {
+        ext = 'csv';
+        final sb = StringBuffer();
+        String esc(String? v) => '"${(v ?? '').replaceAll('"', '""')}"';
+        sb.writeln(['id','timestampUtc','userId','username','module','targetObject','description','result','hashSha256_entree'].map(esc).join(','));
+        for (final l in logs) {
+          sb.writeln([l.id,l.timestampUtc.toIso8601String(),l.userId,l.username,l.module,l.targetObject,l.description,l.result,l.hashSha256].map(esc).join(','));
+        }
+        content = sb.toString();
+      }
+      final bytes = utf8.encode(content);
+      final fileHash = sha256.convert(bytes).toString();
+      final file = File(p.join(outDir.path, 'audit_export_$stamp.$ext'));
+      await file.writeAsBytes(bytes);
+      final hashFile = File('${file.path}.sha256');
+      await hashFile.writeAsString('$fileHash  ${p.basename(file.path)}\n');
+      _setMessage('Export audit ${ext.toUpperCase()} : ${file.path}\nEmpreinte SHA-256 (intégrité fichier) : ${hashFile.path}');
+    } catch (e) {
+      _setMessage('Erreur export audit : $e');
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  Future<void> _exportTemplates() async {
+    setState(() { _busy = true; _msg = null; });
+    try {
+      final files = <File>[];
+      files.add(await CsvExport.export(
+        filename: 'modele_import_eleves.csv',
+        headers: const ['Matricule','Nom','Prenom','Sexe','Date_Naissance','Lieu_Naissance','Classe','Statut'],
+        rows: const [
+          ['ELV-EX-0001','RAKOTO','Jean','M','2012-05-10','Antananarivo','3ème 1','Actif'],
+        ],
+      ));
+      files.add(await CsvExport.export(
+        filename: 'modele_import_personnel.csv',
+        headers: const ['Matricule_Personnel','Nom','Prenom','Sexe','Fonction','Departement_Matiere','Telephone','Statut'],
+        rows: const [
+          ['PER-EX-001','RASOA','Marie','F','Enseignante','Mathématiques','0340000000','Actif'],
+        ],
+      ));
+      files.add(await CsvExport.export(
+        filename: 'modele_import_notes.csv',
+        headers: const ['Matricule_Eleve','Matiere','Periode','Libelle_Evaluation','Note','Bareme','Coefficient','Dispense','Observation'],
+        rows: const [
+          ['ELV-2026-0001','Mathématiques','Trimestre 1','Devoir 1','14.5','20','1','false',''],
+        ],
+      ));
+      _setMessage('Modèles d\'import générés :\n${files.map((f)=>f.path).join('\n')}');
+    } catch (e) {
+      _setMessage('Erreur génération modèles : $e');
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -322,6 +413,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   _seedCard(stats.valueOrNull),
                   const SizedBox(height: 12),
                   _recycleCard(),
+                  const SizedBox(height: 12),
+                  _importExportCard(),
                 ],
               );
               final right = ListView(
@@ -330,6 +423,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   _auditCard(),
                   const SizedBox(height: 12),
                   _securityCard(),
+                  const SizedBox(height: 12),
+                  _displayCard(),
                   const SizedBox(height: 12),
                   _aboutCard(),
                 ],
@@ -350,9 +445,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 const SizedBox(height: 12),
                 _recycleCard(),
                 const SizedBox(height: 12),
+                _importExportCard(),
+                const SizedBox(height: 12),
                 _auditCard(),
                 const SizedBox(height: 12),
                 _securityCard(),
+                const SizedBox(height: 12),
+                _displayCard(),
                 const SizedBox(height: 12),
                 _aboutCard(),
               ]);
@@ -464,12 +563,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     return AppSectionCard(
       title: 'Journal d\'audit',
       subtitle:
-          'Traçabilité UTC horodatée et empreinte SHA-256 des opérations sensibles.',
-      trailing: OutlinedButton.icon(
-        onPressed: _showAudit,
-        icon: const Icon(Icons.receipt_long_outlined, size: 16),
-        label: const Text('Consulter'),
-      ),
+          'Traçabilité UTC horodatée et empreinte SHA-256. Export JSON/CSV accompagné d\'un fichier .sha256 (intégrité).',
+      trailing: Wrap(spacing: 6, runSpacing: 6, children: [
+        OutlinedButton.icon(onPressed: _showAudit, icon: const Icon(Icons.visibility_outlined, size: 14), label: const Text('Consulter')),
+        OutlinedButton.icon(onPressed: _busy ? null : () => _exportAudit(asJson: false), icon: const Icon(Icons.table_view_outlined, size: 14), label: const Text('Export CSV')),
+        FilledButton.icon(onPressed: _busy ? null : () => _exportAudit(asJson: true), icon: const Icon(Icons.data_object, size: 14), label: const Text('Export JSON')),
+      ]),
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
       child: logs.when(
         data: (rows) => Row(children: [
@@ -490,7 +589,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       ),
     );
   }
-
   Widget _securityCard() {
     final auth = ref.watch(authControllerProvider);
     return AppSectionCard(
@@ -514,6 +612,54 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         const _ShortcutLine('Ctrl+N', 'Nouvel enregistrement du module actif'),
         const _ShortcutLine('Ctrl+S', 'Enregistrer le formulaire actif'),
       ]),
+    );
+  }
+
+
+  Widget _importExportCard() {
+    return AppSectionCard(
+      title: 'Import / Export & modèles',
+      subtitle: 'Modèles CSV guidés pour import (élèves, personnel, notes) et exports de données.',
+      trailing: FilledButton.icon(
+        onPressed: _busy ? null : _exportTemplates,
+        icon: const Icon(Icons.description_outlined, size: 16),
+        label: const Text('Générer modèles CSV'),
+      ),
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+      child: Text(
+        'Les modèles sont générés dans le dossier d\'exports (Documents/fianarana_exports). '
+        'Exports disponibles : listes/paiements (CSV) dans les modules, audit JSON/CSV signé (.sha256), sauvegardes .zip.',
+        style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant),
+      ),
+    );
+  }
+  Widget _displayCard() {
+    final scaleAsync = ref.watch(uiScaleProvider);
+    return AppSectionCard(
+      title: 'Affichage & accessibilité',
+      subtitle: 'Ajustez la taille du texte et des éléments de l\'interface (confort visuel, écrans HD/4K).',
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+      child: scaleAsync.when(
+        data: (scale) => Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Row(children: [
+            const Text('Échelle UI', style: TextStyle(fontSize: 12)),
+            const Spacer(),
+            AppBadge('${(scale * 100).round()}%', tone: AppTone.info),
+          ]),
+          Slider(
+            value: scale,
+            min: 0.85,
+            max: 1.25,
+            divisions: 8,
+            label: '${(scale * 100).round()}%',
+            onChanged: (v) async { await saveUiScale(ref, v); },
+          ),
+          Text('Astuce : 100% recommandé ; augmentez pour le confort ou réduisez sur petits écrans.',
+              style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.onSurfaceVariant)),
+        ]),
+        loading: () => const LinearProgressIndicator(),
+        error: (e, _) => Text('Erreur réglage affichage : $e'),
+      ),
     );
   }
 
@@ -545,6 +691,89 @@ class _ShortcutLine extends StatelessWidget {
   final String keys;
   final String label;
   const _ShortcutLine(this.keys, this.label);
+
+
+  Future<void> _exportAudit({required bool asJson}) async {
+    setState(() { _busy = true; _msg = null; });
+    try {
+      final db = ref.read(appDatabaseProvider);
+      final logs = await (db.select(db.auditLogs)..orderBy([(t) => OrderingTerm.desc(t.timestampUtc)])).get();
+      final dir = await getApplicationDocumentsDirectory();
+      final outDir = Directory(p.join(dir.path, 'fianarana_exports'));
+      if (!outDir.existsSync()) outDir.createSync(recursive: true);
+      final ts = DateTime.now();
+      final stamp = '${ts.year}${ts.month.toString().padLeft(2,'0')}${ts.day.toString().padLeft(2,'0')}_${ts.hour.toString().padLeft(2,'0')}${ts.minute.toString().padLeft(2,'0')}';
+      late String content;
+      late String ext;
+      if (asJson) {
+        ext = 'json';
+        content = const JsonEncoder.withIndent('  ').convert(logs.map((l) => {
+          'id': l.id,
+          'timestampUtc': l.timestampUtc.toIso8601String(),
+          'userId': l.userId,
+          'username': l.username,
+          'module': l.module,
+          'targetObject': l.targetObject,
+          'description': l.description,
+          'result': l.result,
+          'hashSha256_entree': l.hashSha256,
+        }).toList());
+      } else {
+        ext = 'csv';
+        final sb = StringBuffer();
+        String esc(String? v) => '"${(v ?? '').replaceAll('"', '""')}"';
+        sb.writeln(['id','timestampUtc','userId','username','module','targetObject','description','result','hashSha256_entree'].map(esc).join(','));
+        for (final l in logs) {
+          sb.writeln([l.id,l.timestampUtc.toIso8601String(),l.userId,l.username,l.module,l.targetObject,l.description,l.result,l.hashSha256].map(esc).join(','));
+        }
+        content = sb.toString();
+      }
+      final bytes = utf8.encode(content);
+      final fileHash = sha256.convert(bytes).toString();
+      final file = File(p.join(outDir.path, 'audit_export_$stamp.$ext'));
+      await file.writeAsBytes(bytes);
+      final hashFile = File('${file.path}.sha256');
+      await hashFile.writeAsString('$fileHash  ${p.basename(file.path)}\n');
+      _setMessage('Export audit ${ext.toUpperCase()} : ${file.path}\nEmpreinte SHA-256 (intégrité fichier) : ${hashFile.path}');
+    } catch (e) {
+      _setMessage('Erreur export audit : $e');
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  Future<void> _exportTemplates() async {
+    setState(() { _busy = true; _msg = null; });
+    try {
+      final files = <File>[];
+      files.add(await CsvExport.export(
+        filename: 'modele_import_eleves.csv',
+        headers: const ['Matricule','Nom','Prenom','Sexe','Date_Naissance','Lieu_Naissance','Classe','Statut'],
+        rows: const [
+          ['ELV-EX-0001','RAKOTO','Jean','M','2012-05-10','Antananarivo','3ème 1','Actif'],
+        ],
+      ));
+      files.add(await CsvExport.export(
+        filename: 'modele_import_personnel.csv',
+        headers: const ['Matricule_Personnel','Nom','Prenom','Sexe','Fonction','Departement_Matiere','Telephone','Statut'],
+        rows: const [
+          ['PER-EX-001','RASOA','Marie','F','Enseignante','Mathématiques','0340000000','Actif'],
+        ],
+      ));
+      files.add(await CsvExport.export(
+        filename: 'modele_import_notes.csv',
+        headers: const ['Matricule_Eleve','Matiere','Periode','Libelle_Evaluation','Note','Bareme','Coefficient','Dispense','Observation'],
+        rows: const [
+          ['ELV-2026-0001','Mathématiques','Trimestre 1','Devoir 1','14.5','20','1','false',''],
+        ],
+      ));
+      _setMessage('Modèles d\'import générés :\n${files.map((f)=>f.path).join('\n')}');
+    } catch (e) {
+      _setMessage('Erreur génération modèles : $e');
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -578,6 +807,89 @@ class _InfoLine extends StatelessWidget {
   final String label;
   final String value;
   const _InfoLine(this.label, this.value);
+
+
+  Future<void> _exportAudit({required bool asJson}) async {
+    setState(() { _busy = true; _msg = null; });
+    try {
+      final db = ref.read(appDatabaseProvider);
+      final logs = await (db.select(db.auditLogs)..orderBy([(t) => OrderingTerm.desc(t.timestampUtc)])).get();
+      final dir = await getApplicationDocumentsDirectory();
+      final outDir = Directory(p.join(dir.path, 'fianarana_exports'));
+      if (!outDir.existsSync()) outDir.createSync(recursive: true);
+      final ts = DateTime.now();
+      final stamp = '${ts.year}${ts.month.toString().padLeft(2,'0')}${ts.day.toString().padLeft(2,'0')}_${ts.hour.toString().padLeft(2,'0')}${ts.minute.toString().padLeft(2,'0')}';
+      late String content;
+      late String ext;
+      if (asJson) {
+        ext = 'json';
+        content = const JsonEncoder.withIndent('  ').convert(logs.map((l) => {
+          'id': l.id,
+          'timestampUtc': l.timestampUtc.toIso8601String(),
+          'userId': l.userId,
+          'username': l.username,
+          'module': l.module,
+          'targetObject': l.targetObject,
+          'description': l.description,
+          'result': l.result,
+          'hashSha256_entree': l.hashSha256,
+        }).toList());
+      } else {
+        ext = 'csv';
+        final sb = StringBuffer();
+        String esc(String? v) => '"${(v ?? '').replaceAll('"', '""')}"';
+        sb.writeln(['id','timestampUtc','userId','username','module','targetObject','description','result','hashSha256_entree'].map(esc).join(','));
+        for (final l in logs) {
+          sb.writeln([l.id,l.timestampUtc.toIso8601String(),l.userId,l.username,l.module,l.targetObject,l.description,l.result,l.hashSha256].map(esc).join(','));
+        }
+        content = sb.toString();
+      }
+      final bytes = utf8.encode(content);
+      final fileHash = sha256.convert(bytes).toString();
+      final file = File(p.join(outDir.path, 'audit_export_$stamp.$ext'));
+      await file.writeAsBytes(bytes);
+      final hashFile = File('${file.path}.sha256');
+      await hashFile.writeAsString('$fileHash  ${p.basename(file.path)}\n');
+      _setMessage('Export audit ${ext.toUpperCase()} : ${file.path}\nEmpreinte SHA-256 (intégrité fichier) : ${hashFile.path}');
+    } catch (e) {
+      _setMessage('Erreur export audit : $e');
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  Future<void> _exportTemplates() async {
+    setState(() { _busy = true; _msg = null; });
+    try {
+      final files = <File>[];
+      files.add(await CsvExport.export(
+        filename: 'modele_import_eleves.csv',
+        headers: const ['Matricule','Nom','Prenom','Sexe','Date_Naissance','Lieu_Naissance','Classe','Statut'],
+        rows: const [
+          ['ELV-EX-0001','RAKOTO','Jean','M','2012-05-10','Antananarivo','3ème 1','Actif'],
+        ],
+      ));
+      files.add(await CsvExport.export(
+        filename: 'modele_import_personnel.csv',
+        headers: const ['Matricule_Personnel','Nom','Prenom','Sexe','Fonction','Departement_Matiere','Telephone','Statut'],
+        rows: const [
+          ['PER-EX-001','RASOA','Marie','F','Enseignante','Mathématiques','0340000000','Actif'],
+        ],
+      ));
+      files.add(await CsvExport.export(
+        filename: 'modele_import_notes.csv',
+        headers: const ['Matricule_Eleve','Matiere','Periode','Libelle_Evaluation','Note','Bareme','Coefficient','Dispense','Observation'],
+        rows: const [
+          ['ELV-2026-0001','Mathématiques','Trimestre 1','Devoir 1','14.5','20','1','false',''],
+        ],
+      ));
+      _setMessage('Modèles d\'import générés :\n${files.map((f)=>f.path).join('\n')}');
+    } catch (e) {
+      _setMessage('Erreur génération modèles : $e');
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {

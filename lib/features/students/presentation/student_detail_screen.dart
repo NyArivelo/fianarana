@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:printing/printing.dart';
 
-import 'package:fianarana/features/students/application/students_providers.dart';
 import 'package:fianarana/features/auth/application/auth_controller.dart';
+import 'package:fianarana/features/students/application/students_providers.dart';
+import 'package:fianarana/features/students/services/certificate_service.dart';
 
 class StudentDetailScreen extends ConsumerStatefulWidget {
   final String? studentId; // null => création
@@ -214,12 +216,17 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> {
                   Card(
                     child: Padding(
                       padding: const EdgeInsets.all(16),
-                      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: const [
-                        Text('Transfert / Radiation (procédure)'),
-                        SizedBox(height: 8),
-                        Text('• Quitus financier requis (scolarité/frais régularisés)\n• Quitus bibliothèque requis (aucun ouvrage en cours)\n• Génération certificat de sortie (Document Studio à implémenter)\n• Statut passé à "Transféré/Radiation" avec historique conservé'),
-                        SizedBox(height: 8),
-                        Text('Action de validation à finaliser dans le service métier (contrôles complets + PDF).'),
+                      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                        Row(children: [
+                          Expanded(child: Text('Transfert / Radiation (procédure)', style: Theme.of(context).textTheme.titleMedium)),
+                          FilledButton.icon(
+                            onPressed: () => _openTransferDialog(student, enrollmentsAsync.valueOrNull ?? const []),
+                            icon: const Icon(Icons.exit_to_app, size: 16),
+                            label: const Text('Procéder'),
+                          ),
+                        ]),
+                        const SizedBox(height: 8),
+                        const Text('• Quitus financier requis (scolarité/frais régularisés)\n• Quitus bibliothèque requis (aucun ouvrage en cours)\n• Génération du certificat de sortie (PDF)\n• Statut passé à "Transféré/Radiation" avec historique conservé'),
                       ]),
                     ),
                   ),
@@ -230,5 +237,109 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> {
         },
       ),
     );
+  }
+
+  Future<void> _openTransferDialog(dynamic student, List<dynamic> enrollments) async {
+    if (student == null || enrollments.isEmpty) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Aucune inscription trouvée pour cet élève.')));
+      }
+      return;
+    }
+    final enrollment = enrollments.first as dynamic;
+    final reasonCtrl = TextEditingController(text: 'Transfert vers un autre établissement');
+    bool finance = enrollment.financeClearance == true;
+    bool library = enrollment.libraryClearance == true;
+    final auth = ref.read(authControllerProvider);
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setD) => AlertDialog(
+          title: const Text('Transfert / Radiation'),
+          content: SizedBox(
+            width: 520,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('Validez les quitus requis avant de générer le certificat et de clôturer le dossier.'),
+                const SizedBox(height: 8),
+                CheckboxListTile(
+                  value: finance,
+                  onChanged: (v) => setD(() => finance = v ?? false),
+                  title: const Text('Quitus financier validé'),
+                  controlAffinity: ListTileControlAffinity.leading,
+                  dense: true,
+                ),
+                CheckboxListTile(
+                  value: library,
+                  onChanged: (v) => setD(() => library = v ?? false),
+                  title: const Text('Quitus bibliothèque validé'),
+                  controlAffinity: ListTileControlAffinity.leading,
+                  dense: true,
+                ),
+                TextField(
+                  controller: reasonCtrl,
+                  decoration: const InputDecoration(labelText: 'Motif de sortie / radiation'),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Annuler')),
+            FilledButton.icon(
+              onPressed: () => Navigator.pop(ctx, true),
+              icon: const Icon(Icons.picture_as_pdf_outlined, size: 16),
+              label: const Text('Valider & générer certificat'),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (ok != true) return;
+    try {
+      final repo = ref.read(studentsRepositoryProvider);
+      await repo.transferStudent(
+        studentId: student.id as String,
+        enrollmentId: enrollment.id as String,
+        reason: reasonCtrl.text.trim().isEmpty ? 'Transfert/Radiation' : reasonCtrl.text.trim(),
+        financeClearance: finance,
+        libraryClearance: library,
+        actorUserId: auth.userId,
+        actorUsername: auth.username,
+      );
+      final now = DateTime.now();
+      final overview = await repo.overview(student.id as String, actorUserId: auth.userId);
+      final cert = await CertificateService().generateExitCertificate(
+        ExitCertificateData(
+          studentName: '${student.lastName} ${student.firstName}',
+          matricule: student.matricule as String,
+          classLabel: overview.classLabel,
+          birthDate: student.birthDate as DateTime?,
+          birthPlace: student.birthPlace as String?,
+          exitDate: now,
+          reason: reasonCtrl.text.trim().isEmpty ? 'Transfert/Radiation' : reasonCtrl.text.trim(),
+          schoolYearLabel: '2026-2027',
+          financeClearance: finance,
+          libraryClearance: library,
+        ),
+        establishmentName: 'Établissement scolaire',
+      );
+      await Printing.layoutPdf(onLayout: (_) async => cert, name: 'certificat_sortie_${student.matricule}.pdf');
+      ref.invalidate(studentsListProvider);
+      ref.invalidate(studentDetailProvider);
+      ref.invalidate(studentEnrollmentsProvider(student.id as String));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+            content: Text('Transfert/radiation enregistré et certificat de sortie généré.')));
+        context.go('/students');
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Erreur transfert/certificat : $e')));
+      }
+    }
   }
 }

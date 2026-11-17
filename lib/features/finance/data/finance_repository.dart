@@ -58,8 +58,15 @@ class FinanceRepository {
     }
   }
 
+  Future<bool> _isCashierScope(String? userId) async {
+    if (userId == null || userId.isEmpty) return false;
+    final u = await (db.select(db.users)..where((t) => t.id.equals(userId))).getSingleOrNull();
+    return (u?.scopeType ?? '').toLowerCase().contains('caisse');
+  }
+
   Future<List<PaymentRow>> listPayments({String? actorUserId, String? query, int limit = 500}) async {
     await _require(actorUserId, 'finance.read');
+    final cashierOnly = await _isCashierScope(actorUserId);
     final p = db.payments;
     final s = db.students;
     final c = db.classes;
@@ -68,6 +75,7 @@ class FinanceRepository {
       leftOuterJoin(c, c.id.equalsExp(p.classId)),
     ]);
     j.where(p.isDeleted.equals(false));
+    if (cashierOnly) j.where(p.cashierUserId.equals(actorUserId!));
     if (query != null && query.trim().isNotEmpty) {
       final q = '%${query.trim()}%';
       j.where(p.receiptNumber.like(q) | s.lastName.like(q) | s.firstName.like(q) | s.matricule.like(q));
@@ -99,7 +107,10 @@ class FinanceRepository {
 
   Future<Map<String, int>> totals({String? actorUserId}) async {
     await _require(actorUserId, 'finance.read');
-    final rows = await db.select(db.payments).get();
+    final cashierOnly = await _isCashierScope(actorUserId);
+    final q = db.select(db.payments)..where((t) => t.isDeleted.equals(false));
+    if (cashierOnly) q.where((t) => t.cashierUserId.equals(actorUserId!));
+    final rows = await q.get();
     var due = 0, paid = 0, bal = 0;
     for (final r in rows) {
       if (r.isDeleted) continue;
@@ -163,7 +174,10 @@ class FinanceRepository {
 
   Future<List<CashClosure>> listClosures({String? actorUserId, int limit = 50}) async {
     await _require(actorUserId, 'finance.read');
-    final q = db.select(db.cashClosures)..where((t) => t.isDeleted.equals(false))..orderBy([(t) => OrderingTerm.desc(t.closureDate)])..limit(limit);
+    final cashierOnly = await _isCashierScope(actorUserId);
+    final q = db.select(db.cashClosures)..where((t) => t.isDeleted.equals(false));
+    if (cashierOnly) q.where((t) => t.cashierUserId.equals(actorUserId!));
+    q..orderBy([(t) => OrderingTerm.desc(t.closureDate)])..limit(limit);
     return q.get();
   }
 

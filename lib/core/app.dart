@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fianarana/core/database/database_provider.dart';
 import 'package:fianarana/core/routing/app_router.dart';
 import 'package:fianarana/core/services/backup_service.dart';
+import 'package:fianarana/core/settings/ui_settings.dart';
 import 'package:fianarana/core/theme/app_theme.dart';
 import 'package:fianarana/core/workspace/tab_workspace.dart';
 import 'package:fianarana/features/auth/application/auth_controller.dart';
@@ -75,6 +76,7 @@ class _FianaranaAppState extends ConsumerState<FianaranaApp> with WidgetsBinding
   Widget build(BuildContext context) {
     final router = ref.watch(appRouterProvider);
     final auth = ref.watch(authControllerProvider);
+    final uiScale = ref.watch(uiScaleProvider).valueOrNull ?? kDefaultUiScale;
 
     return Listener(
       onPointerDown: (_) => _resetInactivity(),
@@ -88,11 +90,18 @@ class _FianaranaAppState extends ConsumerState<FianaranaApp> with WidgetsBinding
         themeMode: ThemeMode.system,
         routerConfig: router,
         builder: (context, child) {
+          final mq = MediaQuery.of(context);
+          child = MediaQuery(
+            data: mq.copyWith(textScaler: TextScaler.linear(uiScale)),
+            child: child ?? const SizedBox.shrink(),
+          );
           return Shortcuts(
             shortcuts: <LogicalKeySet, Intent>{
               LogicalKeySet(LogicalKeyboardKey.control, LogicalKeyboardKey.keyL): const _LockIntent(),
               LogicalKeySet(LogicalKeyboardKey.control, LogicalKeyboardKey.keyW): const _CloseTabIntent(),
               LogicalKeySet(LogicalKeyboardKey.control, LogicalKeyboardKey.keyF): const _SearchIntent(),
+              LogicalKeySet(LogicalKeyboardKey.control, LogicalKeyboardKey.keyN): const _NewIntent(),
+              LogicalKeySet(LogicalKeyboardKey.control, LogicalKeyboardKey.keyS): const _SaveIntent(),
             },
             child: Actions(
               actions: <Type, Action<Intent>>{
@@ -112,6 +121,37 @@ class _FianaranaAppState extends ConsumerState<FianaranaApp> with WidgetsBinding
                 _SearchIntent: CallbackAction<_SearchIntent>(onInvoke: (_) {
                   final ctx = router.routerDelegate.navigatorKey.currentContext;
                   if (ctx != null) showGlobalSearch(ctx);
+                  return null;
+                }),
+                _NewIntent: CallbackAction<_NewIntent>(onInvoke: (_) {
+                  final loc = router.routeInformationProvider.value.uri.path;
+                  if (loc.startsWith('/students')) {
+                    router.go('/students/new');
+                  } else if (loc.startsWith('/staff')) {
+                    // écran personnel propose un bouton "Nouveau"
+                    ScaffoldMessenger.maybeOf(router.routerDelegate.navigatorKey.currentContext!)?.showSnackBar(
+                      const SnackBar(content: Text('Utilisez le bouton "Nouveau" dans le module Personnel.')),
+                    );
+                  } else if (loc.startsWith('/finance')) {
+                    ScaffoldMessenger.maybeOf(router.routerDelegate.navigatorKey.currentContext!)?.showSnackBar(
+                      const SnackBar(content: Text('Utilisez "Encaissement" pour créer un nouvel enregistrement financier.')),
+                    );
+                  } else if (loc.startsWith('/timetable')) {
+                    ScaffoldMessenger.maybeOf(router.routerDelegate.navigatorKey.currentContext!)?.showSnackBar(
+                      const SnackBar(content: Text('Utilisez "Nouvelle séance" dans l\'emploi du temps.')),
+                    );
+                  } else {
+                    ScaffoldMessenger.maybeOf(router.routerDelegate.navigatorKey.currentContext!)?.showSnackBar(
+                      const SnackBar(content: Text('Ctrl+N : aucun nouvel enregistrement disponible pour ce module.')),
+                    );
+                  }
+                  return null;
+                }),
+                _SaveIntent: CallbackAction<_SaveIntent>(onInvoke: (_) {
+                  // Raccourci global : les formulaires gèrent la sauvegarde via leurs actions/boutons.
+                  ScaffoldMessenger.maybeOf(router.routerDelegate.navigatorKey.currentContext!)?.showSnackBar(
+                    const SnackBar(content: Text('Ctrl+S : utilisez le bouton Enregistrer du formulaire actif.')),
+                  );
                   return null;
                 }),
               },
@@ -139,6 +179,8 @@ class _FianaranaAppState extends ConsumerState<FianaranaApp> with WidgetsBinding
 class _LockIntent extends Intent { const _LockIntent(); }
 class _CloseTabIntent extends Intent { const _CloseTabIntent(); }
 class _SearchIntent extends Intent { const _SearchIntent(); }
+class _NewIntent extends Intent { const _NewIntent(); }
+class _SaveIntent extends Intent { const _SaveIntent(); }
 
 class _LockOverlay extends StatefulWidget {
   final Future<bool> Function(String password) onUnlockPassword;
