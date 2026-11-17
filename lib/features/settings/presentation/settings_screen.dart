@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:fianarana/core/database/database_provider.dart';
+import 'package:fianarana/core/database/seed_importer.dart';
 import 'package:fianarana/core/services/backup_service.dart';
 import 'package:fianarana/core/services/recycle_bin_service.dart';
 import 'package:fianarana/features/auth/application/auth_controller.dart';
@@ -28,6 +29,36 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       setState(() => _msg = 'Erreur sauvegarde: $e');
     } finally {
       setState(() => _busy = false);
+    }
+  }
+
+  Future<void> _reimportSeeds() async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Réimporter les données de test ?'),
+        content: const Text(
+            'Cette action met à jour les données de démonstration (élèves, personnel, affectations, emploi du temps, calendrier). '
+            'Les enregistrements existants portant les mêmes UUID seront écrasés. Les saisies de production ne sont pas supprimées.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Annuler')),
+          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Réimporter')),
+        ],
+      ),
+    );
+    if (ok != true) return;
+    setState(() {
+      _busy = true;
+      _msg = null;
+    });
+    try {
+      final db = ref.read(appDatabaseProvider);
+      final result = await SeedImporter(db).importAll();
+      setState(() => _msg = 'Import terminé: $result');
+    } catch (e) {
+      setState(() => _msg = 'Erreur import: $e');
+    } finally {
+      if (mounted) setState(() => _busy = false);
     }
   }
 
@@ -66,6 +97,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             title: const Text('Sauvegarde locale'),
             subtitle: const Text('Créer une archive .zip (base SQLite + médias). Restauration contrôlée disponible via service.'),
             trailing: FilledButton(onPressed: _busy ? null : _backup, child: const Text('Sauvegarder')),
+          )),
+          Card(child: ListTile(
+            leading: const Icon(Icons.dataset_outlined),
+            title: const Text('Données de test'),
+            subtitle: const Text('Réimporter le jeu de démonstration: élèves, personnel, affectations, emploi du temps complet, calendrier et éphéméride.'),
+            trailing: FilledButton(onPressed: _busy ? null : _reimportSeeds, child: const Text('Réimporter')),
           )),
           Card(child: ListTile(
             leading: const Icon(Icons.delete_outline),

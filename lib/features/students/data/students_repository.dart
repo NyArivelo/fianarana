@@ -14,6 +14,7 @@ class StudentListItem {
   final String? classLabel;
   final String? classId;
   final String status;
+  final int balanceMga;
 
   StudentListItem({
     required this.id,
@@ -24,9 +25,31 @@ class StudentListItem {
     required this.classLabel,
     required this.classId,
     required this.status,
+    this.balanceMga = 0,
   });
 
   String get fullName => '$lastName $firstName';
+}
+
+/// Synthèse d'un dossier élève pour la fiche maître-détail.
+class StudentOverview {
+  final Student student;
+  final Enrollment? enrollment;
+  final String? classLabel;
+  final int balanceMga;
+  final List<Guardian> guardians;
+  final int activeLoans;
+  final int overdueLoans;
+
+  const StudentOverview({
+    required this.student,
+    required this.enrollment,
+    required this.classLabel,
+    required this.balanceMga,
+    required this.guardians,
+    required this.activeLoans,
+    required this.overdueLoans,
+  });
 }
 
 class UnauthorizedActionException implements Exception {
@@ -51,7 +74,13 @@ class StudentsRepository {
     }
   }
 
-  Future<List<StudentListItem>> list({String? actorUserId, String? query, String? classId, int limit = 200}) async {
+  Future<List<StudentListItem>> list({
+    String? actorUserId,
+    String? query,
+    String? classId,
+    String? status,
+    int limit = 400,
+  }) async {
     await _require(actorUserId, 'students.read');
     final s = db.students;
     final e = db.enrollments;
@@ -64,6 +93,9 @@ class StudentsRepository {
     join.where(s.isDeleted.equals(false));
     if (classId != null && classId.isNotEmpty) {
       join.where(e.classId.equals(classId));
+    }
+    if (status != null && status.isNotEmpty) {
+      join.where(e.status.equals(status) | s.status.equals(status));
     }
     if (query != null && query.trim().isNotEmpty) {
       final q = '%${query.trim()}%';
@@ -92,7 +124,76 @@ class StudentsRepository {
         status: enr?.status ?? st.status,
       ));
     }
+    await _attachBalances(items);
     return items;
+  }
+
+  Future<void> _attachBalances(List<StudentListItem> items) async {
+    if (items.isEmpty) return;
+    final ids = items.map((e) => e.id).toList();
+    final rows = await (db.select(db.payments)
+          ..where((p) => p.studentId.isIn(ids) & p.isDeleted.equals(false)))
+        .get();
+    final balances = <String, int>{};
+    for (final p in rows) {
+      balances[p.studentId] = (balances[p.studentId] ?? 0) + p.amountDueMga - p.amountPaidMga;
+    }
+    for (var i = 0; i < items.length; i++) {
+      final item = items[i];
+      final balance = balances[item.id];
+      if (balance != null) {
+        items[i] = StudentListItem(
+          id: item.id,
+          matricule: item.matricule,
+          lastName: item.lastName,
+          firstName: item.firstName,
+          sex: item.sex,
+          classLabel: item.classLabel,
+          classId: item.classId,
+          status: item.status,
+          balanceMga: balance,
+        );
+      }
+    }
+  }
+
+  /// Fiche synthétique (classe, solde, responsables, prêts bibliothèque).
+  Future<StudentOverview> overview(String studentId, {String? actorUserId}) async {
+    final student = await getById(studentId, actorUserId: actorUserId);
+    if (student == null) throw StateError('Élève introuvable: $studentId');
+    final enrollment = await (db.select(db.enrollments)
+          ..where((t) => t.studentId.equals(studentId) & t.isDeleted.equals(false))
+          ..orderBy([(t) => OrderingTerm.desc(t.enrollmentDate)])
+          ..limit(1))
+        .getSingleOrNull();
+    String? classLabel;
+    final enrollmentClassId = enrollment?.classId;
+    if (enrollmentClassId != null) {
+      final cl = await (db.select(db.classes)..where((t) => t.id.equals(enrollmentClassId))).getSingleOrNull();
+      classLabel = cl?.label;
+    }
+    final payments = await (db.select(db.payments)
+          ..where((p) => p.studentId.equals(studentId) & p.isDeleted.equals(false)))
+        .get();
+    final balance = payments.fold<int>(0, (sum, p) => sum + p.amountDueMga - p.amountPaidMga);
+    final guardians = await guardiansOf(studentId, actorUserId: actorUserId);
+    final loans = await (db.select(db.libraryLoans)
+          ..where((l) =>
+              l.borrowerStudentId.equals(studentId) &
+              l.isDeleted.equals(false) &
+              l.returnDate.isNull()))
+        .get();
+    final now = DateTime.now();
+    final overdue = loans.where((l) => l.dueDate != null && l.dueDate!.isBefore(now)).length;
+    return StudentOverview(
+      student: student,
+      enrollment: enrollment,
+      classLabel: classLabel,
+      balanceMga: balance,
+      guardians: guardians,
+      activeLoans: loans.length,
+      overdueLoans: overdue,
+    );
   }
 
   Future<Student?> getById(String id, {String? actorUserId}) async {

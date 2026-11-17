@@ -61,14 +61,16 @@ class SeedImporter {
       counts['utilisateurs_roles'] = await _importUsersRoles();
       counts['classes_matieres'] = await _importClassesSubjects();
       counts['personnel'] = await _importStaff();
+      counts['affectations_enseignants'] = await _importTeacherAssignments();
       counts['responsables'] = await _importGuardians();
       counts['eleves_inscriptions'] = await _importStudents();
       counts['evaluations'] = await _importEvaluations();
       counts['presences_discipline'] = await _importAttendance();
       counts['finances'] = await _importFinance();
       counts['echeanciers'] = await _importPaymentSchedules();
-      counts['emploi_du_temps'] = await _importTimetable();
       counts['bibliotheque_locaux'] = await _importLibraryFacilities();
+      counts['emploi_du_temps'] = await _importTimetable();
+      counts['calendrier_scolaire'] = await _importCalendarEvents();
       counts['audit'] = await _importAudit();
     });
     counts['conseils_classe'] = await _importCouncils();
@@ -246,6 +248,29 @@ class SeedImporter {
         contractType: Value(_s(r, ['Type_Contrat'])),
         phone: Value(_s(r, ['Téléphone', 'Telephone'])),
         status: Value(_s(r, ['Statut']).isEmpty ? 'Actif' : _s(r, ['Statut'])),
+      ));
+      n++;
+    }
+    return n;
+  }
+
+  Future<int> _importTeacherAssignments() async {
+    final rows = await _load('assets/seed/affectations_enseignants.json');
+    final years = await db.select(db.schoolYears).get();
+    final activeYearId = years.isNotEmpty ? years.first.id : null;
+    var n = 0;
+    for (final r in rows) {
+      final id = _s(r, ['UUID_Affectation', 'UUID']);
+      final staffId = _s(r, ['UUID_Personnel']);
+      final classId = _s(r, ['UUID_Classe']);
+      if (id.isEmpty || staffId.isEmpty || classId.isEmpty) continue;
+      final subjectId = _s(r, ['UUID_Matiere']);
+      await db.into(db.teacherAssignments).insertOnConflictUpdate(TeacherAssignmentsCompanion.insert(
+        id: Value(id),
+        staffId: staffId,
+        classId: classId,
+        subjectId: Value(subjectId.isEmpty ? null : subjectId),
+        schoolYearId: Value(activeYearId),
       ));
       n++;
     }
@@ -536,6 +561,40 @@ class SeedImporter {
     } catch (_) {
       return 0;
     }
+  }
+
+  Future<int> _importCalendarEvents() async {
+    final rows = await _load('assets/seed/calendrier_scolaire.json');
+    final years = await db.select(db.schoolYears).get();
+    final activeYearId = years.isNotEmpty ? years.first.id : null;
+    var n = 0;
+    for (final r in rows) {
+      final id = _s(r, ['UUID_Evenement', 'UUID']);
+      if (id.isEmpty) continue;
+      final classId = _s(r, ['UUID_Classe']);
+      final start = _dt(r, ['Date_Debut']);
+      if (start == null) continue;
+      await db.into(db.calendarEvents).insertOnConflictUpdate(CalendarEventsCompanion.insert(
+        id: Value(id),
+        schoolYearId: Value(activeYearId),
+        classId: Value(classId.isEmpty ? null : classId),
+        title: _s(r, ['Titre']),
+        category: Value(_s(r, ['Categorie']).isEmpty ? 'Événement' : _s(r, ['Categorie'])),
+        startDate: start,
+        endDate: Value(_dt(r, ['Date_Fin'])),
+        allDay: Value(r['Journee_Entiere'] is bool ? r['Journee_Entiere'] as bool : _b(r, ['Journee_Entiere'])),
+        startTime: Value(_s(r, ['Heure_Debut']).isEmpty ? null : _s(r, ['Heure_Debut'])),
+        endTime: Value(_s(r, ['Heure_Fin']).isEmpty ? null : _s(r, ['Heure_Fin'])),
+        location: Value(_s(r, ['Lieu']).isEmpty ? null : _s(r, ['Lieu'])),
+        description: Value(_s(r, ['Description']).isEmpty ? null : _s(r, ['Description'])),
+        colorHex: Value(_s(r, ['Couleur']).isEmpty ? null : _s(r, ['Couleur'])),
+        isEphemeris: Value(r['Est_Ephemeride'] is bool ? r['Est_Ephemeride'] as bool : _b(r, ['Est_Ephemeride'])),
+        visibility: Value(_s(r, ['Visibilite']).isEmpty ? 'Établissement' : _s(r, ['Visibilite'])),
+        status: Value(_s(r, ['Statut']).isEmpty ? 'Publié' : _s(r, ['Statut'])),
+      ));
+      n++;
+    }
+    return n;
   }
 
   Future<int> _importTimetable() async {

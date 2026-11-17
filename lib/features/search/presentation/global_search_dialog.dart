@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import 'package:fianarana/features/auth/application/auth_controller.dart';
 import 'package:fianarana/features/students/application/students_providers.dart';
 
 class GlobalSearchDialog extends ConsumerStatefulWidget {
@@ -16,7 +15,7 @@ class _GlobalSearchDialogState extends ConsumerState<GlobalSearchDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final results = _q.trim().isEmpty ? const AsyncValue.data(<dynamic>[]) : ref.watch(studentsListProvider((query: _q, classId: null)));
+    final results = _q.trim().isEmpty ? const AsyncValue.data(<dynamic>[]) : ref.watch(studentsListProvider((query: _q, classId: null, status: null)));
     return AlertDialog(
       title: const Text('Recherche rapide (Ctrl+F)'),
       content: SizedBox(

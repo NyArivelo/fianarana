@@ -13,9 +13,14 @@ final classesProvider = FutureProvider<List<ClassesData>>((ref) {
   return ref.watch(studentsRepositoryProvider).allClasses();
 });
 
-final studentsListProvider = FutureProvider.family<List<StudentListItem>, ({String? query, String? classId})>((ref, args) {
+final studentsListProvider = FutureProvider.family<List<StudentListItem>, ({String? query, String? classId, String? status})>((ref, args) {
   final userId = ref.watch(authControllerProvider).userId;
-  return ref.watch(studentsRepositoryProvider).list(actorUserId: userId, query: args.query, classId: args.classId);
+  return ref.watch(studentsRepositoryProvider).list(actorUserId: userId, query: args.query, classId: args.classId, status: args.status);
+});
+
+final studentOverviewProvider = FutureProvider.family<StudentOverview, String>((ref, id) {
+  final userId = ref.watch(authControllerProvider).userId;
+  return ref.watch(studentsRepositoryProvider).overview(id, actorUserId: userId);
 });
 
 final studentDetailProvider = FutureProvider.family((ref, String id) {

@@ -1,0 +1,942 @@
+[
+  {
+    "UUID_Affectation": "413de939-0610-57bf-9fee-f0e574dd04a0",
+    "UUID_Personnel": "1e757ef6-049c-4262-8263-ff75ffd8c696",
+    "Matricule_RH": "ENS-2026-PC-01",
+    "Enseignant": "RAZAFINDRAKOTO Hanta",
+    "UUID_Classe": "a1dd1b1f-90de-4e34-9131-1cfb1b824d23",
+    "Classe": "3ème 1",
+    "UUID_Matiere": "d82e60d0-49d6-40fa-80ab-a59d06a9e9f8",
+    "Matiere": "Physique-Chimie"
+  },
+  {
+    "UUID_Affectation": "220df745-d854-54bd-89dd-18a0de44df26",
+    "UUID_Personnel": "1e757ef6-049c-4262-8263-ff75ffd8c696",
+    "Matricule_RH": "ENS-2026-PC-01",
+    "Enseignant": "RAZAFINDRAKOTO Hanta",
+    "UUID_Classe": "52ec63f8-4f31-44c5-9738-1e477af2285d",
+    "Classe": "3ème 2",
+    "UUID_Matiere": "d82e60d0-49d6-40fa-80ab-a59d06a9e9f8",
+    "Matiere": "Physique-Chimie"
+  },
+  {
+    "UUID_Affectation": "2c79aa2b-b438-591e-957d-496d3caea77d",
+    "UUID_Personnel": "1e757ef6-049c-4262-8263-ff75ffd8c696",
+    "Matricule_RH": "ENS-2026-PC-01",
+    "Enseignant": "RAZAFINDRAKOTO Hanta",
+    "UUID_Classe": "658732ac-1077-4080-ac55-36ed2638fa8b",
+    "Classe": "2nde 1",
+    "UUID_Matiere": "d82e60d0-49d6-40fa-80ab-a59d06a9e9f8",
+    "Matiere": "Physique-Chimie"
+  },
+  {
+    "UUID_Affectation": "7ac05080-02bb-5c1c-b2fa-7f1bf12e9874",
+    "UUID_Personnel": "1e757ef6-049c-4262-8263-ff75ffd8c696",
+    "Matricule_RH": "ENS-2026-PC-01",
+    "Enseignant": "RAZAFINDRAKOTO Hanta",
+    "UUID_Classe": "3a30ad2c-62f1-4490-8a8b-47473e972a74",
+    "Classe": "2nde 2",
+    "UUID_Matiere": "d82e60d0-49d6-40fa-80ab-a59d06a9e9f8",
+    "Matiere": "Physique-Chimie"
+  },
+  {
+    "UUID_Affectation": "b3b9d455-9c2c-5ef0-9a2a-508389069f4d",
+    "UUID_Personnel": "1e757ef6-049c-4262-8263-ff75ffd8c696",
+    "Matricule_RH": "ENS-2026-PC-01",
+    "Enseignant": "RAZAFINDRAKOTO Hanta",
+    "UUID_Classe": "35ef1e2f-6ed8-48aa-a85c-1feac4b2a7d0",
+    "Classe": "2nde 3",
+    "UUID_Matiere": "d82e60d0-49d6-40fa-80ab-a59d06a9e9f8",
+    "Matiere": "Physique-Chimie"
+  },
+  {
+    "UUID_Affectation": "83b8ed4c-bcf2-5668-aa5a-68fd14646af2",
+    "UUID_Personnel": "b09acb82-4b97-435d-80cc-19c8b1fd7e62",
+    "Matricule_RH": "ENS-2026-PC-02",
+    "Enseignant": "ANDRIANASOLO Voahangy",
+    "UUID_Classe": "37d2a666-4748-41c7-bebe-311d467eee27",
+    "Classe": "1ère L1",
+    "UUID_Matiere": "d82e60d0-49d6-40fa-80ab-a59d06a9e9f8",
+    "Matiere": "Physique-Chimie"
+  },
+  {
+    "UUID_Affectation": "462bbce9-a904-5ee3-aa9d-a1a1df99cb29",
+    "UUID_Personnel": "b09acb82-4b97-435d-80cc-19c8b1fd7e62",
+    "Matricule_RH": "ENS-2026-PC-02",
+    "Enseignant": "ANDRIANASOLO Voahangy",
+    "UUID_Classe": "cd554ff9-361a-4821-afdf-2de3b5de440d",
+    "Classe": "1ère L2",
+    "UUID_Matiere": "d82e60d0-49d6-40fa-80ab-a59d06a9e9f8",
+    "Matiere": "Physique-Chimie"
+  },
+  {
+    "UUID_Affectation": "a1551daf-99a5-576c-b562-695c31d81f43",
+    "UUID_Personnel": "b09acb82-4b97-435d-80cc-19c8b1fd7e62",
+    "Matricule_RH": "ENS-2026-PC-02",
+    "Enseignant": "ANDRIANASOLO Voahangy",
+    "UUID_Classe": "8ad98869-d151-43ef-8c22-8e90050775df",
+    "Classe": "1ère S",
+    "UUID_Matiere": "d82e60d0-49d6-40fa-80ab-a59d06a9e9f8",
+    "Matiere": "Physique-Chimie"
+  },
+  {
+    "UUID_Affectation": "4fdfdbac-04f8-542e-b373-48bb8857e039",
+    "UUID_Personnel": "b09acb82-4b97-435d-80cc-19c8b1fd7e62",
+    "Matricule_RH": "ENS-2026-PC-02",
+    "Enseignant": "ANDRIANASOLO Voahangy",
+    "UUID_Classe": "415152f6-2b96-46fe-9d13-9b13760b3f0f",
+    "Classe": "Terminale L",
+    "UUID_Matiere": "d82e60d0-49d6-40fa-80ab-a59d06a9e9f8",
+    "Matiere": "Physique-Chimie"
+  },
+  {
+    "UUID_Affectation": "59505110-6132-5148-a66e-89258a069c4b",
+    "UUID_Personnel": "b09acb82-4b97-435d-80cc-19c8b1fd7e62",
+    "Matricule_RH": "ENS-2026-PC-02",
+    "Enseignant": "ANDRIANASOLO Voahangy",
+    "UUID_Classe": "dc2f6b4c-e8a4-4870-b4ae-9fb75d938c47",
+    "Classe": "Terminale S1",
+    "UUID_Matiere": "d82e60d0-49d6-40fa-80ab-a59d06a9e9f8",
+    "Matiere": "Physique-Chimie"
+  },
+  {
+    "UUID_Affectation": "86d709f2-d73f-51da-b859-db24f6c6a953",
+    "UUID_Personnel": "b09acb82-4b97-435d-80cc-19c8b1fd7e62",
+    "Matricule_RH": "ENS-2026-PC-02",
+    "Enseignant": "ANDRIANASOLO Voahangy",
+    "UUID_Classe": "a590ac36-d02c-40ec-baf1-51ac90011e22",
+    "Classe": "Terminale S2",
+    "UUID_Matiere": "d82e60d0-49d6-40fa-80ab-a59d06a9e9f8",
+    "Matiere": "Physique-Chimie"
+  },
+  {
+    "UUID_Affectation": "1cf2c5af-49e0-529f-b7dd-817eb4272f84",
+    "UUID_Personnel": "87c0a455-5f43-4e30-9aa3-b8e3a8b7cf50",
+    "Matricule_RH": "ENS-2026-MA-01",
+    "Enseignant": "RASOANIRINA Lalao",
+    "UUID_Classe": "a1dd1b1f-90de-4e34-9131-1cfb1b824d23",
+    "Classe": "3ème 1",
+    "UUID_Matiere": "de2d117d-943f-4ea3-bb5e-a61c1eccdace",
+    "Matiere": "Mathématiques"
+  },
+  {
+    "UUID_Affectation": "72d96773-f85f-5789-bc6b-e03ad65293e7",
+    "UUID_Personnel": "87c0a455-5f43-4e30-9aa3-b8e3a8b7cf50",
+    "Matricule_RH": "ENS-2026-MA-01",
+    "Enseignant": "RASOANIRINA Lalao",
+    "UUID_Classe": "52ec63f8-4f31-44c5-9738-1e477af2285d",
+    "Classe": "3ème 2",
+    "UUID_Matiere": "de2d117d-943f-4ea3-bb5e-a61c1eccdace",
+    "Matiere": "Mathématiques"
+  },
+  {
+    "UUID_Affectation": "fd3c9cbb-a022-5ff2-88ca-4a86d956117f",
+    "UUID_Personnel": "87c0a455-5f43-4e30-9aa3-b8e3a8b7cf50",
+    "Matricule_RH": "ENS-2026-MA-01",
+    "Enseignant": "RASOANIRINA Lalao",
+    "UUID_Classe": "658732ac-1077-4080-ac55-36ed2638fa8b",
+    "Classe": "2nde 1",
+    "UUID_Matiere": "de2d117d-943f-4ea3-bb5e-a61c1eccdace",
+    "Matiere": "Mathématiques"
+  },
+  {
+    "UUID_Affectation": "00252ee2-b9ea-5fe0-bc26-b4de4f23c2e8",
+    "UUID_Personnel": "87c0a455-5f43-4e30-9aa3-b8e3a8b7cf50",
+    "Matricule_RH": "ENS-2026-MA-01",
+    "Enseignant": "RASOANIRINA Lalao",
+    "UUID_Classe": "3a30ad2c-62f1-4490-8a8b-47473e972a74",
+    "Classe": "2nde 2",
+    "UUID_Matiere": "de2d117d-943f-4ea3-bb5e-a61c1eccdace",
+    "Matiere": "Mathématiques"
+  },
+  {
+    "UUID_Affectation": "d83c5357-de84-5521-8a89-d81406439280",
+    "UUID_Personnel": "87c0a455-5f43-4e30-9aa3-b8e3a8b7cf50",
+    "Matricule_RH": "ENS-2026-MA-01",
+    "Enseignant": "RASOANIRINA Lalao",
+    "UUID_Classe": "35ef1e2f-6ed8-48aa-a85c-1feac4b2a7d0",
+    "Classe": "2nde 3",
+    "UUID_Matiere": "de2d117d-943f-4ea3-bb5e-a61c1eccdace",
+    "Matiere": "Mathématiques"
+  },
+  {
+    "UUID_Affectation": "46ec714d-5feb-5246-906c-a94015570212",
+    "UUID_Personnel": "f7536ba9-eacc-473f-8d11-ccc96b5f73a5",
+    "Matricule_RH": "ENS-2026-MA-02",
+    "Enseignant": "RABEMANANJARA Claire",
+    "UUID_Classe": "37d2a666-4748-41c7-bebe-311d467eee27",
+    "Classe": "1ère L1",
+    "UUID_Matiere": "de2d117d-943f-4ea3-bb5e-a61c1eccdace",
+    "Matiere": "Mathématiques"
+  },
+  {
+    "UUID_Affectation": "dd4e19a7-487a-5442-9c82-96557cf3e9f6",
+    "UUID_Personnel": "f7536ba9-eacc-473f-8d11-ccc96b5f73a5",
+    "Matricule_RH": "ENS-2026-MA-02",
+    "Enseignant": "RABEMANANJARA Claire",
+    "UUID_Classe": "cd554ff9-361a-4821-afdf-2de3b5de440d",
+    "Classe": "1ère L2",
+    "UUID_Matiere": "de2d117d-943f-4ea3-bb5e-a61c1eccdace",
+    "Matiere": "Mathématiques"
+  },
+  {
+    "UUID_Affectation": "cae19bc6-6f31-5e8f-bc96-150d43cd154c",
+    "UUID_Personnel": "f7536ba9-eacc-473f-8d11-ccc96b5f73a5",
+    "Matricule_RH": "ENS-2026-MA-02",
+    "Enseignant": "RABEMANANJARA Claire",
+    "UUID_Classe": "8ad98869-d151-43ef-8c22-8e90050775df",
+    "Classe": "1ère S",
+    "UUID_Matiere": "de2d117d-943f-4ea3-bb5e-a61c1eccdace",
+    "Matiere": "Mathématiques"
+  },
+  {
+    "UUID_Affectation": "13499a03-5faa-5730-b913-23653720bcc0",
+    "UUID_Personnel": "f7536ba9-eacc-473f-8d11-ccc96b5f73a5",
+    "Matricule_RH": "ENS-2026-MA-02",
+    "Enseignant": "RABEMANANJARA Claire",
+    "UUID_Classe": "415152f6-2b96-46fe-9d13-9b13760b3f0f",
+    "Classe": "Terminale L",
+    "UUID_Matiere": "de2d117d-943f-4ea3-bb5e-a61c1eccdace",
+    "Matiere": "Mathématiques"
+  },
+  {
+    "UUID_Affectation": "39e6d47f-2edd-5830-b7c1-ca476f79cddc",
+    "UUID_Personnel": "f7536ba9-eacc-473f-8d11-ccc96b5f73a5",
+    "Matricule_RH": "ENS-2026-MA-02",
+    "Enseignant": "RABEMANANJARA Claire",
+    "UUID_Classe": "dc2f6b4c-e8a4-4870-b4ae-9fb75d938c47",
+    "Classe": "Terminale S1",
+    "UUID_Matiere": "de2d117d-943f-4ea3-bb5e-a61c1eccdace",
+    "Matiere": "Mathématiques"
+  },
+  {
+    "UUID_Affectation": "d82ec463-569a-543f-a0b6-c77d1df1f997",
+    "UUID_Personnel": "f7536ba9-eacc-473f-8d11-ccc96b5f73a5",
+    "Matricule_RH": "ENS-2026-MA-02",
+    "Enseignant": "RABEMANANJARA Claire",
+    "UUID_Classe": "a590ac36-d02c-40ec-baf1-51ac90011e22",
+    "Classe": "Terminale S2",
+    "UUID_Matiere": "de2d117d-943f-4ea3-bb5e-a61c1eccdace",
+    "Matiere": "Mathématiques"
+  },
+  {
+    "UUID_Affectation": "96786451-2a70-559a-940d-e80fefa12658",
+    "UUID_Personnel": "8ab76a00-210a-4f28-990b-ddae88bfc897",
+    "Matricule_RH": "ENS-2026-SV-01",
+    "Enseignant": "RANIVOARISOA Sahondra",
+    "UUID_Classe": "a1dd1b1f-90de-4e34-9131-1cfb1b824d23",
+    "Classe": "3ème 1",
+    "UUID_Matiere": "cc51a4d1-e972-4686-bd59-a332f8f84fb5",
+    "Matiere": "Sciences de la Vie et de la Terre"
+  },
+  {
+    "UUID_Affectation": "22114657-004a-58ed-a680-1e59e76c5209",
+    "UUID_Personnel": "8ab76a00-210a-4f28-990b-ddae88bfc897",
+    "Matricule_RH": "ENS-2026-SV-01",
+    "Enseignant": "RANIVOARISOA Sahondra",
+    "UUID_Classe": "52ec63f8-4f31-44c5-9738-1e477af2285d",
+    "Classe": "3ème 2",
+    "UUID_Matiere": "cc51a4d1-e972-4686-bd59-a332f8f84fb5",
+    "Matiere": "Sciences de la Vie et de la Terre"
+  },
+  {
+    "UUID_Affectation": "b1c6f1a4-e9ef-55a2-9871-f94635bd1ec8",
+    "UUID_Personnel": "8ab76a00-210a-4f28-990b-ddae88bfc897",
+    "Matricule_RH": "ENS-2026-SV-01",
+    "Enseignant": "RANIVOARISOA Sahondra",
+    "UUID_Classe": "658732ac-1077-4080-ac55-36ed2638fa8b",
+    "Classe": "2nde 1",
+    "UUID_Matiere": "cc51a4d1-e972-4686-bd59-a332f8f84fb5",
+    "Matiere": "Sciences de la Vie et de la Terre"
+  },
+  {
+    "UUID_Affectation": "35b919e4-9f7c-5e24-bba8-d3f86250c223",
+    "UUID_Personnel": "8ab76a00-210a-4f28-990b-ddae88bfc897",
+    "Matricule_RH": "ENS-2026-SV-01",
+    "Enseignant": "RANIVOARISOA Sahondra",
+    "UUID_Classe": "3a30ad2c-62f1-4490-8a8b-47473e972a74",
+    "Classe": "2nde 2",
+    "UUID_Matiere": "cc51a4d1-e972-4686-bd59-a332f8f84fb5",
+    "Matiere": "Sciences de la Vie et de la Terre"
+  },
+  {
+    "UUID_Affectation": "999db4e2-7ea1-5578-a644-e12d948d64b9",
+    "UUID_Personnel": "ba5367e2-dec6-40f0-ad34-08d83c747176",
+    "Matricule_RH": "ENS-2026-SV-02",
+    "Enseignant": "RAKOTONDRABE Nivo",
+    "UUID_Classe": "35ef1e2f-6ed8-48aa-a85c-1feac4b2a7d0",
+    "Classe": "2nde 3",
+    "UUID_Matiere": "cc51a4d1-e972-4686-bd59-a332f8f84fb5",
+    "Matiere": "Sciences de la Vie et de la Terre"
+  },
+  {
+    "UUID_Affectation": "c16056dd-351a-56f8-bb7a-9076ef84fc05",
+    "UUID_Personnel": "ba5367e2-dec6-40f0-ad34-08d83c747176",
+    "Matricule_RH": "ENS-2026-SV-02",
+    "Enseignant": "RAKOTONDRABE Nivo",
+    "UUID_Classe": "37d2a666-4748-41c7-bebe-311d467eee27",
+    "Classe": "1ère L1",
+    "UUID_Matiere": "cc51a4d1-e972-4686-bd59-a332f8f84fb5",
+    "Matiere": "Sciences de la Vie et de la Terre"
+  },
+  {
+    "UUID_Affectation": "7cd6c91a-984d-5f1d-b881-9b3c79623d6e",
+    "UUID_Personnel": "ba5367e2-dec6-40f0-ad34-08d83c747176",
+    "Matricule_RH": "ENS-2026-SV-02",
+    "Enseignant": "RAKOTONDRABE Nivo",
+    "UUID_Classe": "cd554ff9-361a-4821-afdf-2de3b5de440d",
+    "Classe": "1ère L2",
+    "UUID_Matiere": "cc51a4d1-e972-4686-bd59-a332f8f84fb5",
+    "Matiere": "Sciences de la Vie et de la Terre"
+  },
+  {
+    "UUID_Affectation": "245be75c-86be-575e-a29a-df48bfc3f29d",
+    "UUID_Personnel": "ba5367e2-dec6-40f0-ad34-08d83c747176",
+    "Matricule_RH": "ENS-2026-SV-02",
+    "Enseignant": "RAKOTONDRABE Nivo",
+    "UUID_Classe": "8ad98869-d151-43ef-8c22-8e90050775df",
+    "Classe": "1ère S",
+    "UUID_Matiere": "cc51a4d1-e972-4686-bd59-a332f8f84fb5",
+    "Matiere": "Sciences de la Vie et de la Terre"
+  },
+  {
+    "UUID_Affectation": "3cecefc0-708b-5449-833a-e2610dbd4c51",
+    "UUID_Personnel": "f87d1518-e2fd-446a-91c3-abdbd8253795",
+    "Matricule_RH": "ENS-2026-SV-03",
+    "Enseignant": "RANDRIANARISOA Fanja",
+    "UUID_Classe": "415152f6-2b96-46fe-9d13-9b13760b3f0f",
+    "Classe": "Terminale L",
+    "UUID_Matiere": "cc51a4d1-e972-4686-bd59-a332f8f84fb5",
+    "Matiere": "Sciences de la Vie et de la Terre"
+  },
+  {
+    "UUID_Affectation": "5ac8ebe3-ef05-5443-b3ca-957f5c85f035",
+    "UUID_Personnel": "f87d1518-e2fd-446a-91c3-abdbd8253795",
+    "Matricule_RH": "ENS-2026-SV-03",
+    "Enseignant": "RANDRIANARISOA Fanja",
+    "UUID_Classe": "dc2f6b4c-e8a4-4870-b4ae-9fb75d938c47",
+    "Classe": "Terminale S1",
+    "UUID_Matiere": "cc51a4d1-e972-4686-bd59-a332f8f84fb5",
+    "Matiere": "Sciences de la Vie et de la Terre"
+  },
+  {
+    "UUID_Affectation": "b196ed88-a3c2-5bad-9a4c-a3a5cd90d778",
+    "UUID_Personnel": "f87d1518-e2fd-446a-91c3-abdbd8253795",
+    "Matricule_RH": "ENS-2026-SV-03",
+    "Enseignant": "RANDRIANARISOA Fanja",
+    "UUID_Classe": "a590ac36-d02c-40ec-baf1-51ac90011e22",
+    "Classe": "Terminale S2",
+    "UUID_Matiere": "cc51a4d1-e972-4686-bd59-a332f8f84fb5",
+    "Matiere": "Sciences de la Vie et de la Terre"
+  },
+  {
+    "UUID_Affectation": "897e6e12-f979-560d-beef-c081e0468912",
+    "UUID_Personnel": "3c8c8c72-3bf5-4e17-a1e8-7fddbf510822",
+    "Matricule_RH": "ENS-2026-FR-01",
+    "Enseignant": "RAMANANTSOA Bako",
+    "UUID_Classe": "a1dd1b1f-90de-4e34-9131-1cfb1b824d23",
+    "Classe": "3ème 1",
+    "UUID_Matiere": "83021903-d061-4ab5-9e3b-aa0b649e0bbd",
+    "Matiere": "Français"
+  },
+  {
+    "UUID_Affectation": "6c0d0ad8-54af-57f6-abe5-d48899a66886",
+    "UUID_Personnel": "3c8c8c72-3bf5-4e17-a1e8-7fddbf510822",
+    "Matricule_RH": "ENS-2026-FR-01",
+    "Enseignant": "RAMANANTSOA Bako",
+    "UUID_Classe": "52ec63f8-4f31-44c5-9738-1e477af2285d",
+    "Classe": "3ème 2",
+    "UUID_Matiere": "83021903-d061-4ab5-9e3b-aa0b649e0bbd",
+    "Matiere": "Français"
+  },
+  {
+    "UUID_Affectation": "a0ab19e1-046d-5170-96ff-a80e97295909",
+    "UUID_Personnel": "3c8c8c72-3bf5-4e17-a1e8-7fddbf510822",
+    "Matricule_RH": "ENS-2026-FR-01",
+    "Enseignant": "RAMANANTSOA Bako",
+    "UUID_Classe": "658732ac-1077-4080-ac55-36ed2638fa8b",
+    "Classe": "2nde 1",
+    "UUID_Matiere": "83021903-d061-4ab5-9e3b-aa0b649e0bbd",
+    "Matiere": "Français"
+  },
+  {
+    "UUID_Affectation": "c9c3fd0d-3ec0-5a0c-bf59-c035717eb37a",
+    "UUID_Personnel": "3c8c8c72-3bf5-4e17-a1e8-7fddbf510822",
+    "Matricule_RH": "ENS-2026-FR-01",
+    "Enseignant": "RAMANANTSOA Bako",
+    "UUID_Classe": "3a30ad2c-62f1-4490-8a8b-47473e972a74",
+    "Classe": "2nde 2",
+    "UUID_Matiere": "83021903-d061-4ab5-9e3b-aa0b649e0bbd",
+    "Matiere": "Français"
+  },
+  {
+    "UUID_Affectation": "79069136-f175-5fe7-ac2f-f8bf008d89bc",
+    "UUID_Personnel": "3c8c8c72-3bf5-4e17-a1e8-7fddbf510822",
+    "Matricule_RH": "ENS-2026-FR-01",
+    "Enseignant": "RAMANANTSOA Bako",
+    "UUID_Classe": "35ef1e2f-6ed8-48aa-a85c-1feac4b2a7d0",
+    "Classe": "2nde 3",
+    "UUID_Matiere": "83021903-d061-4ab5-9e3b-aa0b649e0bbd",
+    "Matiere": "Français"
+  },
+  {
+    "UUID_Affectation": "92000217-e345-5388-91fd-cd3b1620e59e",
+    "UUID_Personnel": "3d7ec56f-80ed-4382-bb68-baef104cd6d6",
+    "Matricule_RH": "ENS-2026-FR-02",
+    "Enseignant": "RASOLOFONIAINA Mialy",
+    "UUID_Classe": "37d2a666-4748-41c7-bebe-311d467eee27",
+    "Classe": "1ère L1",
+    "UUID_Matiere": "83021903-d061-4ab5-9e3b-aa0b649e0bbd",
+    "Matiere": "Français"
+  },
+  {
+    "UUID_Affectation": "eebedab6-f171-5bb0-b5c5-d9c219ee2e8e",
+    "UUID_Personnel": "3d7ec56f-80ed-4382-bb68-baef104cd6d6",
+    "Matricule_RH": "ENS-2026-FR-02",
+    "Enseignant": "RASOLOFONIAINA Mialy",
+    "UUID_Classe": "cd554ff9-361a-4821-afdf-2de3b5de440d",
+    "Classe": "1ère L2",
+    "UUID_Matiere": "83021903-d061-4ab5-9e3b-aa0b649e0bbd",
+    "Matiere": "Français"
+  },
+  {
+    "UUID_Affectation": "b1d6db77-6344-5d57-86c5-9ede884324ca",
+    "UUID_Personnel": "3d7ec56f-80ed-4382-bb68-baef104cd6d6",
+    "Matricule_RH": "ENS-2026-FR-02",
+    "Enseignant": "RASOLOFONIAINA Mialy",
+    "UUID_Classe": "8ad98869-d151-43ef-8c22-8e90050775df",
+    "Classe": "1ère S",
+    "UUID_Matiere": "83021903-d061-4ab5-9e3b-aa0b649e0bbd",
+    "Matiere": "Français"
+  },
+  {
+    "UUID_Affectation": "4ec17641-0063-513f-87de-09a9f26ae2db",
+    "UUID_Personnel": "3d7ec56f-80ed-4382-bb68-baef104cd6d6",
+    "Matricule_RH": "ENS-2026-FR-02",
+    "Enseignant": "RASOLOFONIAINA Mialy",
+    "UUID_Classe": "415152f6-2b96-46fe-9d13-9b13760b3f0f",
+    "Classe": "Terminale L",
+    "UUID_Matiere": "83021903-d061-4ab5-9e3b-aa0b649e0bbd",
+    "Matiere": "Français"
+  },
+  {
+    "UUID_Affectation": "41198bc7-a7f7-5715-9809-bb83cab33a4f",
+    "UUID_Personnel": "3d7ec56f-80ed-4382-bb68-baef104cd6d6",
+    "Matricule_RH": "ENS-2026-FR-02",
+    "Enseignant": "RASOLOFONIAINA Mialy",
+    "UUID_Classe": "dc2f6b4c-e8a4-4870-b4ae-9fb75d938c47",
+    "Classe": "Terminale S1",
+    "UUID_Matiere": "83021903-d061-4ab5-9e3b-aa0b649e0bbd",
+    "Matiere": "Français"
+  },
+  {
+    "UUID_Affectation": "a2364579-2574-5fe7-b056-991d6637280c",
+    "UUID_Personnel": "3d7ec56f-80ed-4382-bb68-baef104cd6d6",
+    "Matricule_RH": "ENS-2026-FR-02",
+    "Enseignant": "RASOLOFONIAINA Mialy",
+    "UUID_Classe": "a590ac36-d02c-40ec-baf1-51ac90011e22",
+    "Classe": "Terminale S2",
+    "UUID_Matiere": "83021903-d061-4ab5-9e3b-aa0b649e0bbd",
+    "Matiere": "Français"
+  },
+  {
+    "UUID_Affectation": "ecb70708-b6fd-5806-8a59-3c9bee0a540e",
+    "UUID_Personnel": "724e3491-0176-4969-856a-c8f480892ee9",
+    "Matricule_RH": "ENS-2026-MG-01",
+    "Enseignant": "ANDRIANTSOA Tiana",
+    "UUID_Classe": "a1dd1b1f-90de-4e34-9131-1cfb1b824d23",
+    "Classe": "3ème 1",
+    "UUID_Matiere": "ea663162-35f2-4827-a744-ee4b9ee1cd1e",
+    "Matiere": "Malagasy"
+  },
+  {
+    "UUID_Affectation": "19728378-cdc0-5110-a0c3-eefaa4ecc1ea",
+    "UUID_Personnel": "724e3491-0176-4969-856a-c8f480892ee9",
+    "Matricule_RH": "ENS-2026-MG-01",
+    "Enseignant": "ANDRIANTSOA Tiana",
+    "UUID_Classe": "52ec63f8-4f31-44c5-9738-1e477af2285d",
+    "Classe": "3ème 2",
+    "UUID_Matiere": "ea663162-35f2-4827-a744-ee4b9ee1cd1e",
+    "Matiere": "Malagasy"
+  },
+  {
+    "UUID_Affectation": "07a78829-3062-53c7-9486-f26653a0f86a",
+    "UUID_Personnel": "724e3491-0176-4969-856a-c8f480892ee9",
+    "Matricule_RH": "ENS-2026-MG-01",
+    "Enseignant": "ANDRIANTSOA Tiana",
+    "UUID_Classe": "658732ac-1077-4080-ac55-36ed2638fa8b",
+    "Classe": "2nde 1",
+    "UUID_Matiere": "ea663162-35f2-4827-a744-ee4b9ee1cd1e",
+    "Matiere": "Malagasy"
+  },
+  {
+    "UUID_Affectation": "f5375607-2082-50a7-bd85-8ea3260f5bff",
+    "UUID_Personnel": "724e3491-0176-4969-856a-c8f480892ee9",
+    "Matricule_RH": "ENS-2026-MG-01",
+    "Enseignant": "ANDRIANTSOA Tiana",
+    "UUID_Classe": "3a30ad2c-62f1-4490-8a8b-47473e972a74",
+    "Classe": "2nde 2",
+    "UUID_Matiere": "ea663162-35f2-4827-a744-ee4b9ee1cd1e",
+    "Matiere": "Malagasy"
+  },
+  {
+    "UUID_Affectation": "f8426a1a-2355-52a1-9db0-7d19bfcced3b",
+    "UUID_Personnel": "724e3491-0176-4969-856a-c8f480892ee9",
+    "Matricule_RH": "ENS-2026-MG-01",
+    "Enseignant": "ANDRIANTSOA Tiana",
+    "UUID_Classe": "35ef1e2f-6ed8-48aa-a85c-1feac4b2a7d0",
+    "Classe": "2nde 3",
+    "UUID_Matiere": "ea663162-35f2-4827-a744-ee4b9ee1cd1e",
+    "Matiere": "Malagasy"
+  },
+  {
+    "UUID_Affectation": "8da77632-c31c-55be-8665-ea23033c35d1",
+    "UUID_Personnel": "478c0af1-c7e6-4e3d-84e0-a66fd29991d2",
+    "Matricule_RH": "ENS-2026-MG-02",
+    "Enseignant": "RAJAONARIVELO Soa",
+    "UUID_Classe": "37d2a666-4748-41c7-bebe-311d467eee27",
+    "Classe": "1ère L1",
+    "UUID_Matiere": "ea663162-35f2-4827-a744-ee4b9ee1cd1e",
+    "Matiere": "Malagasy"
+  },
+  {
+    "UUID_Affectation": "7792ff3d-b041-5ea8-b037-3c8137c44da9",
+    "UUID_Personnel": "478c0af1-c7e6-4e3d-84e0-a66fd29991d2",
+    "Matricule_RH": "ENS-2026-MG-02",
+    "Enseignant": "RAJAONARIVELO Soa",
+    "UUID_Classe": "cd554ff9-361a-4821-afdf-2de3b5de440d",
+    "Classe": "1ère L2",
+    "UUID_Matiere": "ea663162-35f2-4827-a744-ee4b9ee1cd1e",
+    "Matiere": "Malagasy"
+  },
+  {
+    "UUID_Affectation": "b9bf5445-08fd-5294-b0e2-696dd8253548",
+    "UUID_Personnel": "478c0af1-c7e6-4e3d-84e0-a66fd29991d2",
+    "Matricule_RH": "ENS-2026-MG-02",
+    "Enseignant": "RAJAONARIVELO Soa",
+    "UUID_Classe": "8ad98869-d151-43ef-8c22-8e90050775df",
+    "Classe": "1ère S",
+    "UUID_Matiere": "ea663162-35f2-4827-a744-ee4b9ee1cd1e",
+    "Matiere": "Malagasy"
+  },
+  {
+    "UUID_Affectation": "f6d4dd49-beb4-50c2-a465-91d08b372903",
+    "UUID_Personnel": "478c0af1-c7e6-4e3d-84e0-a66fd29991d2",
+    "Matricule_RH": "ENS-2026-MG-02",
+    "Enseignant": "RAJAONARIVELO Soa",
+    "UUID_Classe": "415152f6-2b96-46fe-9d13-9b13760b3f0f",
+    "Classe": "Terminale L",
+    "UUID_Matiere": "ea663162-35f2-4827-a744-ee4b9ee1cd1e",
+    "Matiere": "Malagasy"
+  },
+  {
+    "UUID_Affectation": "8be88659-cd82-5976-b735-af769ada0c6d",
+    "UUID_Personnel": "478c0af1-c7e6-4e3d-84e0-a66fd29991d2",
+    "Matricule_RH": "ENS-2026-MG-02",
+    "Enseignant": "RAJAONARIVELO Soa",
+    "UUID_Classe": "dc2f6b4c-e8a4-4870-b4ae-9fb75d938c47",
+    "Classe": "Terminale S1",
+    "UUID_Matiere": "ea663162-35f2-4827-a744-ee4b9ee1cd1e",
+    "Matiere": "Malagasy"
+  },
+  {
+    "UUID_Affectation": "6c4d0b3c-e438-5195-a31b-d585a18a57e6",
+    "UUID_Personnel": "478c0af1-c7e6-4e3d-84e0-a66fd29991d2",
+    "Matricule_RH": "ENS-2026-MG-02",
+    "Enseignant": "RAJAONARIVELO Soa",
+    "UUID_Classe": "a590ac36-d02c-40ec-baf1-51ac90011e22",
+    "Classe": "Terminale S2",
+    "UUID_Matiere": "ea663162-35f2-4827-a744-ee4b9ee1cd1e",
+    "Matiere": "Malagasy"
+  },
+  {
+    "UUID_Affectation": "1aab40fe-a91e-5d90-8222-1aa82dc507cc",
+    "UUID_Personnel": "86c8bb82-6199-40bb-acff-cc1a8d5de070",
+    "Matricule_RH": "ENS-2026-AN-01",
+    "Enseignant": "RABEARISON Vololona",
+    "UUID_Classe": "a1dd1b1f-90de-4e34-9131-1cfb1b824d23",
+    "Classe": "3ème 1",
+    "UUID_Matiere": "41a5f647-0571-44c1-934f-c605decdb7ca",
+    "Matiere": "Anglais"
+  },
+  {
+    "UUID_Affectation": "0168b2e2-25b1-543b-9f49-114e4b5e7ebe",
+    "UUID_Personnel": "86c8bb82-6199-40bb-acff-cc1a8d5de070",
+    "Matricule_RH": "ENS-2026-AN-01",
+    "Enseignant": "RABEARISON Vololona",
+    "UUID_Classe": "52ec63f8-4f31-44c5-9738-1e477af2285d",
+    "Classe": "3ème 2",
+    "UUID_Matiere": "41a5f647-0571-44c1-934f-c605decdb7ca",
+    "Matiere": "Anglais"
+  },
+  {
+    "UUID_Affectation": "c8ea9319-9b3e-5fd4-8e29-eab675f6fcf0",
+    "UUID_Personnel": "86c8bb82-6199-40bb-acff-cc1a8d5de070",
+    "Matricule_RH": "ENS-2026-AN-01",
+    "Enseignant": "RABEARISON Vololona",
+    "UUID_Classe": "658732ac-1077-4080-ac55-36ed2638fa8b",
+    "Classe": "2nde 1",
+    "UUID_Matiere": "41a5f647-0571-44c1-934f-c605decdb7ca",
+    "Matiere": "Anglais"
+  },
+  {
+    "UUID_Affectation": "b28797ea-3470-519f-8e23-ba625939ed0c",
+    "UUID_Personnel": "e85e1a0d-db74-4b22-8248-d64af972a41b",
+    "Matricule_RH": "ENS-2026-AN-02",
+    "Enseignant": "RANDRIANJAFY Kanto",
+    "UUID_Classe": "3a30ad2c-62f1-4490-8a8b-47473e972a74",
+    "Classe": "2nde 2",
+    "UUID_Matiere": "41a5f647-0571-44c1-934f-c605decdb7ca",
+    "Matiere": "Anglais"
+  },
+  {
+    "UUID_Affectation": "f47ff1c5-93ce-5b05-a870-9f074da4b9c8",
+    "UUID_Personnel": "e85e1a0d-db74-4b22-8248-d64af972a41b",
+    "Matricule_RH": "ENS-2026-AN-02",
+    "Enseignant": "RANDRIANJAFY Kanto",
+    "UUID_Classe": "35ef1e2f-6ed8-48aa-a85c-1feac4b2a7d0",
+    "Classe": "2nde 3",
+    "UUID_Matiere": "41a5f647-0571-44c1-934f-c605decdb7ca",
+    "Matiere": "Anglais"
+  },
+  {
+    "UUID_Affectation": "863ca9d9-9a23-51f3-aaef-db33100c2ad1",
+    "UUID_Personnel": "e85e1a0d-db74-4b22-8248-d64af972a41b",
+    "Matricule_RH": "ENS-2026-AN-02",
+    "Enseignant": "RANDRIANJAFY Kanto",
+    "UUID_Classe": "37d2a666-4748-41c7-bebe-311d467eee27",
+    "Classe": "1ère L1",
+    "UUID_Matiere": "41a5f647-0571-44c1-934f-c605decdb7ca",
+    "Matiere": "Anglais"
+  },
+  {
+    "UUID_Affectation": "9e65076a-c6ae-5d54-b492-b7c464bdc080",
+    "UUID_Personnel": "3bbfe94e-f0d8-4277-b4bd-60c2def27c01",
+    "Matricule_RH": "ENS-2026-AN-03",
+    "Enseignant": "RAHARISON Hanitra",
+    "UUID_Classe": "cd554ff9-361a-4821-afdf-2de3b5de440d",
+    "Classe": "1ère L2",
+    "UUID_Matiere": "41a5f647-0571-44c1-934f-c605decdb7ca",
+    "Matiere": "Anglais"
+  },
+  {
+    "UUID_Affectation": "c288be53-9b5d-50e3-be9a-6b9c6b0c529e",
+    "UUID_Personnel": "3bbfe94e-f0d8-4277-b4bd-60c2def27c01",
+    "Matricule_RH": "ENS-2026-AN-03",
+    "Enseignant": "RAHARISON Hanitra",
+    "UUID_Classe": "8ad98869-d151-43ef-8c22-8e90050775df",
+    "Classe": "1ère S",
+    "UUID_Matiere": "41a5f647-0571-44c1-934f-c605decdb7ca",
+    "Matiere": "Anglais"
+  },
+  {
+    "UUID_Affectation": "08d3ea08-00ae-588e-b275-419145eec569",
+    "UUID_Personnel": "3bbfe94e-f0d8-4277-b4bd-60c2def27c01",
+    "Matricule_RH": "ENS-2026-AN-03",
+    "Enseignant": "RAHARISON Hanitra",
+    "UUID_Classe": "415152f6-2b96-46fe-9d13-9b13760b3f0f",
+    "Classe": "Terminale L",
+    "UUID_Matiere": "41a5f647-0571-44c1-934f-c605decdb7ca",
+    "Matiere": "Anglais"
+  },
+  {
+    "UUID_Affectation": "01af9fcd-6c3b-5998-8b85-df02d4841072",
+    "UUID_Personnel": "86c55287-f4e8-4e99-97a4-34eebfadc4ad",
+    "Matricule_RH": "ENS-2026-AN-04",
+    "Enseignant": "RAKOTOARISOA Nirina",
+    "UUID_Classe": "dc2f6b4c-e8a4-4870-b4ae-9fb75d938c47",
+    "Classe": "Terminale S1",
+    "UUID_Matiere": "41a5f647-0571-44c1-934f-c605decdb7ca",
+    "Matiere": "Anglais"
+  },
+  {
+    "UUID_Affectation": "33371e9f-4837-5840-b574-02c20cfb774c",
+    "UUID_Personnel": "86c55287-f4e8-4e99-97a4-34eebfadc4ad",
+    "Matricule_RH": "ENS-2026-AN-04",
+    "Enseignant": "RAKOTOARISOA Nirina",
+    "UUID_Classe": "a590ac36-d02c-40ec-baf1-51ac90011e22",
+    "Classe": "Terminale S2",
+    "UUID_Matiere": "41a5f647-0571-44c1-934f-c605decdb7ca",
+    "Matiere": "Anglais"
+  },
+  {
+    "UUID_Affectation": "e0e16aec-73e0-5d64-b20b-211e7665cdb2",
+    "UUID_Personnel": "9dc868b6-6aeb-4129-b062-0bfc2785cd8c",
+    "Matricule_RH": "ENS-2026-HG-01",
+    "Enseignant": "RAZAFIMAHATRATRA Lova",
+    "UUID_Classe": "a1dd1b1f-90de-4e34-9131-1cfb1b824d23",
+    "Classe": "3ème 1",
+    "UUID_Matiere": "fb20d992-52ed-4bd0-8d7a-a4c6f6af5dc2",
+    "Matiere": "Histoire et Géographie"
+  },
+  {
+    "UUID_Affectation": "a7cecdfd-8190-5710-b243-c9215fcb1566",
+    "UUID_Personnel": "9dc868b6-6aeb-4129-b062-0bfc2785cd8c",
+    "Matricule_RH": "ENS-2026-HG-01",
+    "Enseignant": "RAZAFIMAHATRATRA Lova",
+    "UUID_Classe": "52ec63f8-4f31-44c5-9738-1e477af2285d",
+    "Classe": "3ème 2",
+    "UUID_Matiere": "fb20d992-52ed-4bd0-8d7a-a4c6f6af5dc2",
+    "Matiere": "Histoire et Géographie"
+  },
+  {
+    "UUID_Affectation": "7a382494-ee6d-5299-a706-b5df7468dd74",
+    "UUID_Personnel": "9dc868b6-6aeb-4129-b062-0bfc2785cd8c",
+    "Matricule_RH": "ENS-2026-HG-01",
+    "Enseignant": "RAZAFIMAHATRATRA Lova",
+    "UUID_Classe": "658732ac-1077-4080-ac55-36ed2638fa8b",
+    "Classe": "2nde 1",
+    "UUID_Matiere": "fb20d992-52ed-4bd0-8d7a-a4c6f6af5dc2",
+    "Matiere": "Histoire et Géographie"
+  },
+  {
+    "UUID_Affectation": "a2bc7396-ae8d-59d2-8cb0-c56eaacede42",
+    "UUID_Personnel": "9dc868b6-6aeb-4129-b062-0bfc2785cd8c",
+    "Matricule_RH": "ENS-2026-HG-01",
+    "Enseignant": "RAZAFIMAHATRATRA Lova",
+    "UUID_Classe": "3a30ad2c-62f1-4490-8a8b-47473e972a74",
+    "Classe": "2nde 2",
+    "UUID_Matiere": "fb20d992-52ed-4bd0-8d7a-a4c6f6af5dc2",
+    "Matiere": "Histoire et Géographie"
+  },
+  {
+    "UUID_Affectation": "8ea7c815-bdfa-582c-81ff-7414593df7f0",
+    "UUID_Personnel": "82a22a56-b2d1-4bbc-ac8c-0e5fc0eddf1e",
+    "Matricule_RH": "ENS-2026-HG-02",
+    "Enseignant": "ANDRIAMAMPIONONA Rindra",
+    "UUID_Classe": "35ef1e2f-6ed8-48aa-a85c-1feac4b2a7d0",
+    "Classe": "2nde 3",
+    "UUID_Matiere": "fb20d992-52ed-4bd0-8d7a-a4c6f6af5dc2",
+    "Matiere": "Histoire et Géographie"
+  },
+  {
+    "UUID_Affectation": "e5c1281f-f2a7-5290-b5fc-fa6d73720c0d",
+    "UUID_Personnel": "82a22a56-b2d1-4bbc-ac8c-0e5fc0eddf1e",
+    "Matricule_RH": "ENS-2026-HG-02",
+    "Enseignant": "ANDRIAMAMPIONONA Rindra",
+    "UUID_Classe": "37d2a666-4748-41c7-bebe-311d467eee27",
+    "Classe": "1ère L1",
+    "UUID_Matiere": "fb20d992-52ed-4bd0-8d7a-a4c6f6af5dc2",
+    "Matiere": "Histoire et Géographie"
+  },
+  {
+    "UUID_Affectation": "1ce2ce63-0264-5428-a61d-d92b72fbb593",
+    "UUID_Personnel": "82a22a56-b2d1-4bbc-ac8c-0e5fc0eddf1e",
+    "Matricule_RH": "ENS-2026-HG-02",
+    "Enseignant": "ANDRIAMAMPIONONA Rindra",
+    "UUID_Classe": "cd554ff9-361a-4821-afdf-2de3b5de440d",
+    "Classe": "1ère L2",
+    "UUID_Matiere": "fb20d992-52ed-4bd0-8d7a-a4c6f6af5dc2",
+    "Matiere": "Histoire et Géographie"
+  },
+  {
+    "UUID_Affectation": "7fe987c1-b49a-5b96-be63-62df4943eac8",
+    "UUID_Personnel": "82a22a56-b2d1-4bbc-ac8c-0e5fc0eddf1e",
+    "Matricule_RH": "ENS-2026-HG-02",
+    "Enseignant": "ANDRIAMAMPIONONA Rindra",
+    "UUID_Classe": "8ad98869-d151-43ef-8c22-8e90050775df",
+    "Classe": "1ère S",
+    "UUID_Matiere": "fb20d992-52ed-4bd0-8d7a-a4c6f6af5dc2",
+    "Matiere": "Histoire et Géographie"
+  },
+  {
+    "UUID_Affectation": "afe14aad-520c-529c-b1e4-05fd387cf627",
+    "UUID_Personnel": "0554ccbd-bb12-46bc-b224-6434e3ca944e",
+    "Matricule_RH": "ENS-2026-HG-03",
+    "Enseignant": "ANDRIAMBOLOLONA Fara",
+    "UUID_Classe": "415152f6-2b96-46fe-9d13-9b13760b3f0f",
+    "Classe": "Terminale L",
+    "UUID_Matiere": "fb20d992-52ed-4bd0-8d7a-a4c6f6af5dc2",
+    "Matiere": "Histoire et Géographie"
+  },
+  {
+    "UUID_Affectation": "002d825f-adec-5654-8fed-302c4fa43b41",
+    "UUID_Personnel": "0554ccbd-bb12-46bc-b224-6434e3ca944e",
+    "Matricule_RH": "ENS-2026-HG-03",
+    "Enseignant": "ANDRIAMBOLOLONA Fara",
+    "UUID_Classe": "dc2f6b4c-e8a4-4870-b4ae-9fb75d938c47",
+    "Classe": "Terminale S1",
+    "UUID_Matiere": "fb20d992-52ed-4bd0-8d7a-a4c6f6af5dc2",
+    "Matiere": "Histoire et Géographie"
+  },
+  {
+    "UUID_Affectation": "15f2c161-9f83-59a5-b559-cc5f972b5051",
+    "UUID_Personnel": "0554ccbd-bb12-46bc-b224-6434e3ca944e",
+    "Matricule_RH": "ENS-2026-HG-03",
+    "Enseignant": "ANDRIAMBOLOLONA Fara",
+    "UUID_Classe": "a590ac36-d02c-40ec-baf1-51ac90011e22",
+    "Classe": "Terminale S2",
+    "UUID_Matiere": "fb20d992-52ed-4bd0-8d7a-a4c6f6af5dc2",
+    "Matiere": "Histoire et Géographie"
+  },
+  {
+    "UUID_Affectation": "1165135a-61d8-57c9-90ab-8718578f146e",
+    "UUID_Personnel": "e3ca4415-5b7b-422b-999b-0abface04c78",
+    "Matricule_RH": "ENS-2026-PH-01",
+    "Enseignant": "RAKOTOMALALA Vero",
+    "UUID_Classe": "37d2a666-4748-41c7-bebe-311d467eee27",
+    "Classe": "1ère L1",
+    "UUID_Matiere": "e1f660c9-43e5-4475-acaf-1f72306b6be4",
+    "Matiere": "Philosophie"
+  },
+  {
+    "UUID_Affectation": "44e5f61f-110f-5328-a3ad-6c02c4d089ad",
+    "UUID_Personnel": "e3ca4415-5b7b-422b-999b-0abface04c78",
+    "Matricule_RH": "ENS-2026-PH-01",
+    "Enseignant": "RAKOTOMALALA Vero",
+    "UUID_Classe": "cd554ff9-361a-4821-afdf-2de3b5de440d",
+    "Classe": "1ère L2",
+    "UUID_Matiere": "e1f660c9-43e5-4475-acaf-1f72306b6be4",
+    "Matiere": "Philosophie"
+  },
+  {
+    "UUID_Affectation": "67740538-5cb8-52d2-a387-f8260007039d",
+    "UUID_Personnel": "e3ca4415-5b7b-422b-999b-0abface04c78",
+    "Matricule_RH": "ENS-2026-PH-01",
+    "Enseignant": "RAKOTOMALALA Vero",
+    "UUID_Classe": "8ad98869-d151-43ef-8c22-8e90050775df",
+    "Classe": "1ère S",
+    "UUID_Matiere": "e1f660c9-43e5-4475-acaf-1f72306b6be4",
+    "Matiere": "Philosophie"
+  },
+  {
+    "UUID_Affectation": "c1ca811a-e339-59c3-83fb-40d89825e070",
+    "UUID_Personnel": "b34458b0-1e06-445b-9bd6-17e8da01ffe2",
+    "Matricule_RH": "ENS-2026-PH-02",
+    "Enseignant": "RANDRIAMANANTENA Sitraka",
+    "UUID_Classe": "415152f6-2b96-46fe-9d13-9b13760b3f0f",
+    "Classe": "Terminale L",
+    "UUID_Matiere": "e1f660c9-43e5-4475-acaf-1f72306b6be4",
+    "Matiere": "Philosophie"
+  },
+  {
+    "UUID_Affectation": "9debef2b-a790-5a46-8b25-9413c273bbe3",
+    "UUID_Personnel": "b34458b0-1e06-445b-9bd6-17e8da01ffe2",
+    "Matricule_RH": "ENS-2026-PH-02",
+    "Enseignant": "RANDRIAMANANTENA Sitraka",
+    "UUID_Classe": "dc2f6b4c-e8a4-4870-b4ae-9fb75d938c47",
+    "Classe": "Terminale S1",
+    "UUID_Matiere": "e1f660c9-43e5-4475-acaf-1f72306b6be4",
+    "Matiere": "Philosophie"
+  },
+  {
+    "UUID_Affectation": "e747b4db-9ba5-52a8-925b-cd75e25aa199",
+    "UUID_Personnel": "b34458b0-1e06-445b-9bd6-17e8da01ffe2",
+    "Matricule_RH": "ENS-2026-PH-02",
+    "Enseignant": "RANDRIAMANANTENA Sitraka",
+    "UUID_Classe": "a590ac36-d02c-40ec-baf1-51ac90011e22",
+    "Classe": "Terminale S2",
+    "UUID_Matiere": "e1f660c9-43e5-4475-acaf-1f72306b6be4",
+    "Matiere": "Philosophie"
+  },
+  {
+    "UUID_Affectation": "9db7aa28-15b3-5bd2-b872-a2b7630838e3",
+    "UUID_Personnel": "c6063cd1-06ba-4f71-975a-bfeda7aec9bd",
+    "Matricule_RH": "ENS-2026-EP-01",
+    "Enseignant": "RASOAMANANA Aina",
+    "UUID_Classe": "a1dd1b1f-90de-4e34-9131-1cfb1b824d23",
+    "Classe": "3ème 1",
+    "UUID_Matiere": "0b136083-cb53-4af9-a42c-10ec4c527bc5",
+    "Matiere": "Éducation Physique et Sportive"
+  },
+  {
+    "UUID_Affectation": "b9bc95c5-63bd-525e-a75c-d3bd7fc9ed6f",
+    "UUID_Personnel": "c6063cd1-06ba-4f71-975a-bfeda7aec9bd",
+    "Matricule_RH": "ENS-2026-EP-01",
+    "Enseignant": "RASOAMANANA Aina",
+    "UUID_Classe": "52ec63f8-4f31-44c5-9738-1e477af2285d",
+    "Classe": "3ème 2",
+    "UUID_Matiere": "0b136083-cb53-4af9-a42c-10ec4c527bc5",
+    "Matiere": "Éducation Physique et Sportive"
+  },
+  {
+    "UUID_Affectation": "2b695d9e-9072-5098-9671-44ac4e0fbb7e",
+    "UUID_Personnel": "c6063cd1-06ba-4f71-975a-bfeda7aec9bd",
+    "Matricule_RH": "ENS-2026-EP-01",
+    "Enseignant": "RASOAMANANA Aina",
+    "UUID_Classe": "658732ac-1077-4080-ac55-36ed2638fa8b",
+    "Classe": "2nde 1",
+    "UUID_Matiere": "0b136083-cb53-4af9-a42c-10ec4c527bc5",
+    "Matiere": "Éducation Physique et Sportive"
+  },
+  {
+    "UUID_Affectation": "0befbfc6-9fda-5334-b327-fdfb836f563d",
+    "UUID_Personnel": "c6063cd1-06ba-4f71-975a-bfeda7aec9bd",
+    "Matricule_RH": "ENS-2026-EP-01",
+    "Enseignant": "RASOAMANANA Aina",
+    "UUID_Classe": "3a30ad2c-62f1-4490-8a8b-47473e972a74",
+    "Classe": "2nde 2",
+    "UUID_Matiere": "0b136083-cb53-4af9-a42c-10ec4c527bc5",
+    "Matiere": "Éducation Physique et Sportive"
+  },
+  {
+    "UUID_Affectation": "9a963e0b-a038-572b-bfe8-ed3a19f5e769",
+    "UUID_Personnel": "c6063cd1-06ba-4f71-975a-bfeda7aec9bd",
+    "Matricule_RH": "ENS-2026-EP-01",
+    "Enseignant": "RASOAMANANA Aina",
+    "UUID_Classe": "35ef1e2f-6ed8-48aa-a85c-1feac4b2a7d0",
+    "Classe": "2nde 3",
+    "UUID_Matiere": "0b136083-cb53-4af9-a42c-10ec4c527bc5",
+    "Matiere": "Éducation Physique et Sportive"
+  },
+  {
+    "UUID_Affectation": "0ce15c8d-0682-5799-802a-7a6e69c9d128",
+    "UUID_Personnel": "c6063cd1-06ba-4f71-975a-bfeda7aec9bd",
+    "Matricule_RH": "ENS-2026-EP-01",
+    "Enseignant": "RASOAMANANA Aina",
+    "UUID_Classe": "37d2a666-4748-41c7-bebe-311d467eee27",
+    "Classe": "1ère L1",
+    "UUID_Matiere": "0b136083-cb53-4af9-a42c-10ec4c527bc5",
+    "Matiere": "Éducation Physique et Sportive"
+  },
+  {
+    "UUID_Affectation": "4462115b-b469-5097-bd97-8c7c3d0c51d5",
+    "UUID_Personnel": "c6063cd1-06ba-4f71-975a-bfeda7aec9bd",
+    "Matricule_RH": "ENS-2026-EP-01",
+    "Enseignant": "RASOAMANANA Aina",
+    "UUID_Classe": "cd554ff9-361a-4821-afdf-2de3b5de440d",
+    "Classe": "1ère L2",
+    "UUID_Matiere": "0b136083-cb53-4af9-a42c-10ec4c527bc5",
+    "Matiere": "Éducation Physique et Sportive"
+  },
+  {
+    "UUID_Affectation": "7c7f2e9c-68df-588a-9452-4c692c9052b3",
+    "UUID_Personnel": "c6063cd1-06ba-4f71-975a-bfeda7aec9bd",
+    "Matricule_RH": "ENS-2026-EP-01",
+    "Enseignant": "RASOAMANANA Aina",
+    "UUID_Classe": "8ad98869-d151-43ef-8c22-8e90050775df",
+    "Classe": "1ère S",
+    "UUID_Matiere": "0b136083-cb53-4af9-a42c-10ec4c527bc5",
+    "Matiere": "Éducation Physique et Sportive"
+  },
+  {
+    "UUID_Affectation": "0202e796-c68e-5239-98df-c09c9ee1199c",
+    "UUID_Personnel": "c6063cd1-06ba-4f71-975a-bfeda7aec9bd",
+    "Matricule_RH": "ENS-2026-EP-01",
+    "Enseignant": "RASOAMANANA Aina",
+    "UUID_Classe": "415152f6-2b96-46fe-9d13-9b13760b3f0f",
+    "Classe": "Terminale L",
+    "UUID_Matiere": "0b136083-cb53-4af9-a42c-10ec4c527bc5",
+    "Matiere": "Éducation Physique et Sportive"
+  },
+  {
+    "UUID_Affectation": "865f2680-17ce-553c-b3b4-fe89212ab16f",
+    "UUID_Personnel": "c6063cd1-06ba-4f71-975a-bfeda7aec9bd",
+    "Matricule_RH": "ENS-2026-EP-01",
+    "Enseignant": "RASOAMANANA Aina",
+    "UUID_Classe": "dc2f6b4c-e8a4-4870-b4ae-9fb75d938c47",
+    "Classe": "Terminale S1",
+    "UUID_Matiere": "0b136083-cb53-4af9-a42c-10ec4c527bc5",
+    "Matiere": "Éducation Physique et Sportive"
+  },
+  {
+    "UUID_Affectation": "afaf583e-7f0a-53cd-af8c-b24ab87acb34",
+    "UUID_Personnel": "c6063cd1-06ba-4f71-975a-bfeda7aec9bd",
+    "Matricule_RH": "ENS-2026-EP-01",
+    "Enseignant": "RASOAMANANA Aina",
+    "UUID_Classe": "a590ac36-d02c-40ec-baf1-51ac90011e22",
+    "Classe": "Terminale S2",
+    "UUID_Matiere": "0b136083-cb53-4af9-a42c-10ec4c527bc5",
+    "Matiere": "Éducation Physique et Sportive"
+  }
+]

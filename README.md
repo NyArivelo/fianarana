@@ -2,9 +2,15 @@
 
 Application Desktop de gestion scolaire (installation locale monoposte, un établissement) développée avec **Flutter/Dart** et **SQLite via Drift**.
 
-## État actuel (initialisation)
+## État actuel
 
-- Phase 0 démarrée : structure du projet, schéma de base de données Drift (UUID v4), modèles de base et données de test.
+- Phase 0 + MVP fonctionnel : authentification/RBAC, élèves/inscriptions, présences, notes/conseils/bulletins, finances/caisse, bibliothèque, locaux, personnel.
+- Shell Desktop commun : en-tête global, navigation latérale persistante, barre d'état, thème clair/sombre, recherche globale (Ctrl+F), verrouillage (Ctrl+L).
+- **Emplois du temps** : vues globale (agenda par jour), par classe et par enseignante, détection des conflits enseignant/classe/salle, création/modification/suppression de séances.
+- **Calendrier scolaire** : calendrier mensuel par classe (avec événements d'établissement) et **éphéméride globale**, création/modification d'événements.
+- **Élèves** : liste maître-détail, filtres (recherche/classe/statut), soldes MGA, quitus financier et bibliothèque, export CSV, ouverture du dossier complet.
+- **Personnel** : fiches enseignantes/administration, accès direct au planning individuel.
+- Données de test enrichies : 237 séances hebdomadaires, 94 affectations enseignantes, 36 événements de calendrier/éphéméride (`assets/seed/`).
 - Cible : Windows, Linux, macOS.
 - Base locale : SQLite (Drift), avec chemins relatifs pour les fichiers médias (pas de BLOB).
 
@@ -28,6 +34,11 @@ Application Desktop de gestion scolaire (installation locale monoposte, un étab
 
 Le fichier `donnees_de_test.xlsx` est inclus et exporté en JSON dans `assets/seed/` (établissement, 325 élèves, 11 classes, personnel, notes, finances, présences, bibliothèque, audit, etc.).  
 À chaque fonctionnalité créée, des données de test correspondantes doivent être ajoutées/mises à jour (seed).
+
+- `emploi_du_temps.json` : planning hebdomadaire complet (237 séances, 11 classes) sans conflit.
+- `affectations_enseignants.json` : 94 affectations classe/matière/enseignante.
+- `calendrier_scolaire.json` : 36 événements (rentrée, vacances, examens, réunions, sorties, éphéméride globale).
+- Réimport possible depuis **Paramètres → Données de test → Réimporter** (compte administrateur).
 
 - **Assistant de première installation** (`/setup`) : crée le compte administrateur initial et peut importer automatiquement toutes les données de test en base SQLite.
 - **Comptes seed (après import)** : identifiants issus du fichier (ex. `admin.sys`, `dir.general`, `caisse.01`, etc.). Mot de passe de test initial : `Password123!` (PIN seed importé si présent). **À changer en production.**

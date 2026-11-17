@@ -52,6 +52,7 @@ LazyDatabase _openConnection() {
     LibraryLoans,
     Facilities,
     TimetableSessions,
+    CalendarEvents,
     AuditLogs,
     AppSettings,
     BackupRecords,
@@ -64,7 +65,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 5;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -82,6 +83,9 @@ class AppDatabase extends _$AppDatabase {
           if (from < 4) {
             await m.createTable(timetableSessions);
             await m.createTable(backupRecords);
+          }
+          if (from < 5) {
+            await m.createTable(calendarEvents);
           }
         },
         beforeOpen: (details) async {

@@ -319,6 +319,28 @@ class TimetableSessions extends Table with UuidPrimaryKey, AuditColumns {
   TextColumn get notes => text().nullable()();
 }
 
+// --- Calendrier scolaire & éphéméride ---
+/// Événements du calendrier scolaire. `classId` nul => événement global
+/// (établissement). Les éphémérides sont des événements globaux marqués
+/// `isEphemeris` (journées mondiales, fêtes nationales, etc.).
+class CalendarEvents extends Table with UuidPrimaryKey, AuditColumns {
+  TextColumn get schoolYearId => text().nullable().references(SchoolYears, #id)();
+  TextColumn get classId => text().nullable().references(Classes, #id)();
+  TextColumn get title => text()();
+  TextColumn get category => text().withDefault(const Constant('Événement'))();
+  DateTimeColumn get startDate => dateTime()();
+  DateTimeColumn get endDate => dateTime().nullable()();
+  BoolColumn get allDay => boolean().withDefault(const Constant(true))();
+  TextColumn get startTime => text().nullable()(); // HH:mm
+  TextColumn get endTime => text().nullable()(); // HH:mm
+  TextColumn get location => text().nullable()();
+  TextColumn get description => text().nullable()();
+  TextColumn get colorHex => text().nullable()();
+  BoolColumn get isEphemeris => boolean().withDefault(const Constant(false))();
+  TextColumn get visibility => text().withDefault(const Constant('Établissement'))();
+  TextColumn get status => text().withDefault(const Constant('Publié'))();
+}
+
 // --- Audit log ---
 class AuditLogs extends Table {
   TextColumn get id => text()(); // UUID

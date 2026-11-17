@@ -38,3 +38,10 @@ Règle: **à chaque fonctionnalité créée, ajouter les données de test corres
 3. Assistant première installation (création admin, établissement, année scolaire).
 4. Modules MVP: élèves/inscriptions, structure pédagogique, présences, notes/conseils/bulletins, finances/caisse, sauvegarde/restauration.
 5. Document Studio (PDF natif), corbeille, multi-onglets, raccourcis clavier, verrouillage/PIN.
+
+## Modules récents
+
+- `lib/features/timetable/` : emplois du temps (vues globale/classe/enseignante, conflits, édition).
+- `lib/features/calendar/` : calendrier scolaire par classe + éphéméride globale (table `calendar_events`, migration v5).
+- `lib/core/workspace/app_shell.dart` : coquille Desktop persistante (header, sidebar, status bar).
+- Seeds : `affectations_enseignants.json`, `emploi_du_temps.json` (complet), `calendrier_scolaire.json`.
