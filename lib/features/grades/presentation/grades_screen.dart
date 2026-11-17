@@ -83,9 +83,45 @@ class _GradesScreenState extends ConsumerState<GradesScreen> {
       return 'Insuffisant';
     }
 
-    Map<String, dynamic> buildSnapshot() {
+    Future<Map<String, dynamic>> buildSnapshot() async {
       final avg = GradesRepository.weightedAverage(studentRows);
       final mention = mentionFor(avg);
+      // Enrichissement: décision/appréciation/rang/mention du conseil (si disponible)
+      dynamic councilDecision;
+      String? appreciation;
+      double? finalAverage = avg;
+      int? rank;
+      String? finalMention = mention.isEmpty ? null : mention;
+      String? periodLabel;
+      try {
+        final cid = row.classId ?? _classId;
+        if (cid != null && inferredPeriodId != null) {
+          final councils = await repo.listCouncils(classId: cid, periodId: inferredPeriodId);
+          if (councils.isNotEmpty) {
+            // prendre le plus récent
+            final council = councils.first;
+            periodLabel = council.status.isNotEmpty ? '${council.status}' : null;
+            final decisions = await repo.decisionsOf(council.id);
+            final match = decisions.where((d) => d.studentId == row.studentId).toList();
+            if (match.isNotEmpty) {
+              final d = match.first;
+              councilDecision = d.decision;
+              appreciation = d.appreciation ?? appreciation;
+              if (d.average != null) finalAverage = d.average;
+              rank = d.rank;
+              if (d.mention != null && d.mention!.trim().isNotEmpty) finalMention = d.mention;
+            }
+          }
+        }
+        // libellé période lisible si possible
+        if (inferredPeriodId != null) {
+          final periods = await ref.read(periodsProvider.future);
+          for (final p in periods) {
+            if (p.id == inferredPeriodId) { periodLabel = p.name; break; }
+          }
+        }
+      } catch (_) {}
+
       final subjects = studentRows.map((g)=> {
         'subject': g.subjectName ?? g.label,
         'score': g.score,
@@ -99,15 +135,17 @@ class _GradesScreenState extends ConsumerState<GradesScreen> {
       return {
         'student': {'id': row.studentId, 'name': row.studentName, 'matricule': row.matricule, 'classId': row.classId ?? _classId, 'classLabel': row.classLabel},
         'periodId': inferredPeriodId,
-        'periodLabel': 'Période (filtre courant)',
+        'periodLabel': periodLabel ?? 'Période',
         'subjects': subjects,
-        'average': avg,
-        'mention': mention.isEmpty ? null : mention,
+        'average': finalAverage,
+        'rank': rank,
+        'mention': finalMention,
+        'councilDecision': councilDecision,
+        'appreciation': appreciation,
         'generatedAt': DateTime.now().toIso8601String(),
-        'establishmentName': 'Établissement scolaire',
+        'establishmentName': 'établissement scolaire',
       };
     }
-
     Future<void> renderStandard(Map<String, dynamic> data) async {
       final subs = (data['subjects'] as List).cast<dynamic>().map((m0){
         final m = (m0 as Map).cast<String,dynamic>();
@@ -140,7 +178,7 @@ class _GradesScreenState extends ConsumerState<GradesScreen> {
 
     if (choice == 'publish') {
       try {
-        final data = buildSnapshot();
+        final data = await buildSnapshot();
         await repo.publishBulletinSnapshot(studentId: row.studentId, classId: row.classId ?? _classId, periodId: inferredPeriodId, snapshot: data, actorUserId: auth.userId, actorUsername: auth.username);
         _snack('Bulletin publié et figé (snapshot). Les réimpressions utiliseront cette version.');
       } catch (e) { _snack('Erreur publication bulletin : $e'); }
@@ -155,7 +193,7 @@ class _GradesScreenState extends ConsumerState<GradesScreen> {
       return;
     }
 
-    final live = buildSnapshot();
+    final live = await buildSnapshot();
     if (choice == 'studio') {
       try {
         final docRepo = ref.read(documentRepositoryProvider);
