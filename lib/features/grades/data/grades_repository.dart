@@ -137,6 +137,18 @@ class GradesRepository {
   }) async {
     final perm = id == null ? 'grades.create' : 'grades.update';
     await _require(actorUserId, perm);
+    final scopeClasses = await AffectationScope(db).allowedClassIdsForUser(actorUserId);
+    if (scopeClasses != null) {
+      String? effectiveClassId = classId;
+      if (effectiveClassId == null || effectiveClassId.isEmpty) {
+        final enr = await (db.select(db.enrollments)..where((t)=>t.studentId.equals(studentId) & t.isDeleted.equals(false))..orderBy([(t)=>OrderingTerm.desc(t.updatedAt)])).get();
+        if (enr.isNotEmpty) effectiveClassId = enr.first.classId;
+      }
+      if (effectiveClassId == null || !scopeClasses.contains(effectiveClassId)) {
+        throw StateError('Action non autorisée (portée affectations)');
+      }
+      classId = effectiveClassId;
+    }
     final now = DateTime.now();
     final gid = id ?? newUuid();
     await db.into(db.evaluations).insertOnConflictUpdate(EvaluationsCompanion.insert(

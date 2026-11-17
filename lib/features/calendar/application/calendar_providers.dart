@@ -8,7 +8,8 @@ import 'package:fianarana/features/calendar/data/calendar_repository.dart';
 final calendarRepositoryProvider = Provider<CalendarRepository>((ref) => CalendarRepository(ref.watch(appDatabaseProvider)));
 
 final calendarClassesProvider = FutureProvider<List<ClassesData>>((ref) {
-  return ref.watch(calendarRepositoryProvider).allClasses();
+  final userId = ref.watch(authControllerProvider).userId;
+  return ref.watch(calendarRepositoryProvider).allClasses(actorUserId: userId);
 });
 
 final calendarPeriodsProvider = FutureProvider<List<Period>>((ref) async {

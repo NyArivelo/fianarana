@@ -156,6 +156,18 @@ class FinanceRepository {
     String? actorUsername,
   }) async {
     await _require(actorUserId, 'finance.create');
+    final scopeClasses = await AffectationScope(db).allowedClassIdsForUser(actorUserId);
+    if (scopeClasses != null) {
+      String? effectiveClassId = classId;
+      if (effectiveClassId == null || effectiveClassId.isEmpty) {
+        final enr = await (db.select(db.enrollments)..where((t)=>t.studentId.equals(studentId) & t.isDeleted.equals(false))..orderBy([(t)=>OrderingTerm.desc(t.updatedAt)])).get();
+        if (enr.isNotEmpty) effectiveClassId = enr.first.classId;
+      }
+      if (effectiveClassId == null || !scopeClasses.contains(effectiveClassId)) {
+        throw StateError('Action non autorisée (portée affectations)');
+      }
+      classId = effectiveClassId;
+    }
     final id = newUuid();
     final receipt = await _nextReceiptNumber();
     final balance = (amountDueMga - amountPaidMga).clamp(0, 1 << 30);

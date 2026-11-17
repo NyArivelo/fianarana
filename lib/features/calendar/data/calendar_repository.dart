@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 
 import 'package:fianarana/core/database/app_database.dart';
 import 'package:fianarana/core/database/uuid.dart';
+import 'package:fianarana/core/security/affectation_scope.dart';
 import 'package:fianarana/core/security/audit_service.dart';
 import 'package:fianarana/core/security/permission_service.dart';
 
@@ -55,6 +56,11 @@ class CalendarRepository {
     DateTime? to,
   }) async {
     await _require(actorUserId, 'settings.read');
+    final scopeClasses = await AffectationScope(db).allowedClassIdsForUser(actorUserId);
+    if (scopeClasses != null) {
+      if (classId != null && classId.isNotEmpty && !scopeClasses.contains(classId)) return const <CalendarEntry>[];
+      if (!includeGlobal && scopeClasses.isEmpty) return const <CalendarEntry>[];
+    }
     final e = db.calendarEvents;
     final c = db.classes;
     final query = db.select(e).join([leftOuterJoin(c, c.id.equalsExp(e.classId))]);
@@ -64,6 +70,10 @@ class CalendarRepository {
     if (classId != null && classId.isNotEmpty) {
       final predicate = includeGlobal ? (e.classId.isNull() | e.classId.equals(classId)) : e.classId.equals(classId);
       query.where(predicate);
+    } else if (scopeClasses != null) {
+      final allowed = scopeClasses.toList();
+      final classFilter = allowed.isEmpty ? e.classId.isNull() : (e.classId.isNull() | e.classId.isIn(allowed));
+      query.where(includeGlobal ? classFilter : (allowed.isEmpty ? const Constant(false) : e.classId.isIn(allowed)));
     } else if (!includeGlobal) {
       query.where(e.classId.isNull());
     }
@@ -87,11 +97,15 @@ class CalendarRepository {
     }).toList();
   }
 
-  Future<List<ClassesData>> allClasses() {
-    return (db.select(db.classes)
-          ..where((t) => t.isDeleted.equals(false))
-          ..orderBy([(t) => OrderingTerm.asc(t.label)]))
-        .get();
+  Future<List<ClassesData>> allClasses({String? actorUserId}) async {
+    final scopeClasses = await AffectationScope(db).allowedClassIdsForUser(actorUserId);
+    final q = db.select(db.classes)..where((t) => t.isDeleted.equals(false));
+    if (scopeClasses != null) {
+      if (scopeClasses.isEmpty) return const <ClassesData>[];
+      q.where((t) => t.id.isIn(scopeClasses));
+    }
+    q.orderBy([(t) => OrderingTerm.asc(t.label)]);
+    return q.get();
   }
 
   Future<String> upsert({
@@ -114,6 +128,12 @@ class CalendarRepository {
     String? actorUsername,
   }) async {
     await _require(actorUserId, 'settings.update');
+    if (classId != null && classId.isNotEmpty) {
+      final scopeClasses = await AffectationScope(db).allowedClassIdsForUser(actorUserId);
+      if (scopeClasses != null && !scopeClasses.contains(classId)) {
+        throw StateError('Action non autorisée (portée affectations)');
+      }
+    }
     final eventId = id ?? newUuid();
     final now = DateTime.now();
     final schoolYears = await db.select(db.schoolYears).get();

@@ -113,6 +113,18 @@ class AttendanceRepository {
     String? actorUsername,
   }) async {
     await _require(actorUserId, 'attendance.create');
+    final scopeClasses = await AffectationScope(db).allowedClassIdsForUser(actorUserId);
+    if (scopeClasses != null) {
+      String? effectiveClassId = classId;
+      if (effectiveClassId == null || effectiveClassId.isEmpty) {
+        final enr = await (db.select(db.enrollments)..where((t)=>t.studentId.equals(studentId) & t.isDeleted.equals(false))..orderBy([(t)=>OrderingTerm.desc(t.updatedAt)])).get();
+        if (enr.isNotEmpty) effectiveClassId = enr.first.classId;
+      }
+      if (effectiveClassId == null || !scopeClasses.contains(effectiveClassId)) {
+        throw StateError('Action non autorisée (portée affectations)');
+      }
+      classId = effectiveClassId;
+    }
     final id = newUuid();
     await db.into(db.attendanceEvents).insert(AttendanceEventsCompanion.insert(
       id: Value(id),
@@ -142,6 +154,10 @@ class AttendanceRepository {
     String? actorUsername,
   }) async {
     await _require(actorUserId, 'attendance.create');
+    final scopeClasses = await AffectationScope(db).allowedClassIdsForUser(actorUserId);
+    if (scopeClasses != null && !scopeClasses.contains(classId)) {
+      throw StateError('Action non autorisée (portée affectations)');
+    }
     if (statusByStudent.isEmpty) return 0;
     final dayKey = '${date.year}${date.month.toString().padLeft(2, '0')}${date.day.toString().padLeft(2, '0')}';
     final at = DateTime(date.year, date.month, date.day, 8);
