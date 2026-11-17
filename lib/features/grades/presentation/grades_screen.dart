@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:printing/printing.dart';
@@ -325,133 +326,162 @@ class _GradesScreenState extends ConsumerState<GradesScreen> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setDialogState) => AlertDialog(
-          title: const Text('Nouvelle évaluation'),
-          content: SizedBox(
-            width: 540,
-            child: Column(mainAxisSize: MainAxisSize.min, children: [
-              DropdownButtonFormField<String>(
-                initialValue: studentId,
-                isExpanded: true,
-                decoration: const InputDecoration(labelText: 'Élève'),
-                items: students
-                    .map((s) => DropdownMenuItem(
-                          value: s.id,
-                          child: Text(
-                              '${s.matricule} — ${s.fullName}${s.classLabel == null ? '' : ' (${s.classLabel})'}',
-                              overflow: TextOverflow.ellipsis),
-                        ))
-                    .toList(),
-                onChanged: (v) {
-                  if (v == null) return;
-                  setDialogState(() {
-                    studentId = v;
-                    classId = students.firstWhere((s) => s.id == v).classId;
-                  });
-                },
-              ),
-              const SizedBox(height: 8),
-              Row(children: [
-                Expanded(
-                  child: DropdownButtonFormField<String?>(
-                    initialValue: subjectId,
-                    isExpanded: true,
-                    decoration: const InputDecoration(labelText: 'Matière'),
-                    items: subjects
-                        .map((s) => DropdownMenuItem<String?>(
-                            value: s.id, child: Text(s.name)))
-                        .toList(),
-                    onChanged: (v) => setDialogState(() => subjectId = v),
+        builder: (ctx, setDialogState) => Shortcuts(
+          shortcuts: <ShortcutActivator, Intent>{
+            const SingleActivator(LogicalKeyboardKey.enter, control: true): const ActivateIntent(),
+          },
+          child: Actions(
+            actions: <Type, Action<Intent>>{
+              ActivateIntent: CallbackAction<ActivateIntent>(onInvoke: (_) {
+                Navigator.pop(ctx, true);
+                return null;
+              }),
+            },
+            child: FocusTraversalGroup(
+              child: AlertDialog(
+                title: const Text('Nouvelle évaluation'),
+                content: SizedBox(
+                  width: 560,
+                  child: SingleChildScrollView(
+                    child: Column(mainAxisSize: MainAxisSize.min, children: [
+                      const Align(
+                        alignment: Alignment.centerLeft,
+                        child: Padding(
+                          padding: EdgeInsets.only(bottom: 8),
+                          child: Text('Saisie rapide : Tab pour naviguer, Ctrl+Entrée pour enregistrer.', style: TextStyle(fontSize: 11)),
+                        ),
+                      ),
+                      DropdownButtonFormField<String>(
+                        initialValue: studentId,
+                        isExpanded: true,
+                        decoration: const InputDecoration(labelText: 'Élève'),
+                        items: students
+                            .map((s) => DropdownMenuItem(
+                                  value: s.id,
+                                  child: Text(
+                                      '${s.matricule} — ${s.fullName}${s.classLabel == null ? '' : ' (${s.classLabel})'}',
+                                      overflow: TextOverflow.ellipsis),
+                                ))
+                            .toList(),
+                        onChanged: (v) {
+                          if (v == null) return;
+                          setDialogState(() {
+                            studentId = v;
+                            classId = students.firstWhere((s) => s.id == v).classId;
+                          });
+                        },
+                      ),
+                      const SizedBox(height: 8),
+                      Row(children: [
+                        Expanded(
+                          child: DropdownButtonFormField<String?>(
+                            initialValue: subjectId,
+                            isExpanded: true,
+                            decoration: const InputDecoration(labelText: 'Matière'),
+                            items: subjects
+                                .map((s) => DropdownMenuItem<String?>(
+                                    value: s.id, child: Text(s.name)))
+                                .toList(),
+                            onChanged: (v) => setDialogState(() => subjectId = v),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: DropdownButtonFormField<String?>(
+                            initialValue: periodId,
+                            isExpanded: true,
+                            decoration: const InputDecoration(labelText: 'Période'),
+                            items: periods
+                                .map((p) => DropdownMenuItem<String?>(
+                                    value: p.id, child: Text(p.name)))
+                                .toList(),
+                            onChanged: (v) => setDialogState(() => periodId = v),
+                          ),
+                        ),
+                      ]),
+                      const SizedBox(height: 8),
+                      TextField(
+                          controller: labelCtrl,
+                          textInputAction: TextInputAction.next,
+                          decoration: const InputDecoration(
+                              labelText: 'Libellé (ex: Devoir surveillé n°1)')),
+                      const SizedBox(height: 8),
+                      Row(children: [
+                        Expanded(
+                          child: TextField(
+                              controller: scoreCtrl,
+                              autofocus: true,
+                              textInputAction: TextInputAction.next,
+                              keyboardType:
+                                  const TextInputType.numberWithOptions(decimal: true),
+                              decoration: const InputDecoration(labelText: 'Note')),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: TextField(
+                              controller: maxCtrl,
+                              textInputAction: TextInputAction.next,
+                              keyboardType: TextInputType.number,
+                              decoration: const InputDecoration(labelText: 'Barème')),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: TextField(
+                              controller: coefCtrl,
+                              textInputAction: TextInputAction.next,
+                              keyboardType: TextInputType.number,
+                              decoration:
+                                  const InputDecoration(labelText: 'Coefficient')),
+                        ),
+                      ]),
+                      CheckboxListTile(
+                        contentPadding: EdgeInsets.zero,
+                        value: isExempt,
+                        onChanged: (v) => setDialogState(() => isExempt = v ?? false),
+                        title: const Text('Dispensé (neutralisé dans les moyennes)'),
+                        controlAffinity: ListTileControlAffinity.leading,
+                      ),
+                      DropdownButtonFormField<String?>(
+                        initialValue: masteryLevel,
+                        decoration: const InputDecoration(labelText: 'Niveau de maîtrise (compétences/socle)'),
+                        items: masteryLevels.map((m)=>DropdownMenuItem<String?>(value:m, child: Text(m ?? '— Non renseigné —'))).toList(),
+                        onChanged: (v) => setDialogState(() => masteryLevel = v),
+                      ),
+                      if (cfgCodes.isNotEmpty)
+                        DropdownButtonFormField<String?>(
+                          initialValue: competencyCode,
+                          decoration: const InputDecoration(labelText: 'Compétence / code (optionnel)'),
+                          items: <String?>{null, ...cfgCodes, if (competencyCode != null) competencyCode}.map((m)=>DropdownMenuItem<String?>(value:m, child: Text(m ?? '— Non renseigné —'))).toList(),
+                          onChanged: (v) => setDialogState(() { competencyCode = v; compCtrl.text = v ?? ''; }),
+                        )
+                      else
+                        TextField(controller: compCtrl, textInputAction: TextInputAction.next, decoration: const InputDecoration(labelText: 'Compétence / code (optionnel)')),
+                      const SizedBox(height: 8),
+                      DropdownButtonFormField<String>(
+                        initialValue: status,
+                        decoration: const InputDecoration(labelText: 'Statut'),
+                        items: const [
+                          DropdownMenuItem(
+                              value: 'Brouillon', child: Text('Brouillon')),
+                          DropdownMenuItem(value: 'Validée', child: Text('Validée')),
+                        ],
+                        onChanged: (v) =>
+                            setDialogState(() => status = v ?? 'Brouillon'),
+                      ),
+                    ]),
                   ),
                 ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: DropdownButtonFormField<String?>(
-                    initialValue: periodId,
-                    isExpanded: true,
-                    decoration: const InputDecoration(labelText: 'Période'),
-                    items: periods
-                        .map((p) => DropdownMenuItem<String?>(
-                            value: p.id, child: Text(p.name)))
-                        .toList(),
-                    onChanged: (v) => setDialogState(() => periodId = v),
-                  ),
-                ),
-              ]),
-              const SizedBox(height: 8),
-              TextField(
-                  controller: labelCtrl,
-                  decoration: const InputDecoration(
-                      labelText: 'Libellé (ex: Devoir surveillé n°1)')),
-              const SizedBox(height: 8),
-              Row(children: [
-                Expanded(
-                  child: TextField(
-                      controller: scoreCtrl,
-                      keyboardType:
-                          const TextInputType.numberWithOptions(decimal: true),
-                      decoration: const InputDecoration(labelText: 'Note')),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: TextField(
-                      controller: maxCtrl,
-                      keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(labelText: 'Barème')),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: TextField(
-                      controller: coefCtrl,
-                      keyboardType: TextInputType.number,
-                      decoration:
-                          const InputDecoration(labelText: 'Coefficient')),
-                ),
-              ]),
-              CheckboxListTile(
-                contentPadding: EdgeInsets.zero,
-                value: isExempt,
-                onChanged: (v) => setDialogState(() => isExempt = v ?? false),
-                title: const Text('Dispensé (neutralisé dans les moyennes)'),
-                controlAffinity: ListTileControlAffinity.leading,
-              ),
-              DropdownButtonFormField<String?>(
-                initialValue: masteryLevel,
-                decoration: const InputDecoration(labelText: 'Niveau de maîtrise (compétences/socle)'),
-                items: masteryLevels.map((m)=>DropdownMenuItem<String?>(value:m, child: Text(m ?? '— Non renseigné —'))).toList(),
-                onChanged: (v) => setDialogState(() => masteryLevel = v),
-              ),
-              if (cfgCodes.isNotEmpty)
-                DropdownButtonFormField<String?>(
-                  initialValue: competencyCode,
-                  decoration: const InputDecoration(labelText: 'Compétence / code (optionnel)'),
-                  items: <String?>{null, ...cfgCodes, if (competencyCode != null) competencyCode}.map((m)=>DropdownMenuItem<String?>(value:m, child: Text(m ?? '— Non renseigné —'))).toList(),
-                  onChanged: (v) => setDialogState(() { competencyCode = v; compCtrl.text = v ?? ''; }),
-                )
-              else
-                TextField(controller: compCtrl, decoration: const InputDecoration(labelText: 'Compétence / code (optionnel)')),
-              const SizedBox(height: 8),
-              DropdownButtonFormField<String>(
-                initialValue: status,
-                decoration: const InputDecoration(labelText: 'Statut'),
-                items: const [
-                  DropdownMenuItem(
-                      value: 'Brouillon', child: Text('Brouillon')),
-                  DropdownMenuItem(value: 'Validée', child: Text('Validée')),
+                actions: [
+                  TextButton(
+                      onPressed: () => Navigator.pop(ctx, false),
+                      child: const Text('Annuler')),
+                  FilledButton(
+                      onPressed: () => Navigator.pop(ctx, true),
+                      child: const Text('Enregistrer (Ctrl+Entrée)')),
                 ],
-                onChanged: (v) =>
-                    setDialogState(() => status = v ?? 'Brouillon'),
               ),
-            ]),
+            ),
           ),
-          actions: [
-            TextButton(
-                onPressed: () => Navigator.pop(ctx, false),
-                child: const Text('Annuler')),
-            FilledButton(
-                onPressed: () => Navigator.pop(ctx, true),
-                child: const Text('Enregistrer')),
-          ],
         ),
       ),
     );
