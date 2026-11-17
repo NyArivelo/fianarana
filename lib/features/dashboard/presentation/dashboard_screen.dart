@@ -14,6 +14,8 @@ class DashboardScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final now = DateTime.now();
+    final perms = ref.watch(currentPermissionsProvider).valueOrNull ?? const <String>{};
+    final canEnroll = perms.contains('students.create') || perms.contains('enrollments.create');
     final students = ref.watch(studentsListProvider((query: null, classId: null, status: null)));
     final classes = ref.watch(classesProvider);
     final timetable = ref.watch(timetableEntriesProvider((classId: null, teacherId: null, day: null)));
@@ -41,7 +43,7 @@ class DashboardScreen extends ConsumerWidget {
             ]),
           ),
           FilledButton.icon(
-            onPressed: () => context.go('/students/new'),
+            onPressed: canEnroll ? () => context.go('/students/new') : null,
             icon: const Icon(Icons.person_add_alt_1, size: 16),
             label: const Text('Nouvelle inscription'),
           ),
