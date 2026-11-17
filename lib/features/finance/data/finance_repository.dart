@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 
 import 'package:fianarana/core/database/app_database.dart';
 import 'package:fianarana/core/database/uuid.dart';
+import 'package:fianarana/core/security/affectation_scope.dart';
 import 'package:fianarana/core/security/audit_service.dart';
 import 'package:fianarana/core/security/permission_service.dart';
 
@@ -67,6 +68,8 @@ class FinanceRepository {
   Future<List<PaymentRow>> listPayments({String? actorUserId, String? query, int limit = 500}) async {
     await _require(actorUserId, 'finance.read');
     final cashierOnly = await _isCashierScope(actorUserId);
+    final scopeClasses = await AffectationScope(db).allowedClassIdsForUser(actorUserId);
+    if (scopeClasses != null && scopeClasses.isEmpty) return const <PaymentRow>[];
     final p = db.payments;
     final s = db.students;
     final c = db.classes;
@@ -76,6 +79,7 @@ class FinanceRepository {
     ]);
     j.where(p.isDeleted.equals(false));
     if (cashierOnly) j.where(p.cashierUserId.equals(actorUserId!));
+    if (scopeClasses != null) j.where(p.classId.isIn(scopeClasses));
     if (query != null && query.trim().isNotEmpty) {
       final q = '%${query.trim()}%';
       j.where(p.receiptNumber.like(q) | s.lastName.like(q) | s.firstName.like(q) | s.matricule.like(q));
@@ -108,8 +112,11 @@ class FinanceRepository {
   Future<Map<String, int>> totals({String? actorUserId}) async {
     await _require(actorUserId, 'finance.read');
     final cashierOnly = await _isCashierScope(actorUserId);
+    final scopeClasses = await AffectationScope(db).allowedClassIdsForUser(actorUserId);
+    if (scopeClasses != null && scopeClasses.isEmpty) return {'count': 0, 'due': 0, 'paid': 0, 'balance': 0};
     final q = db.select(db.payments)..where((t) => t.isDeleted.equals(false));
     if (cashierOnly) q.where((t) => t.cashierUserId.equals(actorUserId!));
+    if (scopeClasses != null) q.where((t) => t.classId.isIn(scopeClasses));
     final rows = await q.get();
     var due = 0, paid = 0, bal = 0;
     for (final r in rows) {
