@@ -150,42 +150,61 @@ class _AttendanceScreenState extends ConsumerState<AttendanceScreen> {
                 ]),
                 const SizedBox(height: 8),
                 const Divider(height: 1),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 4),
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text('Saisie rapide : cliquez un statut ou utilisez Tab/Entrée pour naviguer (tableur).',
+                        style: TextStyle(fontSize: 11, color: Theme.of(ctx).colorScheme.onSurfaceVariant)),
+                  ),
+                ),
                 Expanded(
-                  child: ListView.separated(
-                    itemCount: students.length,
-                    separatorBuilder: (_, __) => const Divider(height: 1),
-                    itemBuilder: (_, index) {
-                      final student = students[index];
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 4),
-                        child: Row(children: [
-                          SizedBox(
-                            width: 92,
-                            child: Text(student.matricule,
-                                style: const TextStyle(
-                                    fontSize: 10, fontFamily: 'monospace')),
-                          ),
-                          Expanded(
-                            child: Text('${student.lastName} ${student.firstName}',
-                                style: const TextStyle(fontSize: 12)),
-                          ),
-                          SizedBox(
-                            width: 130,
-                            child: DropdownButtonFormField<String>(
-                              initialValue: statuses[student.id] ?? 'Présent',
-                              isExpanded: true,
-                              decoration: const InputDecoration(
-                                  isDense: true, contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 6)),
-                              items: _appelStatuses
-                                  .map((s) => DropdownMenuItem(value: s, child: Text(s)))
-                                  .toList(),
-                              onChanged: (v) => setDialogState(
-                                  () => statuses[student.id] = v ?? 'Présent'),
+                  child: FocusTraversalGroup(
+                    child: ListView.separated(
+                      itemCount: students.length,
+                      separatorBuilder: (_, __) => const Divider(height: 1),
+                      itemBuilder: (_, index) {
+                        final student = students[index];
+                        final current = statuses[student.id] ?? 'Présent';
+                        Color cFor(String st) => switch (st) {
+                              'Présent' => const Color(0xFF059669),
+                              'Absent' => const Color(0xFFDC2626),
+                              'Retard' => const Color(0xFFD97706),
+                              _ => const Color(0xFF2563EB),
+                            };
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 4),
+                          child: Row(children: [
+                            SizedBox(
+                              width: 92,
+                              child: Text(student.matricule,
+                                  style: const TextStyle(fontSize: 10, fontFamily: 'monospace')),
                             ),
-                          ),
-                        ]),
-                      );
-                    },
+                            Expanded(
+                              child: Text('${student.lastName} ${student.firstName}',
+                                  style: const TextStyle(fontSize: 12)),
+                            ),
+                            Wrap(
+                              spacing: 4,
+                              children: _appelStatuses.map((st) {
+                                final selected = current == st;
+                                final c = cFor(st);
+                                return ChoiceChip(
+                                  label: Text(st, style: TextStyle(fontSize: 11, color: selected ? Colors.white : c, fontWeight: selected ? FontWeight.w600 : FontWeight.w500)),
+                                  selected: selected,
+                                  selectedColor: c,
+                                  backgroundColor: c.withValues(alpha: 0.08),
+                                  side: BorderSide(color: c.withValues(alpha: selected ? 0.0 : 0.35)),
+                                  visualDensity: VisualDensity.compact,
+                                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                  onSelected: (_) => setDialogState(() => statuses[student.id] = st),
+                                );
+                              }).toList(),
+                            ),
+                          ]),
+                        );
+                      },
+                    ),
                   ),
                 ),
               ]),
