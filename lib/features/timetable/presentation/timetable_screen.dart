@@ -1,3 +1,4 @@
+import 'package:fianarana/core/utils/csv_export.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -199,10 +200,37 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
     return h != null && m != null && h >= 0 && h < 24 && m >= 0 && m < 60;
   }
 
+
+  Future<void> _exportTimetable(List<TimetableEntry> entries) async {
+    try {
+      final ts = DateTime.now().millisecondsSinceEpoch;
+      final file = await CsvExport.export(
+        filename: 'emploi_du_temps_$ts.csv',
+        headers: const ['Jour','Debut','Fin','Classe','Matiere','Enseignant','Salle','Recurrence','Substitution','Notes'],
+        rows: entries.map((e) => [
+          e.dayOfWeek,
+          e.startTime,
+          e.endTime,
+          e.classLabel,
+          e.subjectName,
+          e.teacherName,
+          e.roomLabel ?? e.classRoom,
+          e.recurrence,
+          e.isSubstitution ? 'Oui' : 'Non',
+          e.notes,
+        ]).toList(),
+      );
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Export emploi du temps : ${file.path}')));
+    } catch (e) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erreur export : $e')));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final perms = ref.watch(currentPermissionsProvider).valueOrNull ?? const <String>{};
     final canEdit = perms.contains('timetable.create') || perms.contains('timetable.update');
+    final canExport = perms.contains('timetable.read');
     final f = _filter;
     final entriesAsync = ref.watch(timetableEntriesProvider((classId: f.classId, teacherId: f.teacherId, day: f.day)));
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -213,6 +241,15 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
       appBar: AppBar(
         title: const Text('Emplois du temps & planning'),
         actions: [
+          OutlinedButton.icon(
+            onPressed: canExport ? () {
+              final rows = ref.read(timetableEntriesProvider((classId: f.classId, teacherId: f.teacherId, day: f.day))).valueOrNull ?? const <TimetableEntry>[];
+              _exportTimetable(rows);
+            } : null,
+            icon: const Icon(Icons.download_outlined, size: 16),
+            label: const Text('Exporter CSV'),
+          ),
+          const SizedBox(width: 8),
           FilledButton.icon(
             onPressed: canEdit ? () => _openSessionDialog() : null,
             icon: const Icon(Icons.add, size: 16),
