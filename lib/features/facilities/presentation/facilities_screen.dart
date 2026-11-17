@@ -120,7 +120,7 @@ class _FacilitiesScreenState extends ConsumerState<FacilitiesScreen> {
                 onPressed: () => Navigator.pop(ctx, false),
                 child: const Text('Annuler')),
             FilledButton(
-                onPressed: () => Navigator.pop(ctx, true),
+                onPressed: canEdit ? () => Navigator.pop(ctx, true) : null,
                 child: const Text('Enregistrer')),
           ],
         ),
@@ -176,7 +176,7 @@ class _FacilitiesScreenState extends ConsumerState<FacilitiesScreen> {
         title: const Text('Locaux & équipements'),
         actions: [
           FilledButton.icon(
-            onPressed: () => _edit(),
+            onPressed: canEdit ? () => _edit() : null,
             icon: const Icon(Icons.add_business_outlined, size: 16),
             label: const Text('Nouveau local'),
           ),

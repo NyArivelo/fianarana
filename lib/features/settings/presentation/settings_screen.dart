@@ -20,6 +20,7 @@ import 'package:fianarana/core/settings/ui_settings.dart';
 import 'package:fianarana/core/utils/csv_export.dart';
 import 'package:fianarana/core/widgets/app_ui.dart';
 import 'package:fianarana/features/auth/application/auth_controller.dart';
+import 'package:fianarana/core/security/permission_providers.dart';
 
 final _settingsStatsProvider = FutureProvider<Map<String, int>>((ref) async {
   final db = ref.watch(appDatabaseProvider);
@@ -533,6 +534,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final stats = ref.watch(_settingsStatsProvider);
+    final perms = ref.watch(currentPermissionsProvider).valueOrNull ?? const <String>{};
+    final canBackupCreate = perms.contains('backups.create');
+    final canBackupRestore = perms.contains('backups.restore');
+    final canRecycleManage = perms.contains('recycle.restore') || perms.contains('recycle.purge');
+    final canAuditRead = perms.contains('audit.read') || perms.contains('audit.export');
+    final canAuditExport = perms.contains('audit.export');
+    final canSettingsUpdate = perms.contains('settings.update');
 
     return Scaffold(
       backgroundColor: theme.brightness == Brightness.dark
@@ -655,7 +663,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       title: 'Sauvegarde locale',
       subtitle: 'Archive .zip intègre (base SQLite active + médias + manifeste), restauration contrôlée.',
       trailing: FilledButton.icon(
-        onPressed: _busy ? null : _backup,
+        onPressed: (_busy || !canBackupCreate) ? null : _backup,
         icon: const Icon(Icons.backup_outlined, size: 16),
         label: const Text('Sauvegarder'),
       ),
@@ -714,7 +722,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       trailing: IconButton(
                         tooltip: 'Restaurer',
                         icon: const Icon(Icons.restore, size: 18),
-                        onPressed: _busy ? null : () => _restore(b),
+                        onPressed: (_busy || !canBackupRestore) ? null : () => _restore(b),
                       ),
                     ),
                 ]),
@@ -761,7 +769,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       title: 'Corbeille (admin)',
       subtitle: 'Suppression logique exhaustive, rétention configurable, restauration en un clic (réservé administrateur).',
       trailing: OutlinedButton.icon(
-        onPressed: _showRecycleBin,
+        onPressed: canRecycleManage ? _showRecycleBin : null,
         icon: const Icon(Icons.delete_outline, size: 16),
         label: const Text('Ouvrir'),
       ),
@@ -780,9 +788,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       subtitle:
           'Traçabilité UTC horodatée et empreinte SHA-256. Export JSON/CSV par période accompagné d\'un fichier .sha256.',
       trailing: Wrap(spacing: 6, runSpacing: 6, children: [
-        OutlinedButton.icon(onPressed: _showAudit, icon: const Icon(Icons.visibility_outlined, size: 14), label: const Text('Consulter')),
-        OutlinedButton.icon(onPressed: _busy ? null : () => _exportAudit(asJson: false), icon: const Icon(Icons.table_view_outlined, size: 14), label: const Text('Export CSV')),
-        FilledButton.icon(onPressed: _busy ? null : () => _exportAudit(asJson: true), icon: const Icon(Icons.data_object, size: 14), label: const Text('Export JSON')),
+        OutlinedButton.icon(onPressed: canAuditRead ? _showAudit : null, icon: const Icon(Icons.visibility_outlined, size: 14), label: const Text('Consulter')),
+        OutlinedButton.icon(onPressed: (_busy || !canAuditExport) ? null : () => _exportAudit(asJson: false), icon: const Icon(Icons.table_view_outlined, size: 14), label: const Text('Export CSV')),
+        FilledButton.icon(onPressed: (_busy || !canAuditExport) ? null : () => _exportAudit(asJson: true), icon: const Icon(Icons.data_object, size: 14), label: const Text('Export JSON')),
       ]),
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
       child: logs.when(
@@ -833,7 +841,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       title: 'Import / Export & modèles',
       subtitle: 'Modèles CSV guidés pour import (élèves, personnel, notes) et exports de données.',
       trailing: FilledButton.icon(
-        onPressed: _busy ? null : _exportTemplates,
+        onPressed: (_busy || !canSettingsUpdate) ? null : _exportTemplates,
         icon: const Icon(Icons.description_outlined, size: 16),
         label: const Text('Générer modèles CSV'),
       ),
@@ -877,8 +885,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       title: 'Clôture annuelle & archivage légal',
       subtitle: 'Archive scellée (JSON + SHA-256) en lecture seule de l\'année scolaire (coffre-fort légal).',
       trailing: Wrap(spacing: 8, children: [
-        OutlinedButton.icon(onPressed: _busy ? null : _showClosureHistory, icon: const Icon(Icons.history, size: 16), label: const Text('Historique')),
-        FilledButton.icon(onPressed: _busy ? null : _closeSchoolYear, icon: const Icon(Icons.inventory_2_outlined, size: 16), label: const Text('Clôturer')),
+        OutlinedButton.icon(onPressed: (_busy || !canSettingsUpdate) ? null : _showClosureHistory, icon: const Icon(Icons.history, size: 16), label: const Text('Historique')),
+        FilledButton.icon(onPressed: (_busy || !canSettingsUpdate) ? null : _closeSchoolYear, icon: const Icon(Icons.inventory_2_outlined, size: 16), label: const Text('Clôturer')),
       ]),
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
       child: Text(
