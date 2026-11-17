@@ -1,14 +1,19 @@
+import 'dart:io';
+
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:printing/printing.dart';
 
+import 'package:fianarana/core/database/database_provider.dart';
 import 'package:fianarana/core/widgets/app_ui.dart';
 import 'package:fianarana/features/auth/application/auth_controller.dart';
 import 'package:fianarana/features/grades/application/council_providers.dart';
 import 'package:fianarana/features/grades/application/grades_providers.dart';
 import 'package:fianarana/features/grades/data/grades_repository.dart';
 import 'package:fianarana/features/grades/services/bulletin_service.dart';
+import 'package:fianarana/features/grades/services/grades_import_service.dart';
 import 'package:fianarana/features/students/application/students_providers.dart';
 import 'package:fianarana/features/timetable/application/timetable_providers.dart';
 
@@ -359,6 +364,117 @@ class _GradesScreenState extends ConsumerState<GradesScreen> {
     }
   }
 
+  Future<void> _importGrades() async {
+    final pick = await FilePicker.platform.pickFiles(type: FileType.custom, allowedExtensions: ['csv', 'xlsx', 'xls']);
+    if (pick == null || pick.files.single.path == null) return;
+    final file = File(pick.files.single.path!);
+    final auth = ref.read(authControllerProvider);
+    try {
+      final service = GradesImportService();
+      final raw = await service.parseFile(file);
+      final db = ref.read(appDatabaseProvider);
+      final students = await ref.read(studentsRepositoryProvider).list(actorUserId: auth.userId, limit: 2000);
+      final studentIdByMatricule = <String, String>{};
+      final studentNameByMatricule = <String, String>{};
+      final studentClassById = <String, String?>{};
+      for (final s in students) {
+        studentIdByMatricule[s.matricule] = s.id;
+        studentNameByMatricule[s.matricule] = s.fullName;
+        studentClassById[s.id] = s.classId;
+      }
+      final subjects = await ref.read(timetableSubjectsProvider.future);
+      final subjectIdByLabel = <String, String>{};
+      for (final s in subjects) {
+        subjectIdByLabel[s.name.toLowerCase()] = s.id;
+        subjectIdByLabel[s.code.toLowerCase()] = s.id;
+      }
+      final periods = await ref.read(periodsProvider.future);
+      final periodIdByLabel = <String, String>{};
+      for (final p in periods) {
+        periodIdByLabel[p.name.toLowerCase()] = p.id;
+      }
+
+      final rows = service.toRows(
+        raw,
+        studentIdByMatricule: studentIdByMatricule,
+        studentNameByMatricule: studentNameByMatricule,
+        subjectIdByLabel: subjectIdByLabel,
+        periodIdByLabel: periodIdByLabel,
+      );
+      if (!mounted) return;
+      if (rows.isEmpty) {
+        _snack('Aucune ligne valide trouvée dans le fichier.');
+        return;
+      }
+      final selected = List<bool>.filled(rows.length, false);
+      for (var i = 0; i < rows.length; i++) {
+        selected[i] = rows[i].error == null && !rows[i].duplicate;
+      }
+
+      await showDialog(
+        context: context,
+        builder: (ctx) => StatefulBuilder(builder: (ctx, setD) => AlertDialog(
+          title: const Text('Import notes (prévisualisation & doublons)'),
+          content: SizedBox(width: 1000, height: 540, child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text('${rows.length} ligne(s) détectée(s). Les erreurs/doublons sont exclus par défaut. La matière et la période doivent correspondre aux libellés existants.', style: const TextStyle(fontSize: 12)),
+            const SizedBox(height: 8),
+            Expanded(child: SingleChildScrollView(child: SingleChildScrollView(scrollDirection: Axis.horizontal, child: DataTable(
+              columns: const [DataColumn(label: Text('Importer')), DataColumn(label: Text('Élève')), DataColumn(label: Text('Matière')), DataColumn(label: Text('Période')), DataColumn(label: Text('Libellé')), DataColumn(label: Text('Note/Maîtrise')), DataColumn(label: Text('État'))],
+              rows: List.generate(rows.length, (i) {
+                final r = rows[i];
+                final ok = r.error == null && !r.duplicate;
+                final val = r.isExempt ? 'Dispensé' : (r.masteryLevel != null && r.masteryLevel!.isNotEmpty ? (r.score != null ? '${r.score}/${r.maxScore} • ${r.masteryLevel}' : r.masteryLevel!) : (r.score?.toString() ?? '-'));
+                return DataRow(cells: [
+                  DataCell(Checkbox(value: selected[i], onChanged: ok ? (v)=>setD(()=>selected[i]=v??false) : null)),
+                  DataCell(Text(r.studentName ?? r.studentMatricule)),
+                  DataCell(Text(r.subjectLabel)),
+                  DataCell(Text(r.periodLabel)),
+                  DataCell(Text(r.evalLabel)),
+                  DataCell(Text(val)),
+                  DataCell(Text(r.error ?? (ok ? 'Prêt' : 'Ignoré'), style: TextStyle(fontSize: 11, color: ok ? const Color(0xFF059669) : const Color(0xFFDC2626)))),
+                ]);
+              }),
+            )))),
+          ])),
+          actions: [
+            TextButton(onPressed: ()=>Navigator.pop(ctx), child: const Text('Annuler')),
+            FilledButton.icon(onPressed: () async {
+              var imported = 0; var failed = 0;
+              for (var i = 0; i < rows.length; i++) {
+                if (!selected[i]) continue;
+                final r = rows[i];
+                try {
+                  await ref.read(gradesRepositoryProvider).upsertGrade(
+                    studentId: r.studentId!,
+                    classId: studentClassById[r.studentId!],
+                    subjectId: r.subjectId,
+                    periodId: r.periodId,
+                    label: r.evalLabel,
+                    score: r.score,
+                    maxScore: r.maxScore,
+                    coefficient: r.coefficient,
+                    isExempt: r.isExempt,
+                    masteryLevel: r.masteryLevel,
+                    observation: r.observation,
+                    validationStatus: 'Brouillon',
+                    actorUserId: auth.userId,
+                    actorUsername: auth.username,
+                  );
+                  imported++;
+                } catch (_) { failed++; }
+              }
+              ref.invalidate(gradesListProvider);
+              if (ctx.mounted) Navigator.pop(ctx);
+              if (mounted) _snack('Import terminé: $imported importée(s), $failed échec(s).');
+            }, icon: const Icon(Icons.playlist_add_check, size: 16), label: const Text('Importer la sélection')),
+          ],
+        )),
+      );
+    } catch (e) {
+      _snack('Erreur import notes: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -373,6 +489,12 @@ class _GradesScreenState extends ConsumerState<GradesScreen> {
       appBar: AppBar(
         title: const Text('Évaluations & Notes'),
         actions: [
+          OutlinedButton.icon(
+            onPressed: _importGrades,
+            icon: const Icon(Icons.upload_file_outlined, size: 16),
+            label: const Text('Importer'),
+          ),
+          const SizedBox(width: 8),
           OutlinedButton.icon(
             onPressed: () => context.go('/grades/councils'),
             icon: const Icon(Icons.groups_outlined, size: 16),
