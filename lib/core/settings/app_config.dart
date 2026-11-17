@@ -10,13 +10,15 @@ const kInactivityMinutesKey = 'inactivity_minutes';
 const kRecycleRetentionDaysKey = 'recycle_retention_days';
 const kSandboxModeKey = 'sandbox_mode';
 const kCivilStatusConfigKey = 'civil_status_config';
+const kMasteryLevelsKey = 'mastery_levels';
 
 class AppConfig {
   final int inactivityMinutes;
   final int recycleRetentionDays;
   final bool sandboxMode;
   final Map<String, dynamic> civilStatusConfig;
-  const AppConfig({required this.inactivityMinutes, required this.recycleRetentionDays, required this.sandboxMode, required this.civilStatusConfig});
+  final List<String> masteryLevels;
+  const AppConfig({required this.inactivityMinutes, required this.recycleRetentionDays, required this.sandboxMode, required this.civilStatusConfig, required this.masteryLevels});
   static const defaults = AppConfig(
     inactivityMinutes: 5,
     recycleRetentionDays: 30,
@@ -27,6 +29,7 @@ class AppConfig {
         'nationalIdNumber': {'label': 'N° identification nationale / CIN', 'required': false, 'enabled': true},
       }
     },
+    masteryLevels: ['Non acquis', 'En cours', 'Acquis', 'Expert'],
   );
 }
 
@@ -38,11 +41,20 @@ final appConfigProvider = FutureProvider<AppConfig>((ref) async {
   Map<String, dynamic> parseJson(String? v, Map<String, dynamic> def) {
     try { if (v==null||v.isEmpty) return def; final d=jsonDecode(v); return d is Map<String,dynamic>?d:def; } catch(_){ return def; }
   }
+  List<String> parseList(String? v, List<String> def) {
+    try {
+      if (v==null||v.isEmpty) return def;
+      final d = jsonDecode(v);
+      if (d is List) return d.map((e)=>e.toString()).where((e)=>e.trim().isNotEmpty).toList();
+      return def;
+    } catch (_) { return def; }
+  }
   return AppConfig(
     inactivityMinutes: parseInt(await get(kInactivityMinutesKey), 5).clamp(1, 120),
     recycleRetentionDays: parseInt(await get(kRecycleRetentionDaysKey), 30).clamp(1, 3650),
     sandboxMode: parseBool(await get(kSandboxModeKey), false),
     civilStatusConfig: parseJson(await get(kCivilStatusConfigKey), AppConfig.defaults.civilStatusConfig),
+    masteryLevels: parseList(await get(kMasteryLevelsKey), AppConfig.defaults.masteryLevels),
   );
 });
 

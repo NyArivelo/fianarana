@@ -9,6 +9,7 @@ import 'package:printing/printing.dart';
 import 'dart:convert';
 
 import 'package:fianarana/core/database/database_provider.dart';
+import 'package:fianarana/core/settings/app_config.dart';
 import 'package:fianarana/core/widgets/app_ui.dart';
 import 'package:fianarana/features/auth/application/auth_controller.dart';
 import 'package:fianarana/features/documents/application/document_providers.dart';
@@ -141,7 +142,8 @@ class _GradesScreenState extends ConsumerState<GradesScreen> {
     final status = ValueNotifier<String>(row.validationStatus);
     final mastery = ValueNotifier<String?>(row.masteryLevel);
     final exempt = ValueNotifier<bool>(row.isExempt);
-    const masteryLevels = <String?>[null, 'Non acquis', 'En cours', 'Acquis', 'Expert'];
+    final cfgLevels = ref.read(appConfigProvider).valueOrNull?.masteryLevels ?? AppConfig.defaults.masteryLevels;
+    final masteryLevels = <String?>[null, ...cfgLevels];
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -249,7 +251,8 @@ class _GradesScreenState extends ConsumerState<GradesScreen> {
     var status = 'Brouillon';
     var isExempt = false;
     String? masteryLevel;
-    const masteryLevels = <String?>[null, 'Non acquis', 'En cours', 'Acquis', 'Expert'];
+    final cfgLevels = ref.read(appConfigProvider).valueOrNull?.masteryLevels ?? AppConfig.defaults.masteryLevels;
+    final masteryLevels = <String?>[null, ...cfgLevels];
 
     final ok = await showDialog<bool>(
       context: context,

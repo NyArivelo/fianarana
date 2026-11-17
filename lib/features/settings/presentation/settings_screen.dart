@@ -862,6 +862,40 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     }
   }
 
+  Future<void> _saveMasteryLevels() async {
+    final current = ref.read(appConfigProvider).valueOrNull?.masteryLevels ?? AppConfig.defaults.masteryLevels;
+    final ctrl = TextEditingController(text: current.join('\n'));
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Référentiel de maîtrise (compétences)'),
+        content: SizedBox(
+          width: 520,
+          height: 320,
+          child: TextField(
+            controller: ctrl,
+            maxLines: null,
+            expands: true,
+            decoration: const InputDecoration(
+              labelText: 'Niveaux de maîtrise (un par ligne)',
+              hintText: 'Non acquis\nEn cours\nAcquis\nExpert',
+              alignLabelWithHint: true,
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Annuler')),
+          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Enregistrer')),
+        ],
+      ),
+    );
+    if (ok == true) {
+      final levels = ctrl.text.split(RegExp(r'[\r\n]+')).map((e)=>e.trim()).where((e)=>e.isNotEmpty).toList();
+      await saveAppSetting(ref, kMasteryLevelsKey, jsonEncode(levels.isEmpty ? AppConfig.defaults.masteryLevels : levels));
+      _setMessage('Niveaux de maîtrise enregistrés.');
+    }
+  }
+
   Future<void> _checkUpdate() async {
     _setMessage(
         'Mise à jour logique: version 1.1 (schéma v6). Vérification distante non configurée en local; les migrations Drift s\'appliquent automatiquement au redémarrage.');
@@ -896,6 +930,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 onPressed: _saveCivilStatusConfig,
                 icon: const Icon(Icons.badge_outlined, size: 16),
                 label: const Text('Champs état civil')),
+            OutlinedButton.icon(
+                onPressed: _saveMasteryLevels,
+                icon: const Icon(Icons.school_outlined, size: 16),
+                label: const Text('Niveaux de maîtrise')),
           ]),
           const SizedBox(height: 10),
           SwitchListTile(
