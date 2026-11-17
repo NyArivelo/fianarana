@@ -75,12 +75,12 @@ class _StaffScreenState extends ConsumerState<StaffScreen> with SingleTickerProv
     final reason = TextEditingController(text: 'Absence enseignant');
     String? slotHint;
     final ok = await showDialog<bool>(context: context, builder: (ctx)=>StatefulBuilder(builder:(ctx,setD){
+      int toMin(String hhmm){ final p=hhmm.split(':'); if(p.length!=2) return -1; return (int.tryParse(p[0])??-1)*60+(int.tryParse(p[1])??-1); }
+      bool overlap(int a1,int a2,int b1,int b2)=>a1<b2 && b1<a2;
       Future<void> suggestSlots() async {
         if (substituteId == null && roomId == null) { setD(()=>slotHint='Sélectionnez un remplaçant et/ou une salle pour proposer des créneaux libres.'); return; }
         final ttRepo = TimetableRepository(ref.read(appDatabaseProvider));
         final all = await ttRepo.listEntries(actorUserId: auth.userId);
-        int toMin(String hhmm){ final p=hhmm.split(':'); if(p.length!=2) return 0; return (int.tryParse(p[0])??0)*60+(int.tryParse(p[1])??0); }
-        bool overlap(int a1,int a2,int b1,int b2)=>a1<b2 && b1<a2;
         final busy = <List<int>>[];
         for (final e in all) {
           if (e.dayOfWeek != day) continue;
@@ -102,6 +102,21 @@ class _StaffScreenState extends ConsumerState<StaffScreen> with SingleTickerProv
         }
         setD(()=>slotHint = slots.isEmpty ? 'Aucun créneau libre d\'1h trouvé entre 08:00 et 17:00 pour le jour/ressources sélectionnés.' : 'Créneaux libres suggérés (1h) : ${slots.take(10).join(', ')}${slots.length>10?' …':''}');
       }
+      Future<void> suggestSubstitutes() async {
+        final s1 = toMin(startT.text.trim()), s2 = toMin(endT.text.trim());
+        if (s1 < 0 || s2 < 0 || s2 <= s1) { setD(()=>slotHint='Indiquez un créneau valide (début/fin HH:mm) pour suggérer des remplaçants disponibles.'); return; }
+        final ttRepo = TimetableRepository(ref.read(appDatabaseProvider));
+        final all = await ttRepo.listEntries(actorUserId: auth.userId);
+        final busyTeachers = <String>{};
+        for (final e in all) {
+          if (e.dayOfWeek != day) continue;
+          if (e.teacherId == null) continue;
+          final e1 = toMin(e.startTime), e2 = toMin(e.endTime);
+          if (overlap(s1,s2,e1,e2)) busyTeachers.add(e.teacherId!);
+        }
+        final free = teachers.where((t) => t.id != teacherId && !busyTeachers.contains(t.id)).map((t)=>'${t.lastName} ${t.firstName}').toList();
+        setD(()=>slotHint = free.isEmpty ? 'Aucun enseignant disponible trouvé sur ce créneau.' : 'Remplaçants disponibles : ${free.take(12).join(', ')}${free.length>12?' …':''}');
+      }
       return AlertDialog(
       title: const Text('Absence enseignant & remplacement/rattrapage'),
       content: SizedBox(width: 680, child: SingleChildScrollView(child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children:[
@@ -116,7 +131,10 @@ class _StaffScreenState extends ConsumerState<StaffScreen> with SingleTickerProv
         DropdownButtonFormField<String?>(value: roomId, decoration: const InputDecoration(labelText: 'Salle (suggestion de créneaux disponibles)'), items: [const DropdownMenuItem<String?>(value:null, child: Text('-')), ...rooms.map((r)=>DropdownMenuItem<String?>(value:r.id, child: Text(r.name)))], onChanged: (v)=>setD(()=>roomId=v)),
         Row(children:[Expanded(child: DropdownButtonFormField<String>(value: day, decoration: const InputDecoration(labelText: 'Jour'), items: const ['Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'].map((d)=>DropdownMenuItem(value:d, child: Text(d))).toList(), onChanged: (v)=>setD(()=>day=v??day))), const SizedBox(width:8), Expanded(child: TextField(controller: startT, decoration: const InputDecoration(labelText: 'Début HH:mm'))), const SizedBox(width:8), Expanded(child: TextField(controller: endT, decoration: const InputDecoration(labelText: 'Fin HH:mm')))]),
         const SizedBox(height: 8),
-        Align(alignment: Alignment.centerLeft, child: OutlinedButton.icon(onPressed: suggestSlots, icon: const Icon(Icons.event_available_outlined, size:16), label: const Text('Suggérer créneaux libres'))),
+        Wrap(spacing: 8, runSpacing: 8, children: [
+          OutlinedButton.icon(onPressed: suggestSlots, icon: const Icon(Icons.event_available_outlined, size:16), label: const Text('Suggérer créneaux libres')),
+          OutlinedButton.icon(onPressed: suggestSubstitutes, icon: const Icon(Icons.person_search_outlined, size:16), label: const Text('Suggérer remplaçants disponibles')),
+        ]),
         if (slotHint != null) Padding(padding: const EdgeInsets.only(top:6), child: Text(slotHint!, style: const TextStyle(fontSize: 11, color: Color(0xFF2563EB)))),
       ]))),
       actions:[TextButton(onPressed: ()=>Navigator.pop(ctx,false), child: const Text('Annuler')), FilledButton(onPressed: ()=>Navigator.pop(ctx,true), child: const Text('Enregistrer'))],
