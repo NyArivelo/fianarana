@@ -147,25 +147,54 @@ class TimetableRepository {
 
   Future<List<TimetableSession>> list({String? actorUserId, String? classId, String? teacherId, String? day}) async {
     await _require(actorUserId, 'settings.read');
+    final scopeClasses = await AffectationScope(db).allowedClassIdsForUser(actorUserId);
+    String? scopeStaffId;
+    if (scopeClasses != null && actorUserId != null) {
+      final st = await (db.select(db.staffMembers)..where((t)=>t.userId.equals(actorUserId) & t.isDeleted.equals(false))).getSingleOrNull();
+      scopeStaffId = st?.id;
+      if (scopeClasses.isEmpty && scopeStaffId == null) return const <TimetableSession>[];
+      if (classId != null && classId.isNotEmpty && !scopeClasses.contains(classId)) return const <TimetableSession>[];
+      if (teacherId != null && teacherId.isNotEmpty && scopeStaffId != null && teacherId != scopeStaffId) return const <TimetableSession>[];
+    }
     final q = db.select(db.timetableSessions)..where((t) => t.isDeleted.equals(false));
-    if (classId != null && classId.isNotEmpty) q.where((t) => t.classId.equals(classId));
+    if (classId != null && classId.isNotEmpty) {
+      q.where((t) => t.classId.equals(classId));
+    } else if (scopeClasses != null) {
+      if (scopeStaffId != null) {
+        q.where((t) => t.classId.isIn(scopeClasses) | t.teacherId.equals(scopeStaffId));
+      } else {
+        q.where((t) => t.classId.isIn(scopeClasses));
+      }
+    }
     if (teacherId != null && teacherId.isNotEmpty) q.where((t) => t.teacherId.equals(teacherId));
     if (day != null && day.isNotEmpty) q.where((t) => t.dayOfWeek.equals(day));
     return q.get();
   }
 
-  Future<List<ClassesData>> allClasses() {
-    return (db.select(db.classes)
-          ..where((t) => t.isDeleted.equals(false))
-          ..orderBy([(t) => OrderingTerm.asc(t.label)]))
-        .get();
+  Future<List<ClassesData>> allClasses({String? actorUserId}) async {
+    final scopeClasses = await AffectationScope(db).allowedClassIdsForUser(actorUserId);
+    final q = db.select(db.classes)..where((t) => t.isDeleted.equals(false));
+    if (scopeClasses != null) {
+      if (scopeClasses.isEmpty) return const <ClassesData>[];
+      q.where((t) => t.id.isIn(scopeClasses));
+    }
+    q.orderBy([(t) => OrderingTerm.asc(t.label)]);
+    return q.get();
   }
 
-  Future<List<StaffMember>> allTeachers() {
-    return (db.select(db.staffMembers)
-          ..where((t) => t.isDeleted.equals(false) & t.functionTitle.like('%enseign%'))
-          ..orderBy([(t) => OrderingTerm.asc(t.lastName)]))
-        .get();
+  Future<List<StaffMember>> allTeachers({String? actorUserId}) async {
+    final scopeClasses = await AffectationScope(db).allowedClassIdsForUser(actorUserId);
+    final q = db.select(db.staffMembers)..where((t) => t.isDeleted.equals(false) & t.functionTitle.like('%enseign%'));
+    if (scopeClasses != null && actorUserId != null) {
+      final st = await (db.select(db.staffMembers)..where((t)=>t.userId.equals(actorUserId) & t.isDeleted.equals(false))).getSingleOrNull();
+      if (st != null) {
+        q.where((t) => t.id.equals(st.id));
+      } else {
+        return const <StaffMember>[];
+      }
+    }
+    q.orderBy([(t) => OrderingTerm.asc(t.lastName)]);
+    return q.get();
   }
 
   Future<List<Subject>> allSubjects() {

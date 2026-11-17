@@ -19,11 +19,13 @@ final timetableEntriesProvider = FutureProvider.family<List<TimetableEntry>, ({S
 });
 
 final timetableClassesProvider = FutureProvider<List<ClassesData>>((ref) {
-  return ref.watch(timetableRepositoryProvider).allClasses();
+  final userId = ref.watch(authControllerProvider).userId;
+  return ref.watch(timetableRepositoryProvider).allClasses(actorUserId: userId);
 });
 
 final timetableTeachersProvider = FutureProvider<List<StaffMember>>((ref) {
-  return ref.watch(timetableRepositoryProvider).allTeachers();
+  final userId = ref.watch(authControllerProvider).userId;
+  return ref.watch(timetableRepositoryProvider).allTeachers(actorUserId: userId);
 });
 
 final timetableSubjectsProvider = FutureProvider<List<Subject>>((ref) {
