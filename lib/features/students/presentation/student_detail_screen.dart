@@ -21,6 +21,8 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> {
   final _lastName = TextEditingController();
   final _firstName = TextEditingController();
   final _birthPlace = TextEditingController();
+  final _birthCert = TextEditingController();
+  final _nationalId = TextEditingController();
   final _medical = TextEditingController();
   String? _sex;
   String? _classId;
@@ -35,6 +37,8 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> {
     _lastName.dispose();
     _firstName.dispose();
     _birthPlace.dispose();
+    _birthCert.dispose();
+    _nationalId.dispose();
     _medical.dispose();
     super.dispose();
   }
@@ -53,6 +57,8 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> {
           sex: _sex,
           birthDate: _birthDate,
           birthPlace: _birthPlace.text.trim().isEmpty ? null : _birthPlace.text.trim(),
+          birthCertificateNumber: _birthCert.text.trim().isEmpty ? null : _birthCert.text.trim(),
+          nationalIdNumber: _nationalId.text.trim().isEmpty ? null : _nationalId.text.trim(),
           classId: _classId,
           medicalNotes: _medical.text.trim().isEmpty ? null : _medical.text.trim(),
           actorUserId: auth.userId,
@@ -67,6 +73,8 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> {
           sex: _sex,
           birthDate: _birthDate,
           birthPlace: _birthPlace.text.trim().isEmpty ? null : _birthPlace.text.trim(),
+          birthCertificateNumber: _birthCert.text.trim().isEmpty ? null : _birthCert.text.trim(),
+          nationalIdNumber: _nationalId.text.trim().isEmpty ? null : _nationalId.text.trim(),
           medicalNotes: _medical.text.trim().isEmpty ? null : _medical.text.trim(),
           actorUserId: auth.userId,
           actorUsername: auth.username,
@@ -108,6 +116,8 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> {
             _lastName.text = student.lastName;
             _firstName.text = student.firstName;
             _birthPlace.text = student.birthPlace ?? '';
+            _birthCert.text = (student as dynamic).birthCertificateNumber ?? '';
+            _nationalId.text = (student as dynamic).nationalIdNumber ?? '';
             _medical.text = student.medicalNotes ?? '';
             _sex = student.sex;
             _birthDate = student.birthDate;
@@ -134,7 +144,17 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> {
                               DropdownMenuItem(value: 'M', child: Text('M')),
                               DropdownMenuItem(value: 'F', child: Text('F')),
                             ], onChanged: (v)=>setState(()=>_sex=v))),
+                            SizedBox(width: 220, child: OutlinedButton.icon(
+                              onPressed: () async {
+                                final picked = await showDatePicker(context: context, initialDate: _birthDate ?? DateTime(2012,1,1), firstDate: DateTime(1990), lastDate: DateTime.now());
+                                if (picked != null) setState(()=>_birthDate = picked);
+                              },
+                              icon: const Icon(Icons.cake_outlined, size: 16),
+                              label: Text(_birthDate == null ? 'Date de naissance' : '${_birthDate!.day.toString().padLeft(2,'0')}/${_birthDate!.month.toString().padLeft(2,'0')}/${_birthDate!.year}'),
+                            )),
                             SizedBox(width: 260, child: TextFormField(controller: _birthPlace, decoration: const InputDecoration(labelText: 'Lieu de naissance'))),
+                            SizedBox(width: 260, child: TextFormField(controller: _birthCert, decoration: const InputDecoration(labelText: 'N° acte de naissance (état civil)'))),
+                            SizedBox(width: 260, child: TextFormField(controller: _nationalId, decoration: const InputDecoration(labelText: 'N° identification nationale / CIN'))),
                           ]),
                           const SizedBox(height: 12),
                           classesAsync.when(
