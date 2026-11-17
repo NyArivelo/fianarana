@@ -6,9 +6,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:printing/printing.dart';
 
+import 'dart:convert';
+
 import 'package:fianarana/core/database/database_provider.dart';
 import 'package:fianarana/core/widgets/app_ui.dart';
 import 'package:fianarana/features/auth/application/auth_controller.dart';
+import 'package:fianarana/features/documents/application/document_providers.dart';
+import 'package:fianarana/features/documents/services/document_studio_pdf_service.dart';
 import 'package:fianarana/features/grades/application/council_providers.dart';
 import 'package:fianarana/features/grades/application/grades_providers.dart';
 import 'package:fianarana/features/grades/data/grades_repository.dart';
@@ -44,15 +48,71 @@ class _GradesScreenState extends ConsumerState<GradesScreen> {
   }
 
   Future<void> _generateBulletin(GradeRow row) async {
+    final choice = await showDialog<String>(
+      context: context,
+      builder: (ctx) => SimpleDialog(
+        title: const Text('Générer le bulletin'),
+        children: [
+          SimpleDialogOption(onPressed: () => Navigator.pop(ctx, 'standard'), child: const ListTile(leading: Icon(Icons.picture_as_pdf_outlined), title: Text('Bulletin PDF (standard)'))),
+          SimpleDialogOption(onPressed: () => Navigator.pop(ctx, 'studio'), child: const ListTile(leading: Icon(Icons.auto_awesome_mosaic_outlined), title: Text('Bulletin via Document Studio (modèle)'))),
+        ],
+      ),
+    );
+    if (choice == null) return;
     final all = await ref.read(
         gradesListProvider((classId: _classId, subjectId: _subjectId)).future);
     final studentRows = all.where((g) => g.studentId == row.studentId).toList();
     final avg = GradesRepository.weightedAverage(studentRows);
+    String mentionFor(double? a) {
+      if (a == null) return '';
+      if (a >= 16) return 'Très bien';
+      if (a >= 14) return 'Bien';
+      if (a >= 12) return 'Assez bien';
+      if (a >= 10) return 'Passable';
+      return 'Insuffisant';
+    }
+    final mention = mentionFor(avg);
+
+    if (choice == 'studio') {
+      try {
+        final auth = ref.read(authControllerProvider);
+        final docRepo = ref.read(documentRepositoryProvider);
+        final tpl = await docRepo.defaultTemplate('bulletin', actorUserId: auth.userId);
+        if (tpl == null) {
+          _snack('Aucun modèle "bulletin" actif trouvé dans Document Studio.');
+          return;
+        }
+        final content = jsonDecode(tpl.contentJson as String) as Map<String, dynamic>;
+        final pdf = DocumentStudioPdfService();
+        final lines = studentRows.map((g) => '- ${g.subjectName ?? g.label}: ${g.isExempt ? "Dispensé" : (g.score?.toStringAsFixed(2) ?? "-")}${g.masteryLevel != null && g.masteryLevel!.isNotEmpty ? " (${g.masteryLevel})" : ""}').join('\n');
+        final now = DateTime.now();
+        final ctx = <String, dynamic>{
+          'etablissement': {'nom': 'Établissement scolaire', 'adresse': ''},
+          'eleve': {'nom': row.studentName, 'matricule': row.matricule, 'classe': row.classLabel ?? ''},
+          'annee': {'libelle': '2026-2027'},
+          'periode': {'libelle': 'Période (filtre courant)'},
+          'date': {'jour': '${now.day.toString().padLeft(2,'0')}/${now.month.toString().padLeft(2,'0')}/${now.year}'},
+          'resultats': {
+            'moyenne': avg?.toStringAsFixed(2) ?? '-',
+            'rang': '',
+            'mention': mention,
+            'appreciation': '',
+            'details': lines,
+          },
+        };
+        final bytes = await pdf.renderTemplate(templateContent: content, context: ctx, pageFormat: tpl.pageFormat);
+        await Printing.layoutPdf(onLayout: (_) async => bytes, name: 'bulletin_studio_${row.matricule}.pdf');
+      } catch (e) {
+        _snack('Erreur bulletin (modèle): $e');
+      }
+      return;
+    }
+
     final data = BulletinStudentData(
       fullName: row.studentName,
       matricule: row.matricule,
       classLabel: row.classLabel,
-      periodLabel: 'Période sélectionnée',
+      periodLabel: 'Période (filtre courant)',
       subjects: studentRows
           .map((g) => BulletinSubjectLine(
                 subject: g.subjectName ?? g.label,
@@ -65,9 +125,10 @@ class _GradesScreenState extends ConsumerState<GradesScreen> {
               ))
           .toList(),
       average: avg,
+      mention: mention.isEmpty ? null : mention,
     );
     final bytes = await BulletinService().generateStudentBulletin(data,
-        establishmentName: 'Établissement (paramètres à lier)');
+        establishmentName: 'Établissement scolaire');
     await Printing.layoutPdf(
         onLayout: (_) async => bytes, name: 'bulletin_${row.matricule}.pdf');
   }
