@@ -6,6 +6,7 @@ import 'package:printing/printing.dart';
 import 'dart:convert';
 
 import 'package:fianarana/core/utils/csv_export.dart';
+import 'package:fianarana/core/utils/xlsx_export.dart';
 import 'package:fianarana/core/widgets/app_ui.dart';
 import 'package:fianarana/features/auth/application/auth_controller.dart';
 import 'package:fianarana/core/security/permission_providers.dart';
@@ -193,40 +194,31 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
   }
 
   Future<void> _export(List<PaymentRow> rows) async {
-    final f = await CsvExport.export(
-      filename: 'paiements_export.csv',
-      headers: const [
-        'Recu',
-        'Date',
-        'Eleve',
-        'Matricule',
-        'Classe',
-        'Libelle',
-        'Du',
-        'Paye',
-        'Reste',
-        'Mode',
-        'Etat',
-      ],
-      rows: rows
-          .map((r) => <String?>[
-                r.receipt,
-                r.date?.toIso8601String(),
-                r.studentName,
-                r.matricule,
-                r.classLabel,
-                r.feeLabel,
-                '${r.due}',
-                '${r.paid}',
-                '${r.balance}',
-                r.method,
-                r.closeStatus,
-              ])
-          .toList(),
-    );
+    final choice = await showDialog<String>(context: context, builder: (ctx)=>SimpleDialog(title: const Text('Exporter les transactions'), children: [
+      SimpleDialogOption(onPressed: ()=>Navigator.pop(ctx,'csv'), child: const ListTile(leading: Icon(Icons.description_outlined), title: Text('Exporter en CSV'))),
+      SimpleDialogOption(onPressed: ()=>Navigator.pop(ctx,'xlsx'), child: const ListTile(leading: Icon(Icons.grid_on_outlined), title: Text('Exporter en Excel (XLSX)'))),
+    ]));
+    if (choice == null) return;
+    final ts = DateTime.now().millisecondsSinceEpoch;
+    final headers = const ['Recu','Date','Eleve','Matricule','Classe','Libelle','Du','Paye','Reste','Mode','Etat'];
+    final data = rows.map((r) => <String?>[
+          r.receipt,
+          r.date?.toIso8601String(),
+          r.studentName,
+          r.matricule,
+          r.classLabel,
+          r.feeLabel,
+          '${r.due}',
+          '${r.paid}',
+          '${r.balance}',
+          r.method,
+          r.closeStatus,
+        ]).toList();
+    final f = choice == 'xlsx'
+        ? await XlsxExport.export(filename: 'paiements_export_$ts.xlsx', sheetName: 'Paiements', headers: headers, rows: data)
+        : await CsvExport.export(filename: 'paiements_export_$ts.csv', headers: headers, rows: data);
     if (!mounted) return;
-    ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text('Export CSV : ${f.path}')));
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Export ${choice.toUpperCase()} : ${f.path}')));
   }
 
   Future<void> _printReceipt(PaymentRow r) async {
@@ -332,7 +324,36 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
             ]),
           ),
         ),
-        actions: [TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Fermer'))],
+        actions: [
+          OutlinedButton.icon(onPressed: () async {
+            try {
+              final fmt = await showDialog<String>(context: context, builder: (c)=>SimpleDialog(title: const Text('Exporter le rapport & clôtures'), children: [
+                SimpleDialogOption(onPressed: ()=>Navigator.pop(c,'csv'), child: const ListTile(leading: Icon(Icons.description_outlined), title: Text('CSV'))),
+                SimpleDialogOption(onPressed: ()=>Navigator.pop(c,'xlsx'), child: const ListTile(leading: Icon(Icons.grid_on_outlined), title: Text('Excel (XLSX)'))),
+              ]));
+              if (fmt == null) return;
+              final ts = DateTime.now().millisecondsSinceEpoch;
+              final headers = const ['Type','Date/Clé','Libellé','Montant/Info'];
+              final rows = <List<String?>>[
+                ['Rapport','transactions','Nombre de transactions','${report.paymentsCount}'],
+                ['Rapport','total_du','Total dû','${report.totalDue}'],
+                ['Rapport','total_paye','Total encaissé','${report.totalPaid}'],
+                ['Rapport','reste','Reste à recouvrer','${report.totalBalance}'],
+                ['Rapport','echeances_dues','Échéances dues/retard','${report.dueSchedules}'],
+                ['Rapport','en_retard','En retard','${report.overdueSchedules}'],
+                ...report.paidByMethod.entries.map((e)=>['Par mode', e.key, 'Encaissements', '${e.value}']),
+                ...closures.map((c)=>['Clôture','${c.closureDate.year}-${c.closureDate.month.toString().padLeft(2,'0')}-${c.closureDate.day.toString().padLeft(2,'0')}','Espèces/MM/Chèque/Virement','${c.totalCash}/${c.totalMobileMoney}/${c.totalCheck}/${c.totalTransfer}']),
+              ];
+              final file = fmt == 'xlsx'
+                  ? await XlsxExport.export(filename: 'rapport_finance_$ts.xlsx', sheetName: 'Rapport', headers: headers, rows: rows)
+                  : await CsvExport.export(filename: 'rapport_finance_$ts.csv', headers: headers, rows: rows);
+              if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Export ${fmt.toUpperCase()} : ${file.path}')));
+            } catch (e) {
+              if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erreur export rapport : $e')));
+            }
+          }, icon: const Icon(Icons.download_outlined, size: 16), label: const Text('Exporter')),
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Fermer')),
+        ],
       ),
     );
   }

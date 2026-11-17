@@ -359,32 +359,27 @@ class _AttendanceScreenState extends ConsumerState<AttendanceScreen> {
   }
 
   Future<void> _export(List<AttendanceRow> rows) async {
-    final file = await CsvExport.export(
-      filename: 'presences_${DateTime.now().millisecondsSinceEpoch}.csv',
-      headers: const [
-        'Date',
-        'Matricule',
-        'Eleve',
-        'Classe',
-        'Categorie',
-        'Statut',
-        'Creneau',
-        'Justification',
-      ],
-      rows: rows
-          .map((r) => <String?>[
-                formatDateIso(r.date),
-                r.matricule,
-                r.studentName,
-                r.classLabel,
-                r.category,
-                r.status,
-                r.slot,
-                r.justification ?? r.details,
-              ])
-          .toList(),
-    );
-    _snack('Export CSV : ${file.path}');
+    final choice = await showDialog<String>(context: context, builder: (ctx)=>SimpleDialog(title: const Text('Exporter présences/discipline'), children: [
+      SimpleDialogOption(onPressed: ()=>Navigator.pop(ctx,'csv'), child: const ListTile(leading: Icon(Icons.description_outlined), title: Text('Exporter en CSV'))),
+      SimpleDialogOption(onPressed: ()=>Navigator.pop(ctx,'xlsx'), child: const ListTile(leading: Icon(Icons.grid_on_outlined), title: Text('Exporter en Excel (XLSX)'))),
+    ]));
+    if (choice == null) return;
+    final ts = DateTime.now().millisecondsSinceEpoch;
+    final headers = const ['Date','Matricule','Eleve','Classe','Categorie','Statut','Creneau','Justification'];
+    final data = rows.map((r) => <String?>[
+          formatDateIso(r.date),
+          r.matricule,
+          r.studentName,
+          r.classLabel,
+          r.category,
+          r.status,
+          r.slot,
+          r.justification ?? r.details,
+        ]).toList();
+    final file = choice == 'xlsx'
+        ? await XlsxExport.export(filename: 'presences_$ts.xlsx', sheetName: 'Presences', headers: headers, rows: data)
+        : await CsvExport.export(filename: 'presences_$ts.csv', headers: headers, rows: data);
+    _snack('Export ${choice.toUpperCase()} : ${file.path}');
   }
 
   // ---------------------------------------------------------------------------
