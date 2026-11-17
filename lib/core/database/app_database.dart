@@ -10,6 +10,8 @@ import 'package:fianarana/core/database/uuid.dart';
 
 part 'app_database.g.dart';
 
+File sandboxMarkerFile(Directory dbFolder) => File(p.join(dbFolder.path, 'use_sandbox.flag'));
+
 LazyDatabase _openConnection() {
   return LazyDatabase(() async {
     final dir = await getApplicationSupportDirectory();
@@ -17,7 +19,9 @@ LazyDatabase _openConnection() {
     if (!dbFolder.existsSync()) {
       dbFolder.createSync(recursive: true);
     }
-    final file = File(p.join(dbFolder.path, 'fianarana.sqlite'));
+    final useSandbox = sandboxMarkerFile(dbFolder).existsSync();
+    final dbName = useSandbox ? 'fianarana_sandbox.sqlite' : 'fianarana.sqlite';
+    final file = File(p.join(dbFolder.path, dbName));
     return NativeDatabase.createInBackground(file);
   });
 }

@@ -187,13 +187,35 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> {
                               SizedBox(width: 260, child: TextFormField(
                                 controller: _birthCert,
                                 decoration: InputDecoration(labelText: '$birthCertLabel${reqBirthCert ? ' *' : ''}'),
-                                validator: (v) => (reqBirthCert && (v == null || v.trim().isEmpty)) ? 'Requis' : null,
+                                validator: (v) {
+                                  final val = (v ?? '').trim();
+                                  if (reqBirthCert && val.isEmpty) return 'Requis';
+                                  if (val.isNotEmpty) {
+                                    final pattern = birthCertCfg['pattern'] as String?;
+                                    if (pattern != null && pattern.isNotEmpty) {
+                                      final re = RegExp(pattern);
+                                      if (!re.hasMatch(val)) return 'Format invalide';
+                                    }
+                                  }
+                                  return null;
+                                },
                               )),
                             if (showNatId)
                               SizedBox(width: 260, child: TextFormField(
                                 controller: _nationalId,
                                 decoration: InputDecoration(labelText: '$natIdLabel${reqNatId ? ' *' : ''}'),
-                                validator: (v) => (reqNatId && (v == null || v.trim().isEmpty)) ? 'Requis' : null,
+                                validator: (v) {
+                                  final val = (v ?? '').trim();
+                                  if (reqNatId && val.isEmpty) return 'Requis';
+                                  if (val.isNotEmpty) {
+                                    final pattern = natIdCfg['pattern'] as String?;
+                                    if (pattern != null && pattern.isNotEmpty) {
+                                      final re = RegExp(pattern);
+                                      if (!re.hasMatch(val)) return 'Format invalide';
+                                    }
+                                  }
+                                  return null;
+                                },
                               )),
                           ]),
                           const SizedBox(height: 12),

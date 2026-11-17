@@ -903,9 +903,20 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
   Future<void> _setSandbox(bool v) async {
     await saveAppSetting(ref, kSandboxModeKey, v ? '1' : '0');
+    try {
+      final dir = await getApplicationSupportDirectory();
+      final folder = Directory(p.join(dir.path, 'fianarana'));
+      if (!folder.existsSync()) folder.createSync(recursive: true);
+      final marker = File(p.join(folder.path, 'use_sandbox.flag'));
+      if (v) {
+        if (!marker.existsSync()) await marker.writeAsString('sandbox');
+      } else {
+        if (marker.existsSync()) await marker.delete();
+      }
+    } catch (_) {}
     _setMessage(v
-        ? 'Mode démonstration/bac à sable activé (indicateur). Réimportez les données de test pour former sans altérer la production.'
-        : 'Mode démonstration désactivé (production).');
+        ? 'Mode démonstration/bac à sable activé. Redémarrez l\'application pour ouvrir la base bac à sable isolée (données de test séparées).'
+        : 'Mode démonstration désactivé. Redémarrez l\'application pour revenir à la base de production.');
   }
 
   Widget _advancedAdminCard() {
