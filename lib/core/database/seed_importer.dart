@@ -82,16 +82,85 @@ class SeedImporter {
     });
     counts['conseils_classe'] = await _importCouncils();
     counts['decisions_conseil'] = await _importCouncilDecisions();
-    // RBAC/permissions de base (données de test sécurité) + trace d'import
+    counts['corbeille_test'] = await _importRecycleBinTestData();
+    // RBAC/permissions de base (donn�es de test s�curit�) + trace d'import
     await RbacSeed(db).ensureDefaults();
     await AuditService(db).log(
-      module: 'Système',
-      targetObject: 'Base de données',
-      description: 'Import des données de test terminé',
-      result: 'Succès',
+      module: 'Syst�me',
+      targetObject: 'Base de donn�es',
+      description: 'Import des donn�es de test termin�',
+      result: 'Succ�s',
       metadata: counts,
     );
     return counts.entries.map((e) => '${e.key}=${e.value}').join(', ');
+  }
+
+  Future<int> _importRecycleBinTestData() async {
+    // Donn�es de test corbeille (suppression logique) pour plusieurs types d'entit�s.
+    final delAt = DateTime.now().subtract(const Duration(days: 2));
+    var n = 0;
+    final anyStudent = await (db.select(db.students)..limit(1)).getSingleOrNull();
+    final anyClass = await (db.select(db.classes)..limit(1)).getSingleOrNull();
+    final anyStaff = await (db.select(db.staffMembers)..limit(1)).getSingleOrNull();
+    final anySubject = await (db.select(db.subjects)..limit(1)).getSingleOrNull();
+    final anyYear = await (db.select(db.schoolYears)..limit(1)).getSingleOrNull();
+    final anyPeriod = await (db.select(db.periods)..limit(1)).getSingleOrNull();
+    final anyItem = await (db.select(db.libraryItems)..limit(1)).getSingleOrNull();
+
+    Future<void> soft(TableInfo tbl, Insertable row) async { await db.into(tbl).insertOnConflictUpdate(row); n++; }
+
+    if (anyStudent != null) {
+      await soft(db.students, StudentsCompanion.insert(id: const Value('rb-student-1'), matricule: 'RB-STU-001', lastName: 'TEST-CORBEILLE', firstName: 'Eleve', isDeleted: const Value(true), deletedAt: Value(delAt)));
+      if (anyClass != null) {
+        await soft(db.enrollments, EnrollmentsCompanion.insert(id: const Value('rb-enroll-1'), studentId: 'rb-student-1', classId: Value(anyClass.id), status: const Value('Archiv�e (test corbeille)'), isDeleted: const Value(true), deletedAt: Value(delAt)));
+      }
+      await soft(db.attendanceEvents, AttendanceEventsCompanion.insert(id: const Value('rb-att-1'), category: 'Appel', studentId: anyStudent.id, date: DateTime.now(), status: 'Absent (test corbeille)', isDeleted: const Value(true), deletedAt: Value(delAt)));
+      await soft(db.payments, PaymentsCompanion.insert(id: const Value('rb-pay-1'), receiptNumber: 'RB-REC-001', studentId: anyStudent.id, feeLabel: 'Paiement test corbeille', isDeleted: const Value(true), deletedAt: Value(delAt)));
+      if (anyPeriod != null) {
+        await soft(db.evaluations, EvaluationsCompanion.insert(id: const Value('rb-eval-1'), studentId: anyStudent.id, periodId: Value(anyPeriod.id), subjectId: Value(anySubject?.id), classId: Value(anyClass?.id), label: 'Note test corbeille', isDeleted: const Value(true), deletedAt: Value(delAt)));
+      }
+      await soft(db.guardians, GuardiansCompanion.insert(id: const Value('rb-guard-1'), lastName: 'TEST-CORBEILLE', firstName: 'Responsable', isDeleted: const Value(true), deletedAt: Value(delAt)));
+    }
+    if (anyClass != null) {
+      await soft(db.classes, ClassesCompanion.insert(id: const Value('rb-class-1'), label: 'CLASSE-TEST-CORBEILLE', isDeleted: const Value(true), deletedAt: Value(delAt)));
+      if (anyPeriod != null) {
+        await soft(db.classCouncils, ClassCouncilsCompanion.insert(id: const Value('rb-council-1'), classId: anyClass.id, periodId: anyPeriod.id, status: const Value('Test corbeille'), isDeleted: const Value(true), deletedAt: Value(delAt)));
+        await soft(db.councilDecisions, CouncilDecisionsCompanion.insert(id: const Value('rb-decision-1'), councilId: 'rb-council-1', studentId: anyStudent?.id ?? 'rb-student-1', decision: const Value('D�cision test corbeille'), isDeleted: const Value(true), deletedAt: Value(delAt)));
+      }
+    }
+    if (anyStaff != null) {
+      await soft(db.staffMembers, StaffMembersCompanion.insert(id: const Value('rb-staff-1'), staffNumber: 'RB-RH-001', lastName: 'TEST-CORBEILLE', firstName: 'Personnel', isDeleted: const Value(true), deletedAt: Value(delAt)));
+      await soft(db.teacherAbsences, TeacherAbsencesCompanion.insert(id: const Value('rb-abs-1'), teacherId: anyStaff.id, startDate: DateTime.now(), endDate: DateTime.now(), reason: const Value('Absence test corbeille'), isDeleted: const Value(true), deletedAt: Value(delAt)));
+      if (anyClass != null) {
+        await soft(db.teacherAssignments, TeacherAssignmentsCompanion.insert(id: const Value('rb-assign-1'), staffId: anyStaff.id, classId: anyClass.id, subjectId: Value(anySubject?.id), schoolYearId: Value(anyYear?.id), isDeleted: const Value(true), deletedAt: Value(delAt)));
+      }
+      await soft(db.timetableSessions, TimetableSessionsCompanion.insert(id: const Value('rb-tt-1'), classId: Value(anyClass?.id), teacherId: Value(anyStaff.id), dayOfWeek: 'Lundi', startTime: '00:00', endTime: '00:30', notes: const Value('S�ance test corbeille'), isDeleted: const Value(true), deletedAt: Value(delAt)));
+    }
+    if (anySubject != null) {
+      await soft(db.subjects, SubjectsCompanion.insert(id: const Value('rb-subj-1'), code: 'RB-MAT', name: 'Mati�re test corbeille', isDeleted: const Value(true), deletedAt: Value(delAt)));
+    }
+    await soft(db.levels, LevelsCompanion.insert(id: const Value('rb-level-1'), name: 'Niveau test corbeille', isDeleted: const Value(true), deletedAt: Value(delAt)));
+    if (anyYear != null) {
+      final est = await (db.select(db.establishments)..limit(1)).getSingleOrNull();
+      if (est != null) {
+        await soft(db.schoolYears, SchoolYearsCompanion.insert(id: const Value('rb-year-1'), establishmentId: est.id, code: 'RB-YEAR', label: 'Ann�e test corbeille', startDate: DateTime(2000,1,1), endDate: DateTime(2000,12,31), isDeleted: const Value(true), deletedAt: Value(delAt)));
+      }
+      await soft(db.periods, PeriodsCompanion.insert(id: const Value('rb-period-1'), schoolYearId: anyYear.id, name: 'P�riode test corbeille', isDeleted: const Value(true), deletedAt: Value(delAt)));
+    }
+    await soft(db.paymentSchedules, PaymentSchedulesCompanion.insert(id: const Value('rb-sched-1'), studentId: anyStudent?.id ?? 'rb-student-1', label: '�ch�ance test corbeille', isDeleted: const Value(true), deletedAt: Value(delAt)));
+    await soft(db.libraryItems, LibraryItemsCompanion.insert(id: const Value('rb-lib-1'), title: 'Document test corbeille', isDeleted: const Value(true), deletedAt: Value(delAt)));
+    await soft(db.libraryLoans, LibraryLoansCompanion.insert(id: const Value('rb-loan-1'), itemId: anyItem?.id ?? 'rb-lib-1', startDate: DateTime.now(), status: const Value('Test corbeille'), isDeleted: const Value(true), deletedAt: Value(delAt)));
+    await soft(db.facilities, FacilitiesCompanion.insert(id: const Value('rb-fac-1'), domain: 'Salle', name: 'Local test corbeille', isDeleted: const Value(true), deletedAt: Value(delAt)));
+    await soft(db.calendarEvents, CalendarEventsCompanion.insert(id: const Value('rb-cal-1'), title: '�v�nement test corbeille', startDate: DateTime.now(), isDeleted: const Value(true), deletedAt: Value(delAt)));
+    await soft(db.documentTemplates, DocumentTemplatesCompanion.insert(id: const Value('rb-doc-1'), name: 'Mod�le test corbeille', docType: 'autre', isDeleted: const Value(true), deletedAt: Value(delAt)));
+    if (anyStudent != null) {
+      await soft(db.bulletinSnapshots, BulletinSnapshotsCompanion.insert(id: const Value('rb-bull-1'), studentId: anyStudent.id, snapshotJson: '{"test":"corbeille"}', publishedAt: DateTime.now(), isDeleted: const Value(true), deletedAt: Value(delAt)));
+    }
+    final anyLink = await (db.select(db.studentGuardians)..limit(1)).getSingleOrNull();
+    if (anyLink != null) {
+      await soft(db.studentGuardians, StudentGuardiansCompanion.insert(id: const Value('rb-link-1'), studentId: anyLink.studentId, guardianId: anyLink.guardianId, isDeleted: const Value(true), deletedAt: Value(delAt)));
+    }
+    return n;
   }
 
   Future<int> _importEstablishment() async {

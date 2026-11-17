@@ -167,42 +167,88 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
   Future<void> _showRecycleBin() async {
     final db = ref.read(appDatabaseProvider);
+    final auth = ref.read(authControllerProvider);
+    final adminRow = await (db.select(db.roles).join([
+      innerJoin(db.userRoles, db.userRoles.roleId.equalsExp(db.roles.id)),
+    ])
+          ..where(db.userRoles.userId.equals(auth.userId ?? '') &
+              db.roles.name.equals('Administrateur')))
+        .getSingleOrNull();
+    if (adminRow == null) {
+      _setMessage('Accès refusé : la corbeille est réservée aux administrateurs.');
+      return;
+    }
     final svc = RecycleBinService(db);
-    final items = await svc.listDeleted();
+    String filter = 'Tous';
     if (!mounted) return;
     await showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Corbeille (suppression logique)'),
-        content: SizedBox(
-          width: 640,
-          height: 420,
-          child: items.isEmpty
-              ? const Center(child: Text('Corbeille vide'))
-              : ListView(
-                  children: items
-                      .map((e) => ListTile(
-                            title: Text('${e.entity} • ${e.label}'),
-                            subtitle: Text('Supprimé : ${e.deletedAt ?? "-"}'),
-                            trailing: TextButton(
-                              onPressed: () async {
-                                final auth = ref.read(authControllerProvider);
-                                await svc.restore(e.entity, e.id,
-                                    actorUserId: auth.userId,
-                                    actorUsername: auth.username);
-                                if (ctx.mounted) Navigator.pop(ctx);
-                                _setMessage('Élément restauré : ${e.label}');
-                              },
-                              child: const Text('Restaurer'),
-                            ),
-                          ))
-                      .toList()),
-        ),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(ctx), child: const Text('Fermer'))
-        ],
-      ),
+      builder: (ctx) => StatefulBuilder(builder: (ctx, setD) {
+        return AlertDialog(
+          title: const Text('Corbeille (suppression logique, admin)'),
+          content: SizedBox(
+            width: 760,
+            height: 480,
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Row(children: [
+                const Text('Filtrer par type : '),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: DropdownButton<String>(
+                    isExpanded: true,
+                    value: filter,
+                    items: ['Tous', ...RecycleBinService.allEntityTypes]
+                        .map((e) => DropdownMenuItem(value: e, child: Text(e, overflow: TextOverflow.ellipsis)))
+                        .toList(),
+                    onChanged: (v) => setD(() => filter = v ?? 'Tous'),
+                  ),
+                ),
+                IconButton(
+                  tooltip: 'Actualiser',
+                  onPressed: () => setD(() {}),
+                  icon: const Icon(Icons.refresh),
+                ),
+              ]),
+              const SizedBox(height: 8),
+              Expanded(
+                child: FutureBuilder<List<DeletedEntry>>(
+                  future: svc.listDeleted(entityFilter: filter == 'Tous' ? null : filter),
+                  builder: (ctx, snap) {
+                    if (snap.connectionState != ConnectionState.done) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+                    final items = snap.data ?? const <DeletedEntry>[];
+                    if (items.isEmpty) return const Center(child: Text('Corbeille vide pour ce filtre'));
+                    return ListView(
+                      children: items
+                          .map((e) => ListTile(
+                                dense: true,
+                                title: Text('${e.entity} — ${e.label}'),
+                                subtitle: Text('Supprimé : ${e.deletedAt ?? "-"}'),
+                                trailing: TextButton.icon(
+                                  onPressed: () async {
+                                    await svc.restore(e.entity, e.id,
+                                        actorUserId: auth.userId,
+                                        actorUsername: auth.username);
+                                    setD(() {});
+                                    _setMessage('Élément restauré : ${e.label}');
+                                  },
+                                  icon: const Icon(Icons.restore, size: 16),
+                                  label: const Text('Restaurer'),
+                                ),
+                              ))
+                          .toList(),
+                    );
+                  },
+                ),
+              ),
+            ]),
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Fermer'))
+          ],
+        );
+      }),
     );
   }
 
@@ -672,8 +718,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
   Widget _recycleCard() {
     return AppSectionCard(
-      title: 'Corbeille',
-      subtitle: 'Suppression logique, rétention configurable, restauration en un clic.',
+      title: 'Corbeille (admin)',
+      subtitle: 'Suppression logique exhaustive, rétention configurable, restauration en un clic (réservé administrateur).',
       trailing: OutlinedButton.icon(
         onPressed: _showRecycleBin,
         icon: const Icon(Icons.delete_outline, size: 16),
@@ -681,7 +727,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       ),
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
       child: Text(
-        'Les éléments supprimés restent consultables et restaurables avant purge automatique selon la rétention.',
+        'Tous les types d\'éléments supprimés (élèves, notes, finances, personnel, planning, documents, etc.) sont listés, filtrables et restaurables avant purge automatique selon la rétention.',
         style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant),
       ),
     );
