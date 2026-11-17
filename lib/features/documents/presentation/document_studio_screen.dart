@@ -113,7 +113,10 @@ class _DocumentStudioScreenState extends ConsumerState<DocumentStudioScreen> {
   @override
   Widget build(BuildContext context) {
     final perms = ref.watch(currentPermissionsProvider).valueOrNull ?? const <String>{};
-    final canManage = perms.contains('documents.create') || perms.contains('documents.update') || perms.contains('documents.delete');
+    final canCreate = perms.contains('documents.create');
+    final canUpdate = perms.contains('documents.update');
+    final canDelete = perms.contains('documents.delete');
+    final canRead = perms.contains('documents.read') || perms.contains('documents.create') || perms.contains('documents.update') || perms.contains('documents.delete');
     final listAsync = ref.watch(documentTemplatesProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
@@ -121,7 +124,7 @@ class _DocumentStudioScreenState extends ConsumerState<DocumentStudioScreen> {
       appBar: AppBar(
         title: const Text('Document Studio'),
         actions: [
-          FilledButton.icon(onPressed: canManage ? ()=>_openEditor() : null, icon: const Icon(Icons.add, size: 16), label: const Text('Nouveau modèle')),
+          FilledButton.icon(onPressed: canCreate ? ()=>_openEditor() : null, icon: const Icon(Icons.add, size: 16), label: const Text('Nouveau modèle')),
           const SizedBox(width: 12),
         ],
       ),
@@ -159,7 +162,7 @@ class _DocumentStudioScreenState extends ConsumerState<DocumentStudioScreen> {
                         await Printing.layoutPdf(onLayout: (_) async => bytes, name: 'apercu_${t.docType}.pdf');
                       } catch (e) { if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erreur aperçu: $e'))); }
                     }, icon: const Icon(Icons.visibility_outlined)),
-                    IconButton(tooltip: 'Dupliquer', onPressed: () async {
+                    IconButton(tooltip: 'Dupliquer', onPressed: canCreate ? () async {
                       final auth = ref.read(authControllerProvider);
                       try {
                         final content = jsonDecode(t.contentJson as String) as Map<String, dynamic>;
@@ -169,9 +172,9 @@ class _DocumentStudioScreenState extends ConsumerState<DocumentStudioScreen> {
                           actorUserId: auth.userId, actorUsername: auth.username);
                         ref.invalidate(documentTemplatesProvider);
                       } catch (e) { if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erreur duplication: $e'))); }
-                    }, icon: const Icon(Icons.copy_outlined)),
-                    IconButton(tooltip: 'Modifier', onPressed: canManage ? ()=>_openEditor(tpl: t) : null, icon: const Icon(Icons.edit_outlined)),
-                    IconButton(tooltip: 'Supprimer', onPressed: canManage ? () async {
+                    } : null, icon: const Icon(Icons.copy_outlined)),
+                    IconButton(tooltip: 'Modifier', onPressed: canUpdate ? ()=>_openEditor(tpl: t) : null, icon: const Icon(Icons.edit_outlined)),
+                    IconButton(tooltip: 'Supprimer', onPressed: canDelete ? () async {
                       final ok = await showDialog<bool>(context: context, builder: (ctx)=>AlertDialog(
                         title: const Text('Supprimer le modèle ?'),
                         content: Text('Le modèle "${t.name}" sera mis en corbeille (suppression logique).'),
@@ -184,7 +187,7 @@ class _DocumentStudioScreenState extends ConsumerState<DocumentStudioScreen> {
                       }
                     } : null, icon: const Icon(Icons.delete_outline)),
                   ]),
-                  onTap: ()=>_openEditor(tpl: t),
+                  onTap: canUpdate ? ()=>_openEditor(tpl: t) : null,
                 ));
               });
             },

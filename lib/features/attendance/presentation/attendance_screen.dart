@@ -358,6 +358,50 @@ class _AttendanceScreenState extends ConsumerState<AttendanceScreen> {
     }
   }
 
+
+  Future<void> _editEvent(AttendanceRow row) async {
+    final auth = ref.read(authControllerProvider);
+    final canUpdate = (ref.read(currentPermissionsProvider).valueOrNull ?? const <String>{}).contains('attendance.update');
+    if (!canUpdate) { _snack('Action non autorisée (attendance.update).'); return; }
+    String status = row.status;
+    final slotCtrl = TextEditingController(text: row.slot ?? '');
+    final justCtrl = TextEditingController(text: row.justification ?? row.details ?? '');
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => StatefulBuilder(builder: (ctx, setD) => AlertDialog(
+        title: const Text('Suivi / mise à jour événement'),
+        content: SizedBox(width: 520, child: Column(mainAxisSize: MainAxisSize.min, children: [
+          ListTile(contentPadding: EdgeInsets.zero, title: Text(row.studentName), subtitle: Text('${row.matricule} • ${formatDateIso(row.date)} • ${row.category}')),
+          const SizedBox(height: 8),
+          DropdownButtonFormField<String>(value: status, decoration: const InputDecoration(labelText: 'Statut / suite'), items: const ['Présent','Absent','Retard','Incident','Justifié','Avertissement','Exclusion','En cours','Résolu','Clôturé'].map((e)=>DropdownMenuItem(value:e, child: Text(e))).toList(), onChanged: (v)=>setD(()=>status=v??status)),
+          const SizedBox(height: 8),
+          TextField(controller: slotCtrl, decoration: const InputDecoration(labelText: 'Créneau / faits')),
+          const SizedBox(height: 8),
+          TextField(controller: justCtrl, maxLines: 3, decoration: const InputDecoration(labelText: 'Justification / sanction / suivi')),
+        ])),
+        actions: [
+          TextButton(onPressed: ()=>Navigator.pop(ctx,false), child: const Text('Annuler')),
+          FilledButton(onPressed: ()=>Navigator.pop(ctx,true), child: const Text('Enregistrer')),
+        ],
+      )),
+    );
+    if (ok != true) return;
+    try {
+      await ref.read(attendanceRepositoryProvider).updateEvent(
+        id: row.id,
+        status: status,
+        justification: justCtrl.text.trim().isEmpty ? null : justCtrl.text.trim(),
+        slotOrFacts: slotCtrl.text.trim().isEmpty ? null : slotCtrl.text.trim(),
+        actorUserId: auth.userId,
+        actorUsername: auth.username,
+      );
+      _invalidate();
+      _snack('Événement mis à jour.');
+    } catch (e) {
+      _snack('Erreur mise à jour : $e');
+    }
+  }
+
   Future<void> _export(List<AttendanceRow> rows) async {
     final choice = await showDialog<String>(context: context, builder: (ctx)=>SimpleDialog(title: const Text('Exporter présences/discipline'), children: [
       SimpleDialogOption(onPressed: ()=>Navigator.pop(ctx,'csv'), child: const ListTile(leading: Icon(Icons.description_outlined), title: Text('Exporter en CSV'))),
@@ -602,6 +646,7 @@ class _AttendanceScreenState extends ConsumerState<AttendanceScreen> {
                                 DataColumn(label: Text('Statut')),
                                 DataColumn(label: Text('Créneau / faits')),
                                 DataColumn(label: Text('Justification')),
+                                DataColumn(label: Text('Actions')),
                               ],
                               rows: filtered.map((r) {
                                 final tone = switch (r.status) {
@@ -623,6 +668,7 @@ class _AttendanceScreenState extends ConsumerState<AttendanceScreen> {
                                   DataCell(AppBadge(r.status, tone: tone)),
                                   DataCell(Text(r.slot ?? '-')),
                                   DataCell(Text(r.justification ?? r.details ?? '-')),
+                                  DataCell(IconButton(icon: const Icon(Icons.edit_note_outlined, size: 18), tooltip: 'Suivi / modifier', onPressed: canUpdate ? () => _editEvent(r) : null)),
                                 ]);
                               }).toList(),
                             ),
