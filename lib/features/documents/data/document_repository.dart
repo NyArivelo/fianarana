@@ -32,6 +32,16 @@ class DocumentRepository {
     return (db.select(db.documentTemplates)..where((t) => t.id.equals(id))).getSingleOrNull();
   }
 
+  Future<DocumentTemplate?> defaultTemplate(String docType, {String? actorUserId}) async {
+    if (actorUserId != null && actorUserId.isNotEmpty) {
+      await _require(actorUserId, 'settings.read');
+    }
+    final q = db.select(db.documentTemplates)
+      ..where((t) => t.isDeleted.equals(false) & t.isActive.equals(true) & t.docType.equals(docType))
+      ..orderBy([(t) => OrderingTerm.desc(t.isDefault), (t) => OrderingTerm.asc(t.name)]);
+    return q.getSingleOrNull();
+  }
+
   Future<String> upsertTemplate({
     String? id,
     required String name,

@@ -1,9 +1,13 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:printing/printing.dart';
 
 import 'package:fianarana/features/auth/application/auth_controller.dart';
+import 'package:fianarana/features/documents/application/document_providers.dart';
+import 'package:fianarana/features/documents/services/document_studio_pdf_service.dart';
 import 'package:fianarana/features/students/application/students_providers.dart';
 import 'package:fianarana/features/students/services/certificate_service.dart';
 
@@ -106,6 +110,20 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> {
       appBar: AppBar(
         title: Text(isNew ? 'Nouvel élève' : 'Dossier élève'),
         leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: () => context.go('/students')),
+        actions: [
+          if (!isNew)
+            PopupMenuButton<String>(
+              tooltip: 'Générer un document (modèle)',
+              icon: const Icon(Icons.description_outlined),
+              onSelected: (t) => _generateFromTemplate(student, t),
+              itemBuilder: (ctx) => const [
+                PopupMenuItem(value: 'attestation', child: Text('Attestation de scolarité')),
+                PopupMenuItem(value: 'carte', child: Text('Carte scolaire')),
+                PopupMenuItem(value: 'certificat', child: Text('Certificat / attestation (modèle)')),
+                PopupMenuItem(value: 'bulletin', child: Text('Bulletin (modèle générique)')),
+              ],
+            ),
+        ],
       ),
       body: detailAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
@@ -257,6 +275,42 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> {
         },
       ),
     );
+  }
+
+  Future<void> _generateFromTemplate(dynamic student, String docType) async {
+    if (student == null) return;
+    try {
+      final auth = ref.read(authControllerProvider);
+      final docRepo = ref.read(documentRepositoryProvider);
+      final tpl = await docRepo.defaultTemplate(docType, actorUserId: auth.userId);
+      if (tpl == null) {
+        if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Aucun modèle actif trouvé pour "$docType". Créez-en un dans Document Studio.')));
+        return;
+      }
+      final overview = await ref.read(studentsRepositoryProvider).overview(student.id as String, actorUserId: auth.userId);
+      final content = jsonDecode(tpl.contentJson as String) as Map<String, dynamic>;
+      final pdf = DocumentStudioPdfService();
+      final now = DateTime.now();
+      final ctx = <String, dynamic>{
+        'etablissement': {'nom': 'Établissement scolaire', 'adresse': ''},
+        'eleve': {
+          'nom': '${student.lastName} ${student.firstName}',
+          'matricule': student.matricule,
+          'classe': overview.classLabel ?? '',
+          'sexe': student.sex ?? '',
+          'date_naissance': student.birthDate == null ? '' : '${(student.birthDate as DateTime).day.toString().padLeft(2,'0')}/${(student.birthDate as DateTime).month.toString().padLeft(2,'0')}/${(student.birthDate as DateTime).year}',
+          'lieu_naissance': student.birthPlace ?? '',
+        },
+        'annee': {'libelle': '2026-2027'},
+        'periode': {'libelle': ''},
+        'date': {'jour': '${now.day.toString().padLeft(2,'0')}/${now.month.toString().padLeft(2,'0')}/${now.year}'},
+        'resultats': {'moyenne': '', 'rang': '', 'mention': '', 'appreciation': ''},
+      };
+      final bytes = await pdf.renderTemplate(templateContent: content, context: ctx, pageFormat: tpl.pageFormat);
+      await Printing.layoutPdf(onLayout: (_) async => bytes, name: '${docType}_${student.matricule}.pdf');
+    } catch (e) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erreur génération document: $e')));
+    }
   }
 
   Future<void> _openTransferDialog(dynamic student, List<dynamic> enrollments) async {
