@@ -1,10 +1,15 @@
+import 'dart:io';
+
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:fianarana/core/database/app_database.dart';
+import 'package:fianarana/core/utils/csv_export.dart';
 import 'package:fianarana/features/auth/application/auth_controller.dart';
 import 'package:fianarana/features/staff/application/staff_providers.dart';
+import 'package:fianarana/features/staff/services/staff_import_service.dart';
 import 'package:fianarana/features/timetable/application/timetable_providers.dart';
 
 class StaffScreen extends ConsumerStatefulWidget {
@@ -107,10 +112,100 @@ class _StaffScreenState extends ConsumerState<StaffScreen> with SingleTickerProv
     );
   }
 
+  Future<void> _importStaff() async {
+    final pick = await FilePicker.platform.pickFiles(type: FileType.custom, allowedExtensions: ['csv', 'xlsx', 'xls']);
+    if (pick == null || pick.files.single.path == null) return;
+    final file = File(pick.files.single.path!);
+    final auth = ref.read(authControllerProvider);
+    final repo = ref.read(staffRepositoryProvider);
+    try {
+      final service = StaffImportService();
+      final raw = await service.parseFile(file);
+      final existing = await repo.listStaff(actorUserId: auth.userId);
+      final existingNums = existing.map((e) => e.staffNumber).toSet();
+      final rows = service.toRows(raw, existingNums);
+      if (!mounted) return;
+      if (rows.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Aucune ligne valide trouvée dans le fichier.')));
+        return;
+      }
+      final selected = List<bool>.filled(rows.length, false);
+      for (var i = 0; i < rows.length; i++) {
+        selected[i] = rows[i].error == null && !rows[i].duplicate;
+      }
+      await showDialog(
+        context: context,
+        builder: (ctx) => StatefulBuilder(builder: (ctx, setD) => AlertDialog(
+          title: const Text('Import personnel (prévisualisation & doublons)'),
+          content: SizedBox(width: 920, height: 520, child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text('${rows.length} ligne(s) détectée(s). Les doublons/erreurs sont exclus par défaut.', style: const TextStyle(fontSize: 12)),
+            const SizedBox(height: 8),
+            Expanded(child: SingleChildScrollView(child: SingleChildScrollView(scrollDirection: Axis.horizontal, child: DataTable(
+              columns: const [DataColumn(label: Text('Importer')), DataColumn(label: Text('Matricule')), DataColumn(label: Text('Nom')), DataColumn(label: Text('Prénom')), DataColumn(label: Text('Fonction')), DataColumn(label: Text('État'))],
+              rows: List.generate(rows.length, (i) {
+                final r = rows[i];
+                final ok = r.error == null && !r.duplicate;
+                return DataRow(cells: [
+                  DataCell(Checkbox(value: selected[i], onChanged: ok ? (v)=>setD(()=>selected[i]=v??false) : null)),
+                  DataCell(Text(r.staffNumber)),
+                  DataCell(Text(r.lastName)),
+                  DataCell(Text(r.firstName)),
+                  DataCell(Text(r.functionTitle ?? '-')),
+                  DataCell(Text(r.error ?? (ok ? 'Prêt' : 'Ignoré'), style: TextStyle(fontSize: 11, color: ok ? const Color(0xFF059669) : const Color(0xFFDC2626)))),
+                ]);
+              }),
+            )))),
+          ])),
+          actions: [
+            TextButton(onPressed: ()=>Navigator.pop(ctx), child: const Text('Annuler')),
+            FilledButton.icon(onPressed: () async {
+              var imported = 0; var failed = 0;
+              for (var i = 0; i < rows.length; i++) {
+                if (!selected[i]) continue;
+                final r = rows[i];
+                try {
+                  await repo.upsertStaff(
+                    staffNumber: r.staffNumber, lastName: r.lastName, firstName: r.firstName,
+                    sex: r.sex, functionTitle: r.functionTitle, departmentOrSubject: r.departmentOrSubject,
+                    phone: r.phone, status: r.status ?? 'Actif', actorUserId: auth.userId, actorUsername: auth.username,
+                  );
+                  imported++;
+                } catch (_) { failed++; }
+              }
+              ref.invalidate(staffListProvider);
+              ref.invalidate(timetableTeachersProvider);
+              if (ctx.mounted) Navigator.pop(ctx);
+              if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Import terminé: $imported importé(s), $failed échec(s).')));
+            }, icon: const Icon(Icons.playlist_add_check, size: 16), label: const Text('Importer la sélection')),
+          ],
+        )),
+      );
+    } catch (e) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erreur import: $e')));
+    }
+  }
+
+  Future<void> _exportStaff(List<StaffMember> rows) async {
+    final f = await CsvExport.export(
+      filename: 'personnel_export.csv',
+      headers: const ['Matricule_Personnel', 'Nom', 'Prenom', 'Sexe', 'Fonction', 'Departement_Matiere', 'Telephone', 'Statut'],
+      rows: rows.map((s) => <String?>[s.staffNumber, s.lastName, s.firstName, s.sex, s.functionTitle, s.departmentOrSubject, s.phone, s.status]).toList(),
+    );
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Export CSV: ${f.path}')));
+  }
+
   Widget _staffTab(BuildContext context) {
     final list = ref.watch(staffListProvider);
     return Column(children: [
-      Padding(padding: const EdgeInsets.all(12), child: Row(children:[FilledButton.icon(onPressed: ()=>_addOrEdit(), icon: const Icon(Icons.person_add_alt_1, size:16), label: const Text('Nouveau')), const Spacer()])),
+      Padding(padding: const EdgeInsets.all(12), child: Row(children:[
+        FilledButton.icon(onPressed: ()=>_addOrEdit(), icon: const Icon(Icons.person_add_alt_1, size:16), label: const Text('Nouveau')),
+        const SizedBox(width: 8),
+        OutlinedButton.icon(onPressed: _importStaff, icon: const Icon(Icons.upload_file_outlined, size:16), label: const Text('Importer CSV/XLSX')),
+        const SizedBox(width: 8),
+        list.maybeWhen(data: (rows)=> OutlinedButton.icon(onPressed: rows.isEmpty?null:()=>_exportStaff(rows), icon: const Icon(Icons.download_outlined, size:16), label: const Text('Export CSV')), orElse: ()=>const SizedBox.shrink()),
+        const Spacer(),
+      ])),
       Expanded(child: list.when(
         data: (rows) => rows.isEmpty ? const Center(child: Text('Aucun membre du personnel.')) : ListView.builder(itemCount: rows.length, itemBuilder: (c,i){ final s=rows[i]; final teacher=(s.functionTitle??'').toLowerCase().contains('enseign'); return ListTile(
           leading: CircleAvatar(child: Text(s.lastName.isNotEmpty?s.lastName[0]:'?')),
