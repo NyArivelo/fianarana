@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:printing/printing.dart';
 
+import 'package:fianarana/core/utils/csv_export.dart';
 import 'package:fianarana/core/widgets/app_ui.dart';
 import 'package:fianarana/features/auth/application/auth_controller.dart';
 import 'package:fianarana/core/security/permission_providers.dart';
@@ -270,6 +271,95 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
     }
   }
 
+
+  Future<void> _exportCatalogue(List<LibraryCatalogueRow> rows) async {
+    final ts = DateTime.now().millisecondsSinceEpoch;
+    final f = await CsvExport.export(
+      filename: 'bibliotheque_catalogue_$ts.csv',
+      headers: const ['Titre','Auteur/Categorie','Code exemplaire','ISBN/Code','Statut','Emprunteur','Matricule','Echeance'],
+      rows: rows.map((r)=>[
+        r.item.title,
+        r.item.authorOrCategory,
+        r.item.copyCode,
+        r.item.codeOrIsbn,
+        r.statusLabel,
+        r.borrowerName,
+        r.borrowerMatricule,
+        r.dueDate?.toIso8601String(),
+      ]).toList(),
+    );
+    if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Export catalogue: ${f.path}')));
+  }
+
+  Future<void> _exportLoans(List<LibraryLoanRow> rows) async {
+    final ts = DateTime.now().millisecondsSinceEpoch;
+    final f = await CsvExport.export(
+      filename: 'bibliotheque_prets_$ts.csv',
+      headers: const ['Ouvrage','Exemplaire','Emprunteur','Matricule','Classe','Date pret','Echeance','Date retour','Retard'],
+      rows: rows.map((r)=>[
+        r.itemTitle,
+        r.copyCode,
+        r.borrowerName,
+        r.borrowerMatricule,
+        r.classLabel,
+        r.loan.loanDate.toIso8601String(),
+        r.loan.dueDate?.toIso8601String(),
+        r.loan.returnDate?.toIso8601String(),
+        r.overdue ? 'Oui' : 'Non',
+      ]).toList(),
+    );
+    if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Export prêts: ${f.path}')));
+  }
+
+  Future<void> _exportQuitus(List<LibraryQuitusRow> rows) async {
+    final ts = DateTime.now().millisecondsSinceEpoch;
+    final f = await CsvExport.export(
+      filename: 'bibliotheque_quitus_$ts.csv',
+      headers: const ['Matricule','Eleve','Classe','Solde_MGA','Prets_actifs','Prets_en_retard','Prochaine_echeance','Quitus'],
+      rows: rows.map((r)=>[
+        r.matricule,
+        r.fullName,
+        r.classLabel,
+        '${r.balanceMga}',
+        '${r.activeLoans}',
+        '${r.overdueLoans}',
+        r.nextDueDate?.toIso8601String(),
+        (r.balanceMga <= 0 && r.overdueLoans == 0 && r.activeLoans == 0) ? 'OK' : 'Non conforme',
+      ]).toList(),
+    );
+    if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Export quitus: ${f.path}')));
+  }
+
+  Future<void> _exportCurrentTab() async {
+    try {
+      final idx = _tabs.index;
+      if (idx == 0) {
+        final rows = ref.read(libraryCatalogueProvider).valueOrNull ?? const <LibraryCatalogueRow>[];
+        final filtered = rows.where((r) => _matches(r.item.title) || _matches(r.item.authorOrCategory) || _matches(r.item.copyCode) || _matches(r.item.codeOrIsbn) || _matches(r.borrowerName) || _matches(r.borrowerMatricule)).toList();
+        await _exportCatalogue(filtered);
+      } else if (idx == 1) {
+        final rows = ref.read(libraryLoansProvider).valueOrNull ?? const <LibraryLoanRow>[];
+        final filtered = rows.where((l) {
+          final okFilter = switch (_loanFilter) {
+            'En cours' => !l.isReturned && !l.overdue,
+            'En retard' => l.overdue,
+            'Retournés' => l.isReturned,
+            _ => true,
+          };
+          if (!okFilter) return false;
+          return _matches(l.itemTitle) || _matches(l.borrowerName) || _matches(l.borrowerMatricule) || _matches(l.classLabel);
+        }).toList();
+        await _exportLoans(filtered);
+      } else {
+        final rows = ref.read(libraryQuitusProvider(_includeAllStudents)).valueOrNull ?? const <LibraryQuitusRow>[];
+        final filtered = rows.where((r) => _matches(r.fullName) || _matches(r.matricule) || _matches(r.classLabel)).toList();
+        await _exportQuitus(filtered);
+      }
+    } catch (e) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erreur export: $e')));
+    }
+  }
+
   // ---------------------------------------------------------------------------
   // Build
   // ---------------------------------------------------------------------------
@@ -278,6 +368,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
   Widget build(BuildContext context) {
     final perms = ref.watch(currentPermissionsProvider).valueOrNull ?? const <String>{};
     final canEdit = perms.contains('library.create') || perms.contains('library.update');
+    final canExport = perms.contains('library.read');
     final theme = Theme.of(context);
     final stats = ref.watch(libraryStatsProvider).valueOrNull ?? LibraryStats.empty();
     final overdueBanner = stats.overdue > 0;
@@ -376,6 +467,8 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
               ),
             ),
             const Spacer(),
+            OutlinedButton.icon(onPressed: canExport ? _exportCurrentTab : null, icon: const Icon(Icons.download_outlined, size: 16), label: const Text('Exporter CSV')),
+            const SizedBox(width: 8),
             AppBadge(
               _tabs.index == 0
                   ? 'Catalogue'

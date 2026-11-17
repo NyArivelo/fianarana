@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:fianarana/core/utils/csv_export.dart';
 import 'package:fianarana/core/widgets/app_ui.dart';
 import 'package:fianarana/features/auth/application/auth_controller.dart';
 import 'package:fianarana/core/security/permission_providers.dart';
@@ -159,10 +160,36 @@ class _FacilitiesScreenState extends ConsumerState<FacilitiesScreen> {
     }
   }
 
+
+  Future<void> _exportFacilities(List<FacilityRow> rows) async {
+    try {
+      final ts = DateTime.now().millisecondsSinceEpoch;
+      final f = await CsvExport.export(
+        filename: 'locaux_equipements_$ts.csv',
+        headers: const ['Domaine','Nom','Code','Categorie','Capacite','Statut','Type','Classe_affectee','Seances_hebdo'],
+        rows: rows.map((r)=>[
+          r.facility.domain,
+          r.facility.name,
+          r.facility.code,
+          r.facility.category,
+          r.facility.capacity?.toString(),
+          r.facility.status,
+          r.kind,
+          r.assignedClass,
+          '${r.weeklySessions}',
+        ]).toList(),
+      );
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Export locaux: ${f.path}')));
+    } catch (e) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erreur export: $e')));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final perms = ref.watch(currentPermissionsProvider).valueOrNull ?? const <String>{};
     final canEdit = perms.contains('facilities.create') || perms.contains('facilities.update');
+    final canExport = perms.contains('facilities.read');
     final theme = Theme.of(context);
     final async = ref.watch(facilitiesListProvider);
     final rows = async.valueOrNull ?? const <FacilityRow>[];
@@ -175,6 +202,18 @@ class _FacilitiesScreenState extends ConsumerState<FacilitiesScreen> {
       appBar: AppBar(
         title: const Text('Locaux & équipements'),
         actions: [
+          OutlinedButton.icon(
+            onPressed: canExport ? () => _exportFacilities(ref.read(facilitiesListProvider).valueOrNull?.where((r){
+              final okKind = _kind == 'Tous' || r.kind == _kind;
+              if (!okKind) return false;
+              if (_query.isEmpty) return true;
+              final q = _query;
+              return r.facility.name.toLowerCase().contains(q) || (r.facility.code ?? '').toLowerCase().contains(q) || (r.facility.category ?? '').toLowerCase().contains(q);
+            }).toList() ?? const []) : null,
+            icon: const Icon(Icons.download_outlined, size: 16),
+            label: const Text('Exporter CSV'),
+          ),
+          const SizedBox(width: 8),
           FilledButton.icon(
             onPressed: canEdit ? () => _edit() : null,
             icon: const Icon(Icons.add_business_outlined, size: 16),
