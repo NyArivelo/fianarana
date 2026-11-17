@@ -12,6 +12,7 @@ import 'package:fianarana/core/database/database_provider.dart';
 import 'package:fianarana/core/utils/csv_export.dart';
 import 'package:fianarana/core/utils/xlsx_export.dart';
 import 'package:fianarana/features/auth/application/auth_controller.dart';
+import 'package:fianarana/core/security/permission_providers.dart';
 import 'package:fianarana/features/documents/application/document_providers.dart';
 import 'package:fianarana/features/documents/services/document_studio_pdf_service.dart';
 import 'package:fianarana/features/staff/application/staff_providers.dart';
@@ -338,16 +339,19 @@ class _StaffScreenState extends ConsumerState<StaffScreen> with SingleTickerProv
 
   Widget _staffTab(BuildContext context) {
     final list = ref.watch(staffListProvider);
+    final perms = ref.watch(currentPermissionsProvider).valueOrNull ?? const <String>{};
+    final canCreate = perms.contains('staff.create') || perms.contains('staff.update');
+    final canExport = perms.contains('staff.read');
     return Column(children: [
       Padding(padding: const EdgeInsets.all(12), child: Row(children:[
-        FilledButton.icon(onPressed: ()=>_addOrEdit(), icon: const Icon(Icons.person_add_alt_1, size:16), label: const Text('Nouveau')),
+        FilledButton.icon(onPressed: canCreate ? ()=>_addOrEdit() : null, icon: const Icon(Icons.person_add_alt_1, size:16), label: const Text('Nouveau')),
         const SizedBox(width: 8),
         OutlinedButton.icon(onPressed: _downloadStaffTemplate, icon: const Icon(Icons.download_outlined, size:16), label: const Text('Modèle import')), const SizedBox(width:8),
-        OutlinedButton.icon(onPressed: _importStaff, icon: const Icon(Icons.upload_file_outlined, size:16), label: const Text('Importer CSV/XLSX')),
+        OutlinedButton.icon(onPressed: canCreate ? _importStaff : null, icon: const Icon(Icons.upload_file_outlined, size:16), label: const Text('Importer CSV/XLSX')),
         const SizedBox(width: 8),
         list.maybeWhen(data: (rows)=> Wrap(spacing: 8, children: [
-          OutlinedButton.icon(onPressed: rows.isEmpty?null:()=>_exportStaffCsv(rows), icon: const Icon(Icons.download_outlined, size:16), label: const Text('Export CSV')),
-          OutlinedButton.icon(onPressed: rows.isEmpty?null:()=>_exportStaffXlsx(rows), icon: const Icon(Icons.grid_on_outlined, size:16), label: const Text('Export XLSX')),
+          OutlinedButton.icon(onPressed: (canExport && rows.isNotEmpty)?()=>_exportStaffCsv(rows):null, icon: const Icon(Icons.download_outlined, size:16), label: const Text('Export CSV')),
+          OutlinedButton.icon(onPressed: (canExport && rows.isNotEmpty)?()=>_exportStaffXlsx(rows):null, icon: const Icon(Icons.grid_on_outlined, size:16), label: const Text('Export XLSX')),
         ]), orElse: ()=>const SizedBox.shrink()),
         const Spacer(),
       ])),
@@ -366,6 +370,8 @@ class _StaffScreenState extends ConsumerState<StaffScreen> with SingleTickerProv
 
   Widget _absencesTab(BuildContext context) {
     final abs = ref.watch(teacherAbsencesProvider);
+    final perms = ref.watch(currentPermissionsProvider).valueOrNull ?? const <String>{};
+    final canCreate = perms.contains('staff.create') || perms.contains('staff.update');
     final staff = ref.watch(staffListProvider).valueOrNull ?? const <StaffMember>[];
     String nameOf(String id) {
       for (final s in staff) { if (s.id==id) return '${s.lastName} ${s.firstName}'; }
@@ -373,7 +379,7 @@ class _StaffScreenState extends ConsumerState<StaffScreen> with SingleTickerProv
     }
     return Column(children: [
       Padding(padding: const EdgeInsets.all(12), child: Row(children:[
-        FilledButton.icon(onPressed: _declareAbsence, icon: const Icon(Icons.event_busy_outlined, size:16), label: const Text('Déclarer absence / remplacement')),
+        FilledButton.icon(onPressed: canCreate ? _declareAbsence : null, icon: const Icon(Icons.event_busy_outlined, size:16), label: const Text('Déclarer absence / remplacement')),
         const SizedBox(width: 12),
         const Expanded(child: Text('Gestion des absences enseignants et réaffectation/rattrapage (séance de substitution). Vérifiez les conflits de créneaux/salles dans l\'emploi du temps.', style: TextStyle(fontSize: 12))),
       ])),

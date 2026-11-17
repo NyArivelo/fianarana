@@ -12,6 +12,7 @@ import 'package:fianarana/core/database/database_provider.dart';
 import 'package:fianarana/core/settings/app_config.dart';
 import 'package:fianarana/core/widgets/app_ui.dart';
 import 'package:fianarana/features/auth/application/auth_controller.dart';
+import 'package:fianarana/core/security/permission_providers.dart';
 import 'package:fianarana/features/documents/application/document_providers.dart';
 import 'package:fianarana/features/documents/services/document_studio_pdf_service.dart';
 import 'package:fianarana/features/grades/application/council_providers.dart';
@@ -640,6 +641,9 @@ class _GradesScreenState extends ConsumerState<GradesScreen> {
     final classesAsync = ref.watch(classesProvider);
     final gradesAsync =
         ref.watch(gradesListProvider((classId: _classId, subjectId: null)));
+    final perms = ref.watch(currentPermissionsProvider).valueOrNull ?? const <String>{};
+    final canCreate = perms.contains('grades.create') || perms.contains('grades.update');
+    final canImport = perms.contains('grades.create') || perms.contains('grades.update');
 
     return Scaffold(
       backgroundColor: theme.brightness == Brightness.dark
@@ -655,7 +659,7 @@ class _GradesScreenState extends ConsumerState<GradesScreen> {
           ),
           const SizedBox(width: 8),
 OutlinedButton.icon(
-            onPressed: _importGrades,
+            onPressed: canImport ? _importGrades : null,
             icon: const Icon(Icons.upload_file_outlined, size: 16),
             label: const Text('Importer'),
           ),
@@ -667,7 +671,7 @@ OutlinedButton.icon(
           ),
           const SizedBox(width: 8),
           FilledButton.icon(
-            onPressed: _newGrade,
+            onPressed: canCreate ? _newGrade : null,
             icon: const Icon(Icons.add_chart_outlined, size: 16),
             label: const Text('Nouvelle note'),
           ),
@@ -859,7 +863,7 @@ OutlinedButton.icon(
                           ? 'Importez les données de test (940 évaluations) ou saisissez une note.'
                           : null,
                       action: rows.isEmpty
-                          ? FilledButton(onPressed: _newGrade, child: const Text('Nouvelle note'))
+                          ? FilledButton(onPressed: canCreate ? _newGrade : null, child: const Text('Nouvelle note'))
                           : null,
                     ),
                   );

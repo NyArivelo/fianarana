@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:fianarana/core/widgets/app_ui.dart';
 import 'package:fianarana/features/auth/application/auth_controller.dart';
+import 'package:fianarana/core/security/permission_providers.dart';
 import 'package:fianarana/features/facilities/application/facilities_providers.dart';
 import 'package:fianarana/features/facilities/data/facilities_repository.dart';
 
@@ -160,6 +161,8 @@ class _FacilitiesScreenState extends ConsumerState<FacilitiesScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final perms = ref.watch(currentPermissionsProvider).valueOrNull ?? const <String>{};
+    final canEdit = perms.contains('facilities.create') || perms.contains('facilities.update');
     final theme = Theme.of(context);
     final async = ref.watch(facilitiesListProvider);
     final rows = async.valueOrNull ?? const <FacilityRow>[];

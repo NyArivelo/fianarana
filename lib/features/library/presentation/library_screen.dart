@@ -6,6 +6,7 @@ import 'package:printing/printing.dart';
 
 import 'package:fianarana/core/widgets/app_ui.dart';
 import 'package:fianarana/features/auth/application/auth_controller.dart';
+import 'package:fianarana/core/security/permission_providers.dart';
 import 'package:fianarana/features/documents/application/document_providers.dart';
 import 'package:fianarana/features/documents/services/document_studio_pdf_service.dart';
 import 'package:fianarana/features/library/application/library_providers.dart';
@@ -275,6 +276,8 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
 
   @override
   Widget build(BuildContext context) {
+    final perms = ref.watch(currentPermissionsProvider).valueOrNull ?? const <String>{};
+    final canEdit = perms.contains('library.create') || perms.contains('library.update');
     final theme = Theme.of(context);
     final stats = ref.watch(libraryStatsProvider).valueOrNull ?? LibraryStats.empty();
     final overdueBanner = stats.overdue > 0;
@@ -286,13 +289,13 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
         title: const Text('Bibliothèque & Quitus'),
         actions: [
           OutlinedButton.icon(
-            onPressed: _newItem,
+            onPressed: canEdit ? _newItem : null,
             icon: const Icon(Icons.library_add_outlined, size: 16),
             label: const Text('Nouvel ouvrage'),
           ),
           const SizedBox(width: 8),
           FilledButton.icon(
-            onPressed: _newLoan,
+            onPressed: canEdit ? _newLoan : null,
             icon: const Icon(Icons.swap_horiz, size: 16),
             label: const Text('Nouveau prêt'),
           ),

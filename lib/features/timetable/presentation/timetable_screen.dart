@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:fianarana/features/auth/application/auth_controller.dart';
+import 'package:fianarana/core/security/permission_providers.dart';
 import 'package:fianarana/features/timetable/application/timetable_providers.dart';
 import 'package:fianarana/features/timetable/data/timetable_repository.dart';
 
@@ -200,6 +201,8 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final perms = ref.watch(currentPermissionsProvider).valueOrNull ?? const <String>{};
+    final canEdit = perms.contains('timetable.create') || perms.contains('timetable.update');
     final f = _filter;
     final entriesAsync = ref.watch(timetableEntriesProvider((classId: f.classId, teacherId: f.teacherId, day: f.day)));
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -211,7 +214,7 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
         title: const Text('Emplois du temps & planning'),
         actions: [
           FilledButton.icon(
-            onPressed: () => _openSessionDialog(),
+            onPressed: canEdit ? () => _openSessionDialog() : null,
             icon: const Icon(Icons.add, size: 16),
             label: const Text('Nouvelle séance'),
           ),

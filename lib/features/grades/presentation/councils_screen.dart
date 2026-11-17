@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fianarana/core/database/app_database.dart';
 import 'package:fianarana/core/widgets/app_ui.dart';
 import 'package:fianarana/features/auth/application/auth_controller.dart';
+import 'package:fianarana/core/security/permission_providers.dart';
 import 'package:fianarana/features/grades/application/council_providers.dart';
 import 'package:fianarana/features/grades/application/grades_providers.dart';
 import 'package:fianarana/features/grades/data/grades_repository.dart';
@@ -143,6 +144,8 @@ class _CouncilsScreenState extends ConsumerState<CouncilsScreen> {
     final classesAsync = ref.watch(classesProvider);
     final periodsAsync = ref.watch(periodsProvider);
     final councilsAsync = ref.watch(councilsProvider((classId: _classId, periodId: _periodId)));
+    final perms = ref.watch(currentPermissionsProvider).valueOrNull ?? const <String>{};
+    final canManage = perms.contains('grades.validate') || perms.contains('grades.create') || perms.contains('grades.update') || perms.contains('grades.publish');
 
     final classLabels = <String, String>{for (final c in classesAsync.valueOrNull ?? const <ClassesData>[]) c.id: c.label};
     final periods = periodsAsync.valueOrNull ?? const <Period>[];
@@ -153,9 +156,9 @@ class _CouncilsScreenState extends ConsumerState<CouncilsScreen> {
       appBar: AppBar(
         title: const Text('Conseils de classe & périodes'),
         actions: [
-          OutlinedButton.icon(onPressed: _unlockPeriod, icon: const Icon(Icons.lock_open, size: 16), label: const Text('Déverrouiller')),
+          OutlinedButton.icon(onPressed: canManage ? _unlockPeriod : null, icon: const Icon(Icons.lock_open, size: 16), label: const Text('Déverrouiller')),
           const SizedBox(width: 8),
-          OutlinedButton.icon(onPressed: _lockPeriod, icon: const Icon(Icons.lock_outline, size: 16), label: const Text('Verrouiller période')),
+          OutlinedButton.icon(onPressed: canManage ? _lockPeriod : null, icon: const Icon(Icons.lock_outline, size: 16), label: const Text('Verrouiller période')),
           const SizedBox(width: 12),
         ],
       ),
@@ -175,7 +178,7 @@ class _CouncilsScreenState extends ConsumerState<CouncilsScreen> {
                 onChanged: (v) => setState(() => _periodId = v)),
               loading: () => const LinearProgressIndicator(), error: (e, _) => Text('$e'))),
             const SizedBox(width: 8),
-            FilledButton.icon(onPressed: _createCouncil, icon: const Icon(Icons.add, size: 16), label: const Text('Nouveau conseil')),
+            FilledButton.icon(onPressed: canManage ? _createCouncil : null, icon: const Icon(Icons.add, size: 16), label: const Text('Nouveau conseil')),
             const Spacer(),
             AppBadge('${councilsAsync.valueOrNull?.length ?? 0} conseil(s)', tone: AppTone.info),
           ]),
@@ -185,7 +188,7 @@ class _CouncilsScreenState extends ConsumerState<CouncilsScreen> {
               data: (list) => list.isEmpty
                   ? AppEmptyState(icon: Icons.groups_outlined, title: 'Aucun conseil de classe',
                       message: 'Importez les données de test ou créez un conseil pour la classe et la période sélectionnées.',
-                      action: FilledButton(onPressed: _createCouncil, child: const Text('Créer un conseil')))
+                      action: FilledButton(onPressed: canManage ? _createCouncil : null, child: const Text('Créer un conseil')))
                   : ListView.separated(
                       itemCount: list.length,
                       separatorBuilder: (_, __) => const SizedBox(height: 8),
@@ -201,7 +204,7 @@ class _CouncilsScreenState extends ConsumerState<CouncilsScreen> {
                             subtitle: Text('${periodLabels[council.periodId] ?? council.periodId}${council.councilDate == null ? '' : ' — ${formatDateFr(council.councilDate)}'}', style: const TextStyle(fontSize: 11)),
                             trailing: Wrap(spacing: 6, crossAxisAlignment: WrapCrossAlignment.center, children: [
                               AppBadge(council.status, tone: closed ? AppTone.success : AppTone.warning, icon: closed ? Icons.lock_outline : Icons.edit_note_outlined),
-                              IconButton(tooltip: 'Gérer le conseil (statut/appréciation)', icon: const Icon(Icons.settings_outlined, size: 18), onPressed: () => _manageCouncil(council)),
+                              IconButton(tooltip: 'Gérer le conseil (statut/appréciation)', icon: const Icon(Icons.settings_outlined, size: 18), onPressed: canManage ? () => _manageCouncil(council) : null),
                             ]),
                             children: [
                               if (council.globalAppreciation != null)
