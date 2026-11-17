@@ -5,9 +5,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'dart:convert';
+
+import 'package:printing/printing.dart';
+
 import 'package:fianarana/core/utils/csv_export.dart';
 import 'package:fianarana/core/utils/xlsx_export.dart';
 import 'package:fianarana/features/auth/application/auth_controller.dart';
+import 'package:fianarana/features/documents/application/document_providers.dart';
+import 'package:fianarana/features/documents/services/document_studio_pdf_service.dart';
 import 'package:fianarana/features/students/application/students_providers.dart';
 import 'package:fianarana/features/students/data/students_repository.dart';
 import 'package:fianarana/features/students/services/student_import_service.dart';
@@ -385,6 +391,14 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
                         label: const Text("Voir l'emploi du temps"),
                       ),
                     ),
+                    const SizedBox(height: 8),
+                    const Text('Documents (Studio)', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
+                    const SizedBox(height: 6),
+                    Wrap(spacing: 6, runSpacing: 6, children: [
+                      OutlinedButton.icon(onPressed: () => _generateStudentDocument(o, 'attestation', 'attestation'), icon: const Icon(Icons.description_outlined, size: 14), label: const Text('Attestation', style: TextStyle(fontSize: 11))),
+                      OutlinedButton.icon(onPressed: () => _generateStudentDocument(o, 'certificat', 'certificat'), icon: const Icon(Icons.verified_outlined, size: 14), label: const Text('Certificat', style: TextStyle(fontSize: 11))),
+                      OutlinedButton.icon(onPressed: () => _generateStudentDocument(o, 'carte', 'carte_scolaire'), icon: const Icon(Icons.badge_outlined, size: 14), label: const Text('Carte scolaire', style: TextStyle(fontSize: 11))),
+                    ]),
                   ]),
                 );
               },
