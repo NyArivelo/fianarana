@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:fianarana/core/utils/csv_export.dart';
+import 'package:fianarana/core/utils/xlsx_export.dart';
 import 'package:fianarana/core/widgets/app_ui.dart';
 import 'package:fianarana/features/auth/application/auth_controller.dart';
 import 'package:fianarana/core/security/permission_providers.dart';
@@ -126,30 +127,35 @@ class _SchedulesScreenState extends ConsumerState<SchedulesScreen> {
 
   Future<void> _exportSchedules(List<ScheduleRow> rows) async {
     try {
+      final choice = await showDialog<String>(context: context, builder: (ctx)=>SimpleDialog(title: const Text('Exporter les échéanciers'), children: [
+        SimpleDialogOption(onPressed: ()=>Navigator.pop(ctx,'csv'), child: const ListTile(leading: Icon(Icons.description_outlined), title: Text('Exporter en CSV'))),
+        SimpleDialogOption(onPressed: ()=>Navigator.pop(ctx,'xlsx'), child: const ListTile(leading: Icon(Icons.grid_on_outlined), title: Text('Exporter en Excel (XLSX)'))),
+      ]));
+      if (choice == null) return;
       final ts = DateTime.now().millisecondsSinceEpoch;
-      final file = await CsvExport.export(
-        filename: 'echeanciers_$ts.csv',
-        headers: const ['Eleve', 'Matricule', 'Classe', 'Libelle', 'Echeance', 'Du_MGA', 'Paye_MGA', 'Reste_MGA', 'Statut', 'Derniere_relance'],
-        rows: rows.map((r) {
-          final sch = r.schedule;
-          final reste = (sch.amountDueMga - sch.amountPaidMga).clamp(0, 1 << 30);
-          final due = sch.dueDate == null ? '' : '${sch.dueDate!.year}-${sch.dueDate!.month.toString().padLeft(2, '0')}-${sch.dueDate!.day.toString().padLeft(2, '0')}';
-          final rel = sch.lastReminderAt == null ? '' : sch.lastReminderAt!.toIso8601String();
-          return <String?>[
-            r.studentName ?? '',
-            r.matricule ?? '',
-            r.classLabel ?? '',
-            sch.label,
-            due,
-            '${sch.amountDueMga}',
-            '${sch.amountPaidMga}',
-            '$reste',
-            sch.status,
-            rel,
-          ];
-        }).toList(),
-      );
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Export échéanciers : ${file.path}')));
+      final headers = const ['Eleve', 'Matricule', 'Classe', 'Libelle', 'Echeance', 'Du_MGA', 'Paye_MGA', 'Reste_MGA', 'Statut', 'Derniere_relance'];
+      final data = rows.map((r) {
+        final sch = r.schedule;
+        final reste = (sch.amountDueMga - sch.amountPaidMga).clamp(0, 1 << 30);
+        final due = sch.dueDate == null ? '' : '${sch.dueDate!.year}-${sch.dueDate!.month.toString().padLeft(2, '0')}-${sch.dueDate!.day.toString().padLeft(2, '0')}';
+        final rel = sch.lastReminderAt == null ? '' : sch.lastReminderAt!.toIso8601String();
+        return <String?>[
+          r.studentName ?? '',
+          r.matricule ?? '',
+          r.classLabel ?? '',
+          sch.label,
+          due,
+          '${sch.amountDueMga}',
+          '${sch.amountPaidMga}',
+          '$reste',
+          sch.status,
+          rel,
+        ];
+      }).toList();
+      final file = choice == 'xlsx'
+          ? await XlsxExport.export(filename: 'echeanciers_$ts.xlsx', sheetName: 'Echeanciers', headers: headers, rows: data)
+          : await CsvExport.export(filename: 'echeanciers_$ts.csv', headers: headers, rows: data);
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Export ${choice.toUpperCase()} : ${file.path}')));
     } catch (e) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erreur export : $e')));
     }
@@ -203,7 +209,7 @@ class _SchedulesScreenState extends ConsumerState<SchedulesScreen> {
               const SizedBox(width: 8),
               FilledButton.icon(onPressed: canManage ? () => _edit(null) : null, icon: const Icon(Icons.add, size: 16), label: const Text('Nouvel échéancier')),
               const SizedBox(width: 8),
-              listAsync.maybeWhen(data: (rows)=>OutlinedButton.icon(onPressed: (canExport && rows.isNotEmpty) ? () => _exportSchedules(rows) : null, icon: const Icon(Icons.download_outlined, size: 16), label: const Text('Exporter CSV')), orElse: ()=>const SizedBox.shrink()),
+              listAsync.maybeWhen(data: (rows)=>OutlinedButton.icon(onPressed: (canExport && rows.isNotEmpty) ? () => _exportSchedules(rows) : null, icon: const Icon(Icons.download_outlined, size: 16), label: const Text('Exporter')), orElse: ()=>const SizedBox.shrink()),
             ]),
             const SizedBox(height: 8),
             Expanded(

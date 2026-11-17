@@ -273,38 +273,40 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
   }
 
 
-  Future<void> _exportCatalogue(List<LibraryCatalogueRow> rows) async {
+  Future<void> _exportCatalogue(List<LibraryCatalogueRow> rows, String fmt) async {
     final ts = DateTime.now().millisecondsSinceEpoch;
-    final f = await CsvExport.export(
-      filename: 'bibliotheque_catalogue_$ts.csv',
-      headers: const ['Titre','Auteur/Categorie','Code exemplaire','ISBN/Code','Statut','Emprunteur','Matricule','Echeance'],
-      rows: rows.map((r)=>[
-        r.item.title,
-        r.item.authorOrCategory,
-        r.item.copyCode,
-        r.item.codeOrIsbn,
-        r.statusLabel,
-        r.borrowerName,
-        r.borrowerMatricule,
-        r.dueDate?.toIso8601String(),
-      ]).toList(),
-    );
-    if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Export catalogue: ${f.path}')));
+    final headers = const ['Titre','Auteur/Categorie','Code exemplaire','ISBN/Code','Statut','Emprunteur','Matricule','Echeance'];
+    final data = rows.map((r)=>[
+      r.item.title,
+      r.item.authorOrCategory,
+      r.item.copyCode,
+      r.item.codeOrIsbn,
+      r.statusLabel,
+      r.borrowerName,
+      r.borrowerMatricule,
+      r.dueDate?.toIso8601String(),
+    ]).toList();
+    final f = fmt == 'xlsx'
+        ? await XlsxExport.export(filename: 'bibliotheque_catalogue_$ts.xlsx', sheetName: 'Catalogue', headers: headers, rows: data)
+        : await CsvExport.export(filename: 'bibliotheque_catalogue_$ts.csv', headers: headers, rows: data);
+    if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Export catalogue (${fmt.toUpperCase()}): ${f.path}')));
   }
 
   Future<void> _exportLoans(List<LibraryLoanRow> rows, String fmt) async {
     final ts = DateTime.now().millisecondsSinceEpoch;
-    final headers = const ['Titre', 'Matricule', 'Élève', 'Emprunt', 'Retour prévu', 'Retour effectif', 'Retard (j)', 'Statut'];
-    final data = rows.map((r) => <String?>[
-          r.title,
-          r.matricule ?? '',
-          r.studentName ?? '',
-          r.loanDate.toIso8601String().split('T').first,
-          r.dueDate.toIso8601String().split('T').first,
-          r.returnDate?.toIso8601String().split('T').first ?? '',
-          r.overdueDays > 0 ? '${r.overdueDays}' : '0',
-          r.status,
-        ]).toList();
+    final headers = const ['Titre','Exemplaire','Emprunteur','Matricule','Classe','Emprunt','Retour prévu','Retour effectif','Statut','En retard'];
+    final data = rows.map((r)=>[
+      r.itemTitle,
+      r.copyCode ?? '',
+      r.borrowerName ?? '',
+      r.borrowerMatricule ?? '',
+      r.classLabel ?? '',
+      r.loan.loanDate.toIso8601String().split('T').first,
+      r.loan.dueDate?.toIso8601String().split('T').first ?? '',
+      r.loan.returnDate?.toIso8601String().split('T').first ?? '',
+      r.isReturned ? 'Retourné' : 'En cours',
+      r.overdue ? 'Oui' : 'Non',
+    ]).toList();
     final f = fmt == 'xlsx'
         ? await XlsxExport.export(filename: 'bibliotheque_prets_$ts.xlsx', sheetName: 'Prets', headers: headers, rows: data)
         : await CsvExport.export(filename: 'bibliotheque_prets_$ts.csv', headers: headers, rows: data);
@@ -313,14 +315,19 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
 
   Future<void> _exportQuitus(List<LibraryQuitusRow> rows, String fmt) async {
     final ts = DateTime.now().millisecondsSinceEpoch;
-    final headers = const ['Matricule', 'Élève', 'Statut', 'Date émission', 'Note'];
-    final data = rows.map((r) => <String?>[
-          r.matricule ?? '',
-          r.studentName ?? '',
-          r.status,
-          r.issuedAt?.toIso8601String().split('T').first ?? '',
-          r.note ?? '',
-        ]).toList();
+    final headers = const ['Matricule','Élève','Classe','Solde MGA','Prêts actifs','Prêts en retard','Prochaine échéance','Finance OK','Bibliothèque OK','Certificat prêt'];
+    final data = rows.map((r)=>[
+      r.matricule,
+      r.fullName,
+      r.classLabel ?? '',
+      '${r.balanceMga}',
+      '${r.activeLoans}',
+      '${r.overdueLoans}',
+      r.nextDueDate?.toIso8601String().split('T').first ?? '',
+      r.financeOk ? 'Oui' : 'Non',
+      r.libraryOk ? 'Oui' : 'Non',
+      r.certificateReady ? 'Oui' : 'Non',
+    ]).toList();
     final f = fmt == 'xlsx'
         ? await XlsxExport.export(filename: 'bibliotheque_quitus_$ts.xlsx', sheetName: 'Quitus', headers: headers, rows: data)
         : await CsvExport.export(filename: 'bibliotheque_quitus_$ts.csv', headers: headers, rows: data);
@@ -329,11 +336,16 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
 
   Future<void> _exportCurrentTab() async {
     try {
+      final fmt = await showDialog<String>(context: context, builder: (ctx)=>SimpleDialog(title: const Text('Exporter (onglet actif)'), children: [
+        SimpleDialogOption(onPressed: ()=>Navigator.pop(ctx,'csv'), child: const ListTile(leading: Icon(Icons.description_outlined), title: Text('Exporter en CSV'))),
+        SimpleDialogOption(onPressed: ()=>Navigator.pop(ctx,'xlsx'), child: const ListTile(leading: Icon(Icons.grid_on_outlined), title: Text('Exporter en Excel (XLSX)'))),
+      ]));
+      if (fmt == null) return;
       final idx = _tabs.index;
       if (idx == 0) {
         final rows = ref.read(libraryCatalogueProvider).valueOrNull ?? const <LibraryCatalogueRow>[];
         final filtered = rows.where((r) => _matches(r.item.title) || _matches(r.item.authorOrCategory) || _matches(r.item.copyCode) || _matches(r.item.codeOrIsbn) || _matches(r.borrowerName) || _matches(r.borrowerMatricule)).toList();
-        await _exportCatalogue(filtered);
+        await _exportCatalogue(filtered, fmt);
       } else if (idx == 1) {
         final rows = ref.read(libraryLoansProvider).valueOrNull ?? const <LibraryLoanRow>[];
         final filtered = rows.where((l) {
@@ -346,11 +358,11 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
           if (!okFilter) return false;
           return _matches(l.itemTitle) || _matches(l.borrowerName) || _matches(l.borrowerMatricule) || _matches(l.classLabel);
         }).toList();
-        await _exportLoans(filtered);
+        await _exportLoans(filtered, fmt);
       } else {
         final rows = ref.read(libraryQuitusProvider(_includeAllStudents)).valueOrNull ?? const <LibraryQuitusRow>[];
         final filtered = rows.where((r) => _matches(r.fullName) || _matches(r.matricule) || _matches(r.classLabel)).toList();
-        await _exportQuitus(filtered);
+        await _exportQuitus(filtered, fmt);
       }
     } catch (e) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erreur export: $e')));
