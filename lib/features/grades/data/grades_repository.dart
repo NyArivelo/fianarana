@@ -149,6 +149,14 @@ class GradesRepository {
       }
       classId = effectiveClassId;
     }
+    // Verrouillage de période : interdire toute modification de note en période clôturée
+    if (id != null) {
+      final existing = await (db.select(db.evaluations)..where((t)=>t.id.equals(id))).getSingleOrNull();
+      if (existing?.periodId != null) await _ensurePeriodUnlocked(existing!.periodId!);
+    }
+    if (periodId != null) {
+      await _ensurePeriodUnlocked(periodId);
+    }
     final now = DateTime.now();
     final gid = id ?? newUuid();
     await db.into(db.evaluations).insertOnConflictUpdate(EvaluationsCompanion.insert(
@@ -242,6 +250,7 @@ class GradesRepository {
     String? actorUsername,
   }) async {
     await _require(actorUserId, 'grades.validate');
+    await _ensurePeriodUnlocked(periodId);
     final cid = id ?? newUuid();
     await db.into(db.classCouncils).insertOnConflictUpdate(ClassCouncilsCompanion.insert(
       id: Value(cid),
@@ -269,6 +278,8 @@ class GradesRepository {
     String? actorUsername,
   }) async {
     await _require(actorUserId, 'grades.validate');
+    final council = await (db.select(db.classCouncils)..where((t)=>t.id.equals(councilId))).getSingleOrNull();
+    if (council != null) await _ensurePeriodUnlocked(council.periodId);
     final did = id ?? newUuid();
     await db.into(db.councilDecisions).insertOnConflictUpdate(CouncilDecisionsCompanion.insert(
       id: Value(did),
