@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:fianarana/core/widgets/app_ui.dart';
 import 'package:fianarana/features/auth/application/auth_controller.dart';
+import 'package:fianarana/core/security/permission_providers.dart';
 import 'package:fianarana/features/finance/application/finance_providers.dart';
 import 'package:fianarana/features/finance/data/finance_repository.dart';
 import 'package:fianarana/features/students/application/students_providers.dart';
@@ -162,9 +163,9 @@ class _SchedulesScreenState extends ConsumerState<SchedulesScreen> {
                 ),
               ),
               const SizedBox(width: 8),
-              OutlinedButton.icon(onPressed: _refreshStatuses, icon: const Icon(Icons.sync, size: 16), label: const Text('Recalculer statuts')),
+              OutlinedButton.icon(onPressed: canManage ? _refreshStatuses : null, icon: const Icon(Icons.sync, size: 16), label: const Text('Recalculer statuts')),
               const SizedBox(width: 8),
-              FilledButton.icon(onPressed: () => _edit(null), icon: const Icon(Icons.add, size: 16), label: const Text('Nouvel échéancier')),
+              FilledButton.icon(onPressed: canManage ? () => _edit(null) : null, icon: const Icon(Icons.add, size: 16), label: const Text('Nouvel échéancier')),
             ]),
             const SizedBox(height: 8),
             Expanded(
@@ -202,9 +203,9 @@ class _SchedulesScreenState extends ConsumerState<SchedulesScreen> {
                                   DataCell(Text('$reste', style: TextStyle(color: reste > 0 ? Colors.red : Colors.green, fontWeight: FontWeight.w600))),
                                   DataCell(AppBadge(sch.status, tone: sch.status == 'Payé' ? AppTone.success : (late ? AppTone.danger : AppTone.warning))),
                                   DataCell(Wrap(spacing: 4, children: [
-                                    IconButton(tooltip: 'Modifier', icon: const Icon(Icons.edit_outlined, size: 18), onPressed: () => _edit(r)),
+                                    IconButton(tooltip: 'Modifier', icon: const Icon(Icons.edit_outlined, size: 18), onPressed: canManage ? () => _edit(r) : null),
                                     if (late && sch.amountPaidMga < sch.amountDueMga)
-                                      IconButton(tooltip: 'Marquer relancé', icon: const Icon(Icons.notifications_active_outlined, size: 18), onPressed: () => _markRelance(r)),
+                                      IconButton(tooltip: 'Marquer relancé', icon: const Icon(Icons.notifications_active_outlined, size: 18), onPressed: canManage ? () => _markRelance(r) : null),
                                   ])),
                                 ]);
                               }).toList(),

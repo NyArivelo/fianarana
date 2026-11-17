@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fianarana/core/database/database_provider.dart';
 import 'package:fianarana/features/admin/data/admin_repository.dart';
 import 'package:fianarana/features/auth/application/auth_controller.dart';
+import 'package:fianarana/core/security/permission_providers.dart';
 
 final _adminRepoProvider = Provider((ref)=>AdminRepository(ref.watch(appDatabaseProvider)));
 
@@ -120,11 +121,14 @@ class _UsersAdminScreenState extends ConsumerState<UsersAdminScreen> {
   Widget build(BuildContext context) {
     final auth = ref.watch(authControllerProvider);
     final repo = ref.watch(_adminRepoProvider);
+    final perms = ref.watch(currentPermissionsProvider).valueOrNull ?? const <String>{};
+    final canManageUsers = perms.contains('users.create') || perms.contains('users.update');
+    final canManageRoles = perms.contains('roles.update') || perms.contains('roles.read');
     return Scaffold(
       appBar: AppBar(title: const Text('Utilisateurs & rôles (administration)'), actions:[
-        OutlinedButton.icon(onPressed: _editRolePermissions, icon: const Icon(Icons.security, size:16), label: const Text('Permissions rôles')),
+        OutlinedButton.icon(onPressed: canManageRoles ? _editRolePermissions : null, icon: const Icon(Icons.security, size:16), label: const Text('Permissions rôles')),
         const SizedBox(width: 8),
-        FilledButton.icon(onPressed: ()=>_editUser(), icon: const Icon(Icons.person_add, size:16), label: const Text('Nouvel utilisateur')),
+        FilledButton.icon(onPressed: canManageUsers ? ()=>_editUser() : null, icon: const Icon(Icons.person_add, size:16), label: const Text('Nouvel utilisateur')),
         const SizedBox(width:12),
       ]),
       body: FutureBuilder(
@@ -137,7 +141,7 @@ class _UsersAdminScreenState extends ConsumerState<UsersAdminScreen> {
             title: Text('${u.fullName} (${u.username})'),
             subtitle: Text('Portée: ${u.scopeType} • ${u.isActive ? "Actif" : "Désactivé"}${u.lockedUntil!=null?" • Verrouillé":""}'),
             trailing: Wrap(spacing:4, children:[
-              IconButton(tooltip:'Modifier', onPressed: ()=>_editUser(u), icon: const Icon(Icons.edit_outlined)),
+              IconButton(tooltip:'Modifier', onPressed: canManageUsers ? ()=>_editUser(u) : null, icon: const Icon(Icons.edit_outlined)),
               IconButton(tooltip:'Réinitialiser mot de passe', onPressed: ()=>_resetPwd(u), icon: const Icon(Icons.lock_reset)),
               IconButton(tooltip: u.isActive?'Désactiver':'Réactiver', onPressed: () async { try { await repo.toggleActive(u.id, !u.isActive, actorUserId: auth.userId, actorUsername: auth.username); setState((){});} catch(e){ if(mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$e')));} }, icon: Icon(u.isActive?Icons.block:Icons.check_circle_outline)),
             ]),

@@ -8,6 +8,7 @@ import 'package:printing/printing.dart';
 
 import 'package:fianarana/core/settings/app_config.dart';
 import 'package:fianarana/features/auth/application/auth_controller.dart';
+import 'package:fianarana/core/security/permission_providers.dart';
 import 'package:fianarana/features/documents/application/document_providers.dart';
 import 'package:fianarana/features/documents/services/document_studio_pdf_service.dart';
 import 'package:fianarana/features/students/application/students_providers.dart';
@@ -246,7 +247,7 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> {
                           TextFormField(controller: _medical, decoration: const InputDecoration(labelText: 'Observations médicales / suivi'), maxLines: 2),
                           const SizedBox(height: 16),
                           FilledButton.icon(
-                            onPressed: _saving ? null : _save,
+                            onPressed: (_saving || !canSave) ? null : _save,
                             icon: _saving ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2)) : const Icon(Icons.save),
                             label: Text(isNew ? 'Enregistrer l\'élève' : 'Enregistrer les modifications'),
                           ),
@@ -309,7 +310,7 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> {
                         Row(children: [
                           Expanded(child: Text('Transfert / Radiation (procédure)', style: Theme.of(context).textTheme.titleMedium)),
                           FilledButton.icon(
-                            onPressed: () => _openTransferDialog(student, enrollmentsAsync.valueOrNull ?? const []),
+                            onPressed: canTransfer ? () => _openTransferDialog(student, enrollmentsAsync.valueOrNull ?? const []) : null,
                             icon: const Icon(Icons.exit_to_app, size: 16),
                             label: const Text('Procéder'),
                           ),
