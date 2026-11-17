@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 
 import 'package:fianarana/core/database/app_database.dart';
 import 'package:fianarana/core/database/uuid.dart';
+import 'package:fianarana/core/security/affectation_scope.dart';
 import 'package:fianarana/core/security/audit_service.dart';
 import 'package:fianarana/core/security/permission_service.dart';
 
@@ -20,7 +21,15 @@ class StaffRepository {
 
   Future<List<StaffMember>> listStaff({String? actorUserId, String? query}) async {
     await _require(actorUserId, 'staff.read');
+    final scopeClasses = await AffectationScope(db).allowedClassIdsForUser(actorUserId);
+    String? scopeStaffId;
+    if (scopeClasses != null && actorUserId != null) {
+      final st = await (db.select(db.staffMembers)..where((t)=>t.userId.equals(actorUserId) & t.isDeleted.equals(false))).getSingleOrNull();
+      scopeStaffId = st?.id;
+      if (scopeStaffId == null) return const <StaffMember>[];
+    }
     final q = db.select(db.staffMembers)..where((t) => t.isDeleted.equals(false));
+    if (scopeStaffId != null) q.where((t) => t.id.equals(scopeStaffId));
     if (query != null && query.trim().isNotEmpty) {
       final s = '%${query.trim()}%';
       q.where((t) => t.lastName.like(s) | t.firstName.like(s) | t.staffNumber.like(s));
@@ -63,8 +72,17 @@ class StaffRepository {
 
   Future<List<TeacherAbsence>> listAbsences({String? actorUserId, String? teacherId}) async {
     await _require(actorUserId, 'staff.read');
+    final scopeClasses = await AffectationScope(db).allowedClassIdsForUser(actorUserId);
+    String? scopeStaffId;
+    if (scopeClasses != null && actorUserId != null) {
+      final st = await (db.select(db.staffMembers)..where((t)=>t.userId.equals(actorUserId) & t.isDeleted.equals(false))).getSingleOrNull();
+      scopeStaffId = st?.id;
+      if (scopeStaffId == null) return const <TeacherAbsence>[];
+      if (teacherId != null && teacherId.isNotEmpty && teacherId != scopeStaffId) return const <TeacherAbsence>[];
+    }
     final q = db.select(db.teacherAbsences)..where((t) => t.isDeleted.equals(false));
-    if (teacherId != null && teacherId.isNotEmpty) q.where((t) => t.teacherId.equals(teacherId));
+    final effectiveTeacher = teacherId ?? scopeStaffId;
+    if (effectiveTeacher != null && effectiveTeacher.isNotEmpty) q.where((t) => t.teacherId.equals(effectiveTeacher));
     q.orderBy([(t) => OrderingTerm.desc(t.startDate)]);
     return q.get();
   }
