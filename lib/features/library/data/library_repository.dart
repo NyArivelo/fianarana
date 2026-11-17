@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 
 import 'package:fianarana/core/database/app_database.dart';
 import 'package:fianarana/core/database/uuid.dart';
+import 'package:fianarana/core/security/affectation_scope.dart';
 import 'package:fianarana/core/security/audit_service.dart';
 import 'package:fianarana/core/security/permission_service.dart';
 
@@ -168,6 +169,9 @@ class LibraryRepository {
 
   Future<List<LibraryLoanRow>> listLoans({String? actorUserId}) async {
     await _require(actorUserId, 'library.read');
+    final scopeClasses = await AffectationScope(db).allowedClassIdsForUser(actorUserId);
+    final scopedStudentIds = await _studentIdsInClasses(scopeClasses);
+    if (scopeClasses != null && scopedStudentIds.isEmpty) return const <LibraryLoanRow>[];
     final l = db.libraryLoans;
     final i = db.libraryItems;
     final s = db.students;
@@ -176,6 +180,9 @@ class LibraryRepository {
       leftOuterJoin(s, s.id.equalsExp(l.borrowerStudentId)),
     ]);
     join.where(l.isDeleted.equals(false));
+    if (scopedStudentIds != null) {
+      join.where(l.borrowerStudentId.isIn(scopedStudentIds));
+    }
     join.orderBy([OrderingTerm.asc(l.returnDate), OrderingTerm.asc(l.dueDate)]);
     final rows = await join.get();
 
@@ -197,20 +204,36 @@ class LibraryRepository {
     }).toList();
   }
 
+  Future<Set<String>?> _studentIdsInClasses(Set<String>? scopeClasses) async {
+    if (scopeClasses == null) return null;
+    if (scopeClasses.isEmpty) return <String>{};
+    final rows = await (db.select(db.enrollments)
+          ..where((e) => e.isDeleted.equals(false) & e.classId.isIn(scopeClasses)))
+        .get();
+    return rows.map((e) => e.studentId).toSet();
+  }
+
   Future<LibraryStats> stats({String? actorUserId}) async {
     await _require(actorUserId, 'library.read');
+    final scopeClasses = await AffectationScope(db).allowedClassIdsForUser(actorUserId);
+    final scopedStudentIds = await _studentIdsInClasses(scopeClasses);
     final items = await (db.select(db.libraryItems)
           ..where((t) => t.isDeleted.equals(false)))
         .get();
-    final loans = await (db.select(db.libraryLoans)
-          ..where((t) => t.isDeleted.equals(false) & t.returnDate.isNull()))
-        .get();
+    final q = db.select(db.libraryLoans)..where((t) => t.isDeleted.equals(false) & t.returnDate.isNull());
+    if (scopedStudentIds != null) {
+      if (scopedStudentIds.isEmpty) {
+        return LibraryStats(totalItems: items.length, available: items.length, borrowed: 0, overdue: 0, activeLoans: 0);
+      }
+      q.where((t) => t.borrowerStudentId.isIn(scopedStudentIds));
+    }
+    final loans = await q.get();
     final now = DateTime.now();
     final overdue = loans.where((l) => _isOverdue(l.dueDate, now)).length;
     final borrowed = loans.length;
     return LibraryStats(
       totalItems: items.length,
-      available: items.length - borrowed,
+      available: (items.length - borrowed).clamp(0, 1 << 30),
       borrowed: borrowed,
       overdue: overdue,
       activeLoans: borrowed,
@@ -223,10 +246,13 @@ class LibraryRepository {
     bool includeAll = false,
   }) async {
     await _require(actorUserId, 'students.read');
-    final students = await (db.select(db.students)
-          ..where((t) => t.isDeleted.equals(false))
-          ..orderBy([(t) => OrderingTerm.asc(t.lastName)]))
-        .get();
+    final scopeClasses = await AffectationScope(db).allowedClassIdsForUser(actorUserId);
+    final scopedStudentIds = await _studentIdsInClasses(scopeClasses);
+    if (scopeClasses != null && scopedStudentIds.isEmpty) return const <LibraryQuitusRow>[];
+    final q = db.select(db.students)..where((t) => t.isDeleted.equals(false));
+    if (scopedStudentIds != null) q.where((t) => t.id.isIn(scopedStudentIds));
+    q.orderBy([(t) => OrderingTerm.asc(t.lastName)]);
+    final students = await q.get();
     if (students.isEmpty) return const [];
 
     final classByStudent = await _classLabelsByStudent();
