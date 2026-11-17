@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:printing/printing.dart';
 
 import 'package:fianarana/core/utils/csv_export.dart';
+import 'package:fianarana/core/utils/xlsx_export.dart';
 import 'package:fianarana/core/widgets/app_ui.dart';
 import 'package:fianarana/features/auth/application/auth_controller.dart';
 import 'package:fianarana/core/security/permission_providers.dart';
@@ -291,43 +292,39 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
     if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Export catalogue: ${f.path}')));
   }
 
-  Future<void> _exportLoans(List<LibraryLoanRow> rows) async {
+  Future<void> _exportLoans(List<LibraryLoanRow> rows, String fmt) async {
     final ts = DateTime.now().millisecondsSinceEpoch;
-    final f = await CsvExport.export(
-      filename: 'bibliotheque_prets_$ts.csv',
-      headers: const ['Ouvrage','Exemplaire','Emprunteur','Matricule','Classe','Date pret','Echeance','Date retour','Retard'],
-      rows: rows.map((r)=>[
-        r.itemTitle,
-        r.copyCode,
-        r.borrowerName,
-        r.borrowerMatricule,
-        r.classLabel,
-        r.loan.loanDate.toIso8601String(),
-        r.loan.dueDate?.toIso8601String(),
-        r.loan.returnDate?.toIso8601String(),
-        r.overdue ? 'Oui' : 'Non',
-      ]).toList(),
-    );
-    if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Export prêts: ${f.path}')));
+    final headers = const ['Titre', 'Matricule', 'Élève', 'Emprunt', 'Retour prévu', 'Retour effectif', 'Retard (j)', 'Statut'];
+    final data = rows.map((r) => <String?>[
+          r.title,
+          r.matricule ?? '',
+          r.studentName ?? '',
+          r.loanDate.toIso8601String().split('T').first,
+          r.dueDate.toIso8601String().split('T').first,
+          r.returnDate?.toIso8601String().split('T').first ?? '',
+          r.overdueDays > 0 ? '${r.overdueDays}' : '0',
+          r.status,
+        ]).toList();
+    final f = fmt == 'xlsx'
+        ? await XlsxExport.export(filename: 'bibliotheque_prets_$ts.xlsx', sheetName: 'Prets', headers: headers, rows: data)
+        : await CsvExport.export(filename: 'bibliotheque_prets_$ts.csv', headers: headers, rows: data);
+    if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Export prêts (${fmt.toUpperCase()}): ${f.path}')));
   }
 
-  Future<void> _exportQuitus(List<LibraryQuitusRow> rows) async {
+  Future<void> _exportQuitus(List<LibraryQuitusRow> rows, String fmt) async {
     final ts = DateTime.now().millisecondsSinceEpoch;
-    final f = await CsvExport.export(
-      filename: 'bibliotheque_quitus_$ts.csv',
-      headers: const ['Matricule','Eleve','Classe','Solde_MGA','Prets_actifs','Prets_en_retard','Prochaine_echeance','Quitus'],
-      rows: rows.map((r)=>[
-        r.matricule,
-        r.fullName,
-        r.classLabel,
-        '${r.balanceMga}',
-        '${r.activeLoans}',
-        '${r.overdueLoans}',
-        r.nextDueDate?.toIso8601String(),
-        (r.balanceMga <= 0 && r.overdueLoans == 0 && r.activeLoans == 0) ? 'OK' : 'Non conforme',
-      ]).toList(),
-    );
-    if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Export quitus: ${f.path}')));
+    final headers = const ['Matricule', 'Élève', 'Statut', 'Date émission', 'Note'];
+    final data = rows.map((r) => <String?>[
+          r.matricule ?? '',
+          r.studentName ?? '',
+          r.status,
+          r.issuedAt?.toIso8601String().split('T').first ?? '',
+          r.note ?? '',
+        ]).toList();
+    final f = fmt == 'xlsx'
+        ? await XlsxExport.export(filename: 'bibliotheque_quitus_$ts.xlsx', sheetName: 'Quitus', headers: headers, rows: data)
+        : await CsvExport.export(filename: 'bibliotheque_quitus_$ts.csv', headers: headers, rows: data);
+    if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Export quitus (${fmt.toUpperCase()}): ${f.path}')));
   }
 
   Future<void> _exportCurrentTab() async {
@@ -467,7 +464,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
               ),
             ),
             const Spacer(),
-            OutlinedButton.icon(onPressed: canExport ? _exportCurrentTab : null, icon: const Icon(Icons.download_outlined, size: 16), label: const Text('Exporter CSV')),
+            OutlinedButton.icon(onPressed: canExport ? _exportCurrentTab : null, icon: const Icon(Icons.download_outlined, size: 16), label: const Text('Exporter')),
             const SizedBox(width: 8),
             AppBadge(
               _tabs.index == 0
