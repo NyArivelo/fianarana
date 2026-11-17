@@ -1,10 +1,15 @@
+import 'dart:io';
+
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:fianarana/core/utils/csv_export.dart';
+import 'package:fianarana/features/auth/application/auth_controller.dart';
 import 'package:fianarana/features/students/application/students_providers.dart';
 import 'package:fianarana/features/students/data/students_repository.dart';
+import 'package:fianarana/features/students/services/student_import_service.dart';
 
 const _statuses = <String>[
   'Validée',
@@ -190,6 +195,11 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
               });
             },
             icon: const Icon(Icons.filter_alt_off_outlined, size: 20),
+          ),
+          OutlinedButton.icon(
+            onPressed: () => _importStudents(),
+            icon: const Icon(Icons.upload_file_outlined, size: 16),
+            label: const Text('Importer (CSV/XLSX)'),
           ),
           OutlinedButton.icon(
             onPressed: studentsAsync.maybeWhen(data: (items) => items.isEmpty ? null : () => _export(items), orElse: () => null),
@@ -423,4 +433,88 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
   }
 
   String _date(DateTime d) => '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}/${d.year}';
+
+  Future<void> _importStudents() async {
+    final pick = await FilePicker.platform.pickFiles(type: FileType.custom, allowedExtensions: ['csv', 'xlsx', 'xls']);
+    if (pick == null || pick.files.single.path == null) return;
+    final file = File(pick.files.single.path!);
+    final auth = ref.read(authControllerProvider);
+    final repo = ref.read(studentsRepositoryProvider);
+    try {
+      final service = StudentImportService();
+      final raw = await service.parseFile(file);
+      final existing = await repo.list(actorUserId: auth.userId, limit: 2000);
+      final existingMats = existing.map((e) => e.matricule).toSet();
+      final classes = await repo.allClasses();
+      final classByLabel = {for (final c in classes) c.label.toLowerCase(): c.id};
+      final rows = service.toRows(raw, existingMats);
+      if (!mounted) return;
+      if (rows.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Aucune ligne valide trouvée dans le fichier.')));
+        return;
+      }
+      final selected = List<bool>.filled(rows.length, false);
+      for (var i = 0; i < rows.length; i++) {
+        selected[i] = rows[i].error == null && !rows[i].duplicateMatricule;
+      }
+      await showDialog(
+        context: context,
+        builder: (ctx) => StatefulBuilder(builder: (ctx, setD) => AlertDialog(
+          title: const Text('Import élèves (prévisualisation & détection des doublons)'),
+          content: SizedBox(width: 920, height: 520, child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text('${rows.length} ligne(s) détectée(s). Les doublons/erreurs sont exclus par défaut.', style: const TextStyle(fontSize: 12)),
+            const SizedBox(height: 8),
+            Expanded(child: SingleChildScrollView(child: SingleChildScrollView(scrollDirection: Axis.horizontal, child: DataTable(
+              columns: const [DataColumn(label: Text('Importer')), DataColumn(label: Text('Matricule')), DataColumn(label: Text('Nom')), DataColumn(label: Text('Prénom')), DataColumn(label: Text('Classe')), DataColumn(label: Text('État'))],
+              rows: List.generate(rows.length, (i) {
+                final r = rows[i];
+                final ok = r.error == null && !r.duplicateMatricule;
+                return DataRow(cells: [
+                  DataCell(Checkbox(value: selected[i], onChanged: ok ? (v)=>setD(()=>selected[i]=v??false) : null)),
+                  DataCell(Text(r.matricule)),
+                  DataCell(Text(r.lastName)),
+                  DataCell(Text(r.firstName)),
+                  DataCell(Text(r.classLabel ?? '-')),
+                  DataCell(Text(r.error ?? (ok ? 'Prêt' : 'Ignoré'), style: TextStyle(fontSize: 11, color: ok ? const Color(0xFF059669) : const Color(0xFFDC2626)))),
+                ]);
+              }),
+            )))),
+          ])),
+          actions: [
+            TextButton(onPressed: ()=>Navigator.pop(ctx), child: const Text('Annuler')),
+            FilledButton.icon(onPressed: () async {
+              var imported = 0; var failed = 0;
+              for (var i = 0; i < rows.length; i++) {
+                if (!selected[i]) continue;
+                final r = rows[i];
+                try {
+                  DateTime? bd;
+                  if (r.birthDate != null && r.birthDate!.isNotEmpty) bd = DateTime.tryParse(r.birthDate!);
+                  final classId = r.classLabel == null ? null : classByLabel[r.classLabel!.toLowerCase()];
+                  await repo.createStudent(
+                    matricule: r.matricule,
+                    lastName: r.lastName,
+                    firstName: r.firstName,
+                    sex: r.sex,
+                    birthDate: bd,
+                    birthPlace: r.birthPlace,
+                    classId: classId,
+                    actorUserId: auth.userId,
+                    actorUsername: auth.username,
+                  );
+                  imported++;
+                } catch (_) { failed++; }
+              }
+              ref.invalidate(studentsListProvider);
+              if (ctx.mounted) Navigator.pop(ctx);
+              if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Import terminé: $imported importé(s), $failed échec(s).')));
+            }, icon: const Icon(Icons.playlist_add_check, size: 16), label: const Text('Importer la sélection')),
+          ],
+        )),
+      );
+    } catch (e) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erreur import: $e')));
+    }
+  }
+
 }

@@ -8,6 +8,7 @@ import 'package:fianarana/features/auth/application/auth_controller.dart';
 import 'package:fianarana/features/auth/presentation/login_screen.dart';
 import 'package:fianarana/features/calendar/presentation/calendar_screen.dart';
 import 'package:fianarana/features/dashboard/presentation/dashboard_screen.dart';
+import 'package:fianarana/features/documents/presentation/document_studio_screen.dart';
 import 'package:fianarana/features/facilities/presentation/facilities_screen.dart';
 import 'package:fianarana/features/finance/presentation/finance_screen.dart';
 import 'package:fianarana/features/finance/presentation/schedules_screen.dart';
@@ -102,6 +103,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/calendar',
             builder: (context, state) => const CalendarScreen(),
+          ),
+          GoRoute(
+            path: '/documents',
+            builder: (context, state) => const DocumentStudioScreen(),
           ),
           GoRoute(
             path: '/settings',

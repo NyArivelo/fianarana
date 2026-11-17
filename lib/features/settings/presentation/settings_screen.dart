@@ -13,6 +13,7 @@ import 'package:fianarana/core/database/database_provider.dart';
 import 'package:fianarana/core/database/seed_importer.dart';
 import 'package:fianarana/core/services/backup_service.dart';
 import 'package:fianarana/core/services/recycle_bin_service.dart';
+import 'package:fianarana/core/services/year_closure_service.dart';
 import 'package:fianarana/core/settings/ui_settings.dart';
 import 'package:fianarana/core/utils/csv_export.dart';
 import 'package:fianarana/core/widgets/app_ui.dart';
@@ -263,10 +264,31 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
 
   Future<void> _exportAudit({required bool asJson}) async {
+    // Sélection de période (export signé d'une période du journal)
+    DateTime from = DateTime.now().subtract(const Duration(days: 30));
+    DateTime to = DateTime.now();
+    final ok = await showDialog<bool>(context: context, builder: (ctx)=>StatefulBuilder(builder:(ctx,setD){
+      String fmt(DateTime d)=>'${d.day.toString().padLeft(2,'0')}/${d.month.toString().padLeft(2,'0')}/${d.year}';
+      return AlertDialog(
+        title: Text('Exporter l\'audit (${asJson ? 'JSON' : 'CSV'})'),
+        content: Column(mainAxisSize: MainAxisSize.min, children:[
+          const Text('Sélectionnez la période à exporter (empreinte SHA-256 du fichier fournie).'),
+          const SizedBox(height: 8),
+          Row(children:[
+            Expanded(child: OutlinedButton(onPressed: () async { final d=await showDatePicker(context: ctx, initialDate: from, firstDate: DateTime(2020), lastDate: DateTime(2100)); if(d!=null) setD(()=>from=d); }, child: Text('Du ${fmt(from)}'))),
+            const SizedBox(width: 8),
+            Expanded(child: OutlinedButton(onPressed: () async { final d=await showDatePicker(context: ctx, initialDate: to, firstDate: DateTime(2020), lastDate: DateTime(2100)); if(d!=null) setD(()=>to=DateTime(d.year,d.month,d.day,23,59,59)); }, child: Text('Au ${fmt(to)}'))),
+          ]),
+        ]),
+        actions:[TextButton(onPressed: ()=>Navigator.pop(ctx,false), child: const Text('Annuler')), FilledButton(onPressed: ()=>Navigator.pop(ctx,true), child: const Text('Exporter'))],
+      );
+    }));
+    if (ok != true) return;
     setState(() { _busy = true; _msg = null; });
     try {
       final db = ref.read(appDatabaseProvider);
-      final logs = await (db.select(db.auditLogs)..orderBy([(t) => OrderingTerm.desc(t.timestampUtc)])).get();
+      final q = db.select(db.auditLogs)..where((t)=>t.timestampUtc.isBetweenValues(from.toUtc(), to.toUtc()))..orderBy([(t) => OrderingTerm.desc(t.timestampUtc)]);
+      final logs = await q.get();
       final dir = await getApplicationDocumentsDirectory();
       final outDir = Directory(p.join(dir.path, 'fianarana_exports'));
       if (!outDir.existsSync()) outDir.createSync(recursive: true);
@@ -276,17 +298,15 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       late String ext;
       if (asJson) {
         ext = 'json';
-        content = const JsonEncoder.withIndent('  ').convert(logs.map((l) => {
-          'id': l.id,
-          'timestampUtc': l.timestampUtc.toIso8601String(),
-          'userId': l.userId,
-          'username': l.username,
-          'module': l.module,
-          'targetObject': l.targetObject,
-          'description': l.description,
-          'result': l.result,
-          'hashSha256_entree': l.hashSha256,
-        }).toList());
+        content = const JsonEncoder.withIndent('  ').convert({
+          'period': {'from': from.toUtc().toIso8601String(), 'to': to.toUtc().toIso8601String()},
+          'count': logs.length,
+          'entries': logs.map((l) => {
+            'id': l.id, 'timestampUtc': l.timestampUtc.toIso8601String(), 'userId': l.userId, 'username': l.username,
+            'module': l.module, 'targetObject': l.targetObject, 'description': l.description, 'result': l.result,
+            'hashSha256_entree': l.hashSha256,
+          }).toList(),
+        });
       } else {
         ext = 'csv';
         final sb = StringBuffer();
@@ -303,7 +323,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       await file.writeAsBytes(bytes);
       final hashFile = File('${file.path}.sha256');
       await hashFile.writeAsString('$fileHash  ${p.basename(file.path)}\n');
-      _setMessage('Export audit ${ext.toUpperCase()} : ${file.path}\nEmpreinte SHA-256 (intégrité fichier) : ${hashFile.path}');
+      _setMessage('Export audit ${ext.toUpperCase()} (${logs.length} entrées) : ${file.path}\nEmpreinte SHA-256 (intégrité fichier) : ${hashFile.path}');
     } catch (e) {
       _setMessage('Erreur export audit : $e');
     } finally {
@@ -342,6 +362,31 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     } finally {
       if (mounted) setState(() => _busy = false);
     }
+  }
+
+  Future<void> _closeSchoolYear() async {
+    final db = ref.read(appDatabaseProvider);
+    final years = await (db.select(db.schoolYears)..where((t)=>t.isDeleted.equals(false))..orderBy([(t)=>OrderingTerm.desc(t.startDate)])).get();
+    if (!mounted) return;
+    if (years.isEmpty) { _setMessage('Aucune année scolaire trouvée.'); return; }
+    String selected = years.first.id;
+    final ok = await showDialog<bool>(context: context, builder: (ctx)=>StatefulBuilder(builder:(ctx,setD)=>AlertDialog(
+      title: const Text('Clôture annuelle & archivage légal'),
+      content: SizedBox(width: 520, child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children:[
+        const Text('Génère une archive scellée (JSON + empreinte SHA-256) en lecture seule pour l\'année sélectionnée et marque l\'année comme clôturée.'),
+        const SizedBox(height: 10),
+        DropdownButtonFormField<String>(value: selected, decoration: const InputDecoration(labelText: 'Année scolaire'), items: years.map((y)=>DropdownMenuItem(value: y.id, child: Text('${y.label} (${y.status})'))).toList(), onChanged: (v)=>setD(()=>selected=v??selected)),
+      ])),
+      actions: [TextButton(onPressed: ()=>Navigator.pop(ctx,false), child: const Text('Annuler')), FilledButton(onPressed: ()=>Navigator.pop(ctx,true), child: const Text('Clôturer & archiver'))],
+    )));
+    if (ok != true) return;
+    setState((){_busy=true; _msg=null;});
+    try {
+      final auth = ref.read(authControllerProvider);
+      final f = await YearClosureService(db).closeSchoolYear(schoolYearId: selected, actorUserId: auth.userId, actorUsername: auth.username);
+      _setMessage('Clôture annuelle effectuée. Archive scellée: ${f.path} (+ .sha256)');
+    } catch(e) { _setMessage('Erreur clôture annuelle: $e'); }
+    finally { if (mounted) setState(()=>_busy=false); }
   }
 
   @override
@@ -415,6 +460,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   _recycleCard(),
                   const SizedBox(height: 12),
                   _importExportCard(),
+                  const SizedBox(height: 12),
+                  _yearClosureCard(),
                 ],
               );
               final right = ListView(
@@ -446,6 +493,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 _recycleCard(),
                 const SizedBox(height: 12),
                 _importExportCard(),
+                const SizedBox(height: 12),
+                _yearClosureCard(),
                 const SizedBox(height: 12),
                 _auditCard(),
                 const SizedBox(height: 12),
@@ -633,6 +682,17 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       ),
     );
   }
+  Widget _yearClosureCard() {
+    return AppSectionCard(
+      title: 'Clôture annuelle & archivage légal',
+      subtitle: 'Archive scellée (JSON + SHA-256) en lecture seule de l\'année scolaire (coffre-fort légal).',
+      trailing: FilledButton.icon(onPressed: _busy ? null : _closeSchoolYear, icon: const Icon(Icons.inventory_2_outlined, size: 16), label: const Text('Clôturer')),
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+      child: Text('Conserve une synthèse figée (périodes, effectifs, notes, finances, présences) pour archivage et préparation de la rentrée suivante.',
+          style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant)),
+    );
+  }
+
   Widget _displayCard() {
     final scaleAsync = ref.watch(uiScaleProvider);
     return AppSectionCard(
@@ -694,10 +754,31 @@ class _ShortcutLine extends StatelessWidget {
 
 
   Future<void> _exportAudit({required bool asJson}) async {
+    // Sélection de période (export signé d'une période du journal)
+    DateTime from = DateTime.now().subtract(const Duration(days: 30));
+    DateTime to = DateTime.now();
+    final ok = await showDialog<bool>(context: context, builder: (ctx)=>StatefulBuilder(builder:(ctx,setD){
+      String fmt(DateTime d)=>'${d.day.toString().padLeft(2,'0')}/${d.month.toString().padLeft(2,'0')}/${d.year}';
+      return AlertDialog(
+        title: Text('Exporter l\'audit (${asJson ? 'JSON' : 'CSV'})'),
+        content: Column(mainAxisSize: MainAxisSize.min, children:[
+          const Text('Sélectionnez la période à exporter (empreinte SHA-256 du fichier fournie).'),
+          const SizedBox(height: 8),
+          Row(children:[
+            Expanded(child: OutlinedButton(onPressed: () async { final d=await showDatePicker(context: ctx, initialDate: from, firstDate: DateTime(2020), lastDate: DateTime(2100)); if(d!=null) setD(()=>from=d); }, child: Text('Du ${fmt(from)}'))),
+            const SizedBox(width: 8),
+            Expanded(child: OutlinedButton(onPressed: () async { final d=await showDatePicker(context: ctx, initialDate: to, firstDate: DateTime(2020), lastDate: DateTime(2100)); if(d!=null) setD(()=>to=DateTime(d.year,d.month,d.day,23,59,59)); }, child: Text('Au ${fmt(to)}'))),
+          ]),
+        ]),
+        actions:[TextButton(onPressed: ()=>Navigator.pop(ctx,false), child: const Text('Annuler')), FilledButton(onPressed: ()=>Navigator.pop(ctx,true), child: const Text('Exporter'))],
+      );
+    }));
+    if (ok != true) return;
     setState(() { _busy = true; _msg = null; });
     try {
       final db = ref.read(appDatabaseProvider);
-      final logs = await (db.select(db.auditLogs)..orderBy([(t) => OrderingTerm.desc(t.timestampUtc)])).get();
+      final q = db.select(db.auditLogs)..where((t)=>t.timestampUtc.isBetweenValues(from.toUtc(), to.toUtc()))..orderBy([(t) => OrderingTerm.desc(t.timestampUtc)]);
+      final logs = await q.get();
       final dir = await getApplicationDocumentsDirectory();
       final outDir = Directory(p.join(dir.path, 'fianarana_exports'));
       if (!outDir.existsSync()) outDir.createSync(recursive: true);
@@ -707,17 +788,15 @@ class _ShortcutLine extends StatelessWidget {
       late String ext;
       if (asJson) {
         ext = 'json';
-        content = const JsonEncoder.withIndent('  ').convert(logs.map((l) => {
-          'id': l.id,
-          'timestampUtc': l.timestampUtc.toIso8601String(),
-          'userId': l.userId,
-          'username': l.username,
-          'module': l.module,
-          'targetObject': l.targetObject,
-          'description': l.description,
-          'result': l.result,
-          'hashSha256_entree': l.hashSha256,
-        }).toList());
+        content = const JsonEncoder.withIndent('  ').convert({
+          'period': {'from': from.toUtc().toIso8601String(), 'to': to.toUtc().toIso8601String()},
+          'count': logs.length,
+          'entries': logs.map((l) => {
+            'id': l.id, 'timestampUtc': l.timestampUtc.toIso8601String(), 'userId': l.userId, 'username': l.username,
+            'module': l.module, 'targetObject': l.targetObject, 'description': l.description, 'result': l.result,
+            'hashSha256_entree': l.hashSha256,
+          }).toList(),
+        });
       } else {
         ext = 'csv';
         final sb = StringBuffer();
@@ -734,7 +813,7 @@ class _ShortcutLine extends StatelessWidget {
       await file.writeAsBytes(bytes);
       final hashFile = File('${file.path}.sha256');
       await hashFile.writeAsString('$fileHash  ${p.basename(file.path)}\n');
-      _setMessage('Export audit ${ext.toUpperCase()} : ${file.path}\nEmpreinte SHA-256 (intégrité fichier) : ${hashFile.path}');
+      _setMessage('Export audit ${ext.toUpperCase()} (${logs.length} entrées) : ${file.path}\nEmpreinte SHA-256 (intégrité fichier) : ${hashFile.path}');
     } catch (e) {
       _setMessage('Erreur export audit : $e');
     } finally {
@@ -773,6 +852,31 @@ class _ShortcutLine extends StatelessWidget {
     } finally {
       if (mounted) setState(() => _busy = false);
     }
+  }
+
+  Future<void> _closeSchoolYear() async {
+    final db = ref.read(appDatabaseProvider);
+    final years = await (db.select(db.schoolYears)..where((t)=>t.isDeleted.equals(false))..orderBy([(t)=>OrderingTerm.desc(t.startDate)])).get();
+    if (!mounted) return;
+    if (years.isEmpty) { _setMessage('Aucune année scolaire trouvée.'); return; }
+    String selected = years.first.id;
+    final ok = await showDialog<bool>(context: context, builder: (ctx)=>StatefulBuilder(builder:(ctx,setD)=>AlertDialog(
+      title: const Text('Clôture annuelle & archivage légal'),
+      content: SizedBox(width: 520, child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children:[
+        const Text('Génère une archive scellée (JSON + empreinte SHA-256) en lecture seule pour l\'année sélectionnée et marque l\'année comme clôturée.'),
+        const SizedBox(height: 10),
+        DropdownButtonFormField<String>(value: selected, decoration: const InputDecoration(labelText: 'Année scolaire'), items: years.map((y)=>DropdownMenuItem(value: y.id, child: Text('${y.label} (${y.status})'))).toList(), onChanged: (v)=>setD(()=>selected=v??selected)),
+      ])),
+      actions: [TextButton(onPressed: ()=>Navigator.pop(ctx,false), child: const Text('Annuler')), FilledButton(onPressed: ()=>Navigator.pop(ctx,true), child: const Text('Clôturer & archiver'))],
+    )));
+    if (ok != true) return;
+    setState((){_busy=true; _msg=null;});
+    try {
+      final auth = ref.read(authControllerProvider);
+      final f = await YearClosureService(db).closeSchoolYear(schoolYearId: selected, actorUserId: auth.userId, actorUsername: auth.username);
+      _setMessage('Clôture annuelle effectuée. Archive scellée: ${f.path} (+ .sha256)');
+    } catch(e) { _setMessage('Erreur clôture annuelle: $e'); }
+    finally { if (mounted) setState(()=>_busy=false); }
   }
 
   @override
@@ -810,10 +914,31 @@ class _InfoLine extends StatelessWidget {
 
 
   Future<void> _exportAudit({required bool asJson}) async {
+    // Sélection de période (export signé d'une période du journal)
+    DateTime from = DateTime.now().subtract(const Duration(days: 30));
+    DateTime to = DateTime.now();
+    final ok = await showDialog<bool>(context: context, builder: (ctx)=>StatefulBuilder(builder:(ctx,setD){
+      String fmt(DateTime d)=>'${d.day.toString().padLeft(2,'0')}/${d.month.toString().padLeft(2,'0')}/${d.year}';
+      return AlertDialog(
+        title: Text('Exporter l\'audit (${asJson ? 'JSON' : 'CSV'})'),
+        content: Column(mainAxisSize: MainAxisSize.min, children:[
+          const Text('Sélectionnez la période à exporter (empreinte SHA-256 du fichier fournie).'),
+          const SizedBox(height: 8),
+          Row(children:[
+            Expanded(child: OutlinedButton(onPressed: () async { final d=await showDatePicker(context: ctx, initialDate: from, firstDate: DateTime(2020), lastDate: DateTime(2100)); if(d!=null) setD(()=>from=d); }, child: Text('Du ${fmt(from)}'))),
+            const SizedBox(width: 8),
+            Expanded(child: OutlinedButton(onPressed: () async { final d=await showDatePicker(context: ctx, initialDate: to, firstDate: DateTime(2020), lastDate: DateTime(2100)); if(d!=null) setD(()=>to=DateTime(d.year,d.month,d.day,23,59,59)); }, child: Text('Au ${fmt(to)}'))),
+          ]),
+        ]),
+        actions:[TextButton(onPressed: ()=>Navigator.pop(ctx,false), child: const Text('Annuler')), FilledButton(onPressed: ()=>Navigator.pop(ctx,true), child: const Text('Exporter'))],
+      );
+    }));
+    if (ok != true) return;
     setState(() { _busy = true; _msg = null; });
     try {
       final db = ref.read(appDatabaseProvider);
-      final logs = await (db.select(db.auditLogs)..orderBy([(t) => OrderingTerm.desc(t.timestampUtc)])).get();
+      final q = db.select(db.auditLogs)..where((t)=>t.timestampUtc.isBetweenValues(from.toUtc(), to.toUtc()))..orderBy([(t) => OrderingTerm.desc(t.timestampUtc)]);
+      final logs = await q.get();
       final dir = await getApplicationDocumentsDirectory();
       final outDir = Directory(p.join(dir.path, 'fianarana_exports'));
       if (!outDir.existsSync()) outDir.createSync(recursive: true);
@@ -823,17 +948,15 @@ class _InfoLine extends StatelessWidget {
       late String ext;
       if (asJson) {
         ext = 'json';
-        content = const JsonEncoder.withIndent('  ').convert(logs.map((l) => {
-          'id': l.id,
-          'timestampUtc': l.timestampUtc.toIso8601String(),
-          'userId': l.userId,
-          'username': l.username,
-          'module': l.module,
-          'targetObject': l.targetObject,
-          'description': l.description,
-          'result': l.result,
-          'hashSha256_entree': l.hashSha256,
-        }).toList());
+        content = const JsonEncoder.withIndent('  ').convert({
+          'period': {'from': from.toUtc().toIso8601String(), 'to': to.toUtc().toIso8601String()},
+          'count': logs.length,
+          'entries': logs.map((l) => {
+            'id': l.id, 'timestampUtc': l.timestampUtc.toIso8601String(), 'userId': l.userId, 'username': l.username,
+            'module': l.module, 'targetObject': l.targetObject, 'description': l.description, 'result': l.result,
+            'hashSha256_entree': l.hashSha256,
+          }).toList(),
+        });
       } else {
         ext = 'csv';
         final sb = StringBuffer();
@@ -850,7 +973,7 @@ class _InfoLine extends StatelessWidget {
       await file.writeAsBytes(bytes);
       final hashFile = File('${file.path}.sha256');
       await hashFile.writeAsString('$fileHash  ${p.basename(file.path)}\n');
-      _setMessage('Export audit ${ext.toUpperCase()} : ${file.path}\nEmpreinte SHA-256 (intégrité fichier) : ${hashFile.path}');
+      _setMessage('Export audit ${ext.toUpperCase()} (${logs.length} entrées) : ${file.path}\nEmpreinte SHA-256 (intégrité fichier) : ${hashFile.path}');
     } catch (e) {
       _setMessage('Erreur export audit : $e');
     } finally {
@@ -889,6 +1012,31 @@ class _InfoLine extends StatelessWidget {
     } finally {
       if (mounted) setState(() => _busy = false);
     }
+  }
+
+  Future<void> _closeSchoolYear() async {
+    final db = ref.read(appDatabaseProvider);
+    final years = await (db.select(db.schoolYears)..where((t)=>t.isDeleted.equals(false))..orderBy([(t)=>OrderingTerm.desc(t.startDate)])).get();
+    if (!mounted) return;
+    if (years.isEmpty) { _setMessage('Aucune année scolaire trouvée.'); return; }
+    String selected = years.first.id;
+    final ok = await showDialog<bool>(context: context, builder: (ctx)=>StatefulBuilder(builder:(ctx,setD)=>AlertDialog(
+      title: const Text('Clôture annuelle & archivage légal'),
+      content: SizedBox(width: 520, child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children:[
+        const Text('Génère une archive scellée (JSON + empreinte SHA-256) en lecture seule pour l\'année sélectionnée et marque l\'année comme clôturée.'),
+        const SizedBox(height: 10),
+        DropdownButtonFormField<String>(value: selected, decoration: const InputDecoration(labelText: 'Année scolaire'), items: years.map((y)=>DropdownMenuItem(value: y.id, child: Text('${y.label} (${y.status})'))).toList(), onChanged: (v)=>setD(()=>selected=v??selected)),
+      ])),
+      actions: [TextButton(onPressed: ()=>Navigator.pop(ctx,false), child: const Text('Annuler')), FilledButton(onPressed: ()=>Navigator.pop(ctx,true), child: const Text('Clôturer & archiver'))],
+    )));
+    if (ok != true) return;
+    setState((){_busy=true; _msg=null;});
+    try {
+      final auth = ref.read(authControllerProvider);
+      final f = await YearClosureService(db).closeSchoolYear(schoolYearId: selected, actorUserId: auth.userId, actorUsername: auth.username);
+      _setMessage('Clôture annuelle effectuée. Archive scellée: ${f.path} (+ .sha256)');
+    } catch(e) { _setMessage('Erreur clôture annuelle: $e'); }
+    finally { if (mounted) setState(()=>_busy=false); }
   }
 
   @override

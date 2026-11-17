@@ -183,6 +183,7 @@ class AppShell extends ConsumerWidget {
             _navItem(context, icon: Icons.badge_outlined, label: 'Personnel & RH', route: '/staff'),
             _navItem(context, icon: Icons.menu_book_outlined, label: 'Bibliothèque & Quitus', route: '/library'),
             _navItem(context, icon: Icons.meeting_room_outlined, label: 'Locaux & équipements', route: '/facilities'),
+            _navItem(context, icon: Icons.auto_awesome_mosaic_outlined, label: 'Document Studio', route: '/documents'),
             _navItem(context, icon: Icons.settings_outlined, label: 'Paramètres', route: '/settings'),
           ]),
         ),

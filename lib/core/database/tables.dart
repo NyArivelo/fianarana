@@ -138,6 +138,9 @@ class Students extends Table with UuidPrimaryKey, AuditColumns {
   TextColumn get sex => text().nullable()();
   DateTimeColumn get birthDate => dateTime().nullable()();
   TextColumn get birthPlace => text().nullable()();
+  /// Pièces d'état civil / identifiants régionaux configurables (flexibilité)
+  TextColumn get birthCertificateNumber => text().nullable()();
+  TextColumn get nationalIdNumber => text().nullable()();
   TextColumn get status => text().withDefault(const Constant('Actif'))(); // Actif, Transféré/Radiation, etc.
   TextColumn get photoPath => text().nullable()();
   TextColumn get photoHash => text().nullable()();
@@ -195,6 +198,9 @@ class Evaluations extends Table with UuidPrimaryKey, AuditColumns {
   RealColumn get maxScore => real().withDefault(const Constant(20.0))();
   RealColumn get coefficient => real().withDefault(const Constant(1.0))();
   BoolColumn get isExempt => boolean().withDefault(const Constant(false))();
+  /// Évaluation par compétences/socle commun (ex: Non acquis, En cours, Acquis, Expert)
+  TextColumn get masteryLevel => text().nullable()();
+  TextColumn get competencyCode => text().nullable()();
   TextColumn get observation => text().nullable()();
   TextColumn get validationStatus => text().withDefault(const Constant('Brouillon'))(); // Brouillon, Validée
 }
@@ -369,4 +375,44 @@ class BackupRecords extends Table with UuidPrimaryKey, AuditColumns {
   TextColumn get type => text().withDefault(const Constant('manuel'))(); // manuel, auto, fermeture
   TextColumn get checksum => text().nullable()();
   TextColumn get status => text().withDefault(const Constant('ok'))();
+}
+
+// --- Document Studio (modèles configurables, moteur de placeholders/formules sécurisé) ---
+class DocumentTemplates extends Table with UuidPrimaryKey, AuditColumns {
+  TextColumn get name => text()();
+  /// Type: bulletin, certificat, recu, facture, carte, attestation, releve...
+  TextColumn get docType => text()();
+  /// Format de page: A4, A5, ...
+  TextColumn get pageFormat => text().withDefault(const Constant('A4'))();
+  /// Contenu JSON du modèle (sections, variables {{...}}, styles, formules simples autorisées)
+  TextColumn get contentJson => text().withDefault(const Constant('{}'))();
+  TextColumn get description => text().nullable()();
+  BoolColumn get isDefault => boolean().withDefault(const Constant(false))();
+  BoolColumn get isActive => boolean().withDefault(const Constant(true))();
+}
+
+// --- Absences enseignants & remplacements / rattrapages ---
+class TeacherAbsences extends Table with UuidPrimaryKey, AuditColumns {
+  TextColumn get teacherId => text().references(StaffMembers, #id)();
+  DateTimeColumn get startDate => dateTime()();
+  DateTimeColumn get endDate => dateTime()();
+  TextColumn get reason => text().nullable()();
+  TextColumn get status => text().withDefault(const Constant('Déclarée'))(); // Déclarée, Remplacée, Clôturée
+  /// Séance remplacée (optionnel)
+  TextColumn get sessionId => text().nullable().references(TimetableSessions, #id)();
+  /// Enseignant remplaçant (optionnel)
+  TextColumn get substituteTeacherId => text().nullable().references(StaffMembers, #id)();
+  TextColumn get notes => text().nullable()();
+}
+
+// --- Clôture annuelle & coffre-fort d'archivage légale ---
+class YearClosures extends Table with UuidPrimaryKey, AuditColumns {
+  TextColumn get schoolYearId => text().references(SchoolYears, #id)();
+  DateTimeColumn get closedAt => dateTime()();
+  TextColumn get closedByUserId => text().nullable()();
+  /// Chemin de l'archive scellée (zip/json/pdf) en lecture seule
+  TextColumn get archivePath => text().nullable()();
+  TextColumn get archiveHash => text().nullable()();
+  TextColumn get status => text().withDefault(const Constant('Clôturée'))();
+  TextColumn get summaryJson => text().nullable()();
 }

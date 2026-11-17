@@ -56,6 +56,9 @@ LazyDatabase _openConnection() {
     AuditLogs,
     AppSettings,
     BackupRecords,
+    DocumentTemplates,
+    TeacherAbsences,
+    YearClosures,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -65,7 +68,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 5;
+  int get schemaVersion => 6;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -86,6 +89,17 @@ class AppDatabase extends _$AppDatabase {
           }
           if (from < 5) {
             await m.createTable(calendarEvents);
+          }
+          if (from < 6) {
+            // Nouvelles tables
+            await m.createTable(documentTemplates);
+            await m.createTable(teacherAbsences);
+            await m.createTable(yearClosures);
+            // Nouvelles colonnes (évaluations compétences, état civil élève)
+            await m.addColumn(evaluations, evaluations.masteryLevel);
+            await m.addColumn(evaluations, evaluations.competencyCode);
+            await m.addColumn(students, students.birthCertificateNumber);
+            await m.addColumn(students, students.nationalIdNumber);
           }
         },
         beforeOpen: (details) async {

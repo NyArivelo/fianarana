@@ -18,6 +18,8 @@ class GradeRow {
   final double maxScore;
   final double coefficient;
   final bool isExempt;
+  final String? masteryLevel;
+  final String? competencyCode;
   final String validationStatus;
   final String? observation;
 
@@ -34,6 +36,8 @@ class GradeRow {
     required this.maxScore,
     required this.coefficient,
     required this.isExempt,
+    required this.masteryLevel,
+    required this.competencyCode,
     required this.validationStatus,
     required this.observation,
   });
@@ -95,6 +99,8 @@ class GradesRepository {
         maxScore: ev.maxScore,
         coefficient: ev.coefficient,
         isExempt: ev.isExempt,
+        masteryLevel: ev.masteryLevel,
+        competencyCode: ev.competencyCode,
         validationStatus: ev.validationStatus,
         observation: ev.observation,
       );
@@ -112,6 +118,8 @@ class GradesRepository {
     double maxScore = 20,
     double coefficient = 1,
     bool isExempt = false,
+    String? masteryLevel,
+    String? competencyCode,
     String? observation,
     String validationStatus = 'Brouillon',
     String? actorUserId,
@@ -132,6 +140,8 @@ class GradesRepository {
       maxScore: Value(maxScore),
       coefficient: Value(coefficient),
       isExempt: Value(isExempt),
+      masteryLevel: Value(masteryLevel),
+      competencyCode: Value(competencyCode),
       observation: Value(observation),
       validationStatus: Value(validationStatus),
       createdAt: Value(now),

@@ -35,6 +35,7 @@ class BulletinSubjectLine {
   final double maxScore;
   final double coefficient;
   final bool isExempt;
+  final String? masteryLevel;
   final String? observation;
 
   BulletinSubjectLine({
@@ -43,6 +44,7 @@ class BulletinSubjectLine {
     required this.maxScore,
     required this.coefficient,
     this.isExempt = false,
+    this.masteryLevel,
     this.observation,
   });
 }
@@ -77,10 +79,14 @@ class BulletinService {
           ),
           pw.SizedBox(height: 12),
           pw.TableHelper.fromTextArray(
-            headers: const ['Matière', 'Note', 'Barème', 'Coef', 'Observation'],
+            headers: const ['Matière', 'Note / Maîtrise', 'Barème', 'Coef', 'Observation'],
             data: data.subjects.map((s) => [
               s.subject,
-              s.isExempt ? 'Dispensé' : (s.score?.toStringAsFixed(2) ?? '-'),
+              s.isExempt
+                  ? 'Dispensé'
+                  : (s.masteryLevel != null && s.masteryLevel!.isNotEmpty)
+                      ? '${s.score != null ? '${s.score!.toStringAsFixed(2)} • ' : ''}${s.masteryLevel}'
+                      : (s.score?.toStringAsFixed(2) ?? '-'),
               s.maxScore.toStringAsFixed(0),
               s.coefficient.toStringAsFixed(2),
               s.observation ?? '',
