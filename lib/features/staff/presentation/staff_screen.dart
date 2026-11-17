@@ -1,15 +1,19 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:printing/printing.dart';
 
 import 'package:fianarana/core/database/app_database.dart';
 import 'package:fianarana/core/database/database_provider.dart';
 import 'package:fianarana/core/utils/csv_export.dart';
 import 'package:fianarana/core/utils/xlsx_export.dart';
 import 'package:fianarana/features/auth/application/auth_controller.dart';
+import 'package:fianarana/features/documents/application/document_providers.dart';
+import 'package:fianarana/features/documents/services/document_studio_pdf_service.dart';
 import 'package:fianarana/features/staff/application/staff_providers.dart';
 import 'package:fianarana/features/staff/services/staff_import_service.dart';
 import 'package:fianarana/features/timetable/application/timetable_providers.dart';
@@ -281,6 +285,37 @@ class _StaffScreenState extends ConsumerState<StaffScreen> with SingleTickerProv
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Export XLSX: ${f.path}')));
   }
 
+  Future<void> _generateStaffDocument(StaffMember s) async {
+    final auth = ref.read(authControllerProvider);
+    try {
+      final tpl = await ref.read(documentRepositoryProvider).defaultTemplate('attestation_personnel', actorUserId: auth.userId);
+      if (tpl == null) {
+        if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Aucun modèle "attestation_personnel" actif dans Document Studio.')));
+        return;
+      }
+      final content = jsonDecode(tpl.contentJson as String) as Map<String, dynamic>;
+      final pdf = DocumentStudioPdfService();
+      final now = DateTime.now();
+      final ctx = <String, dynamic>{
+        'etablissement': {'nom': 'Établissement scolaire', 'adresse': ''},
+        'personnel': {
+          'nom': '${s.lastName} ${s.firstName}',
+          'matricule': s.staffNumber,
+          'fonction': s.functionTitle ?? '',
+          'departement': s.departmentOrSubject ?? '',
+          'telephone': s.phone ?? '',
+          'statut': s.status,
+        },
+        'annee': {'libelle': '2026-2027'},
+        'date': {'jour': '${now.day.toString().padLeft(2,'0')}/${now.month.toString().padLeft(2,'0')}/${now.year}'},
+      };
+      final bytes = await pdf.renderTemplate(templateContent: content, context: ctx, pageFormat: tpl.pageFormat);
+      await Printing.layoutPdf(onLayout: (_) async => bytes, name: 'attestation_personnel_${s.staffNumber}.pdf');
+    } catch (e) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erreur génération document : $e')));
+    }
+  }
+
   Widget _staffTab(BuildContext context) {
     final list = ref.watch(staffListProvider);
     return Column(children: [
@@ -300,7 +335,7 @@ class _StaffScreenState extends ConsumerState<StaffScreen> with SingleTickerProv
           leading: CircleAvatar(child: Text(s.lastName.isNotEmpty?s.lastName[0]:'?')),
           title: Text('${s.lastName} ${s.firstName} (${s.staffNumber})'),
           subtitle: Text('${s.functionTitle ?? '-'} • ${s.departmentOrSubject ?? '-'}'),
-          trailing: Wrap(spacing:4, children:[ if(teacher) IconButton(tooltip:'Planning', onPressed: ()=>context.go('/timetable?teacher=${s.id}'), icon: const Icon(Icons.calendar_month_outlined)), IconButton(onPressed: ()=>_addOrEdit(s), icon: const Icon(Icons.edit_outlined)) ]),
+          trailing: Wrap(spacing:4, children:[ if(teacher) IconButton(tooltip:'Planning', onPressed: ()=>context.go('/timetable?teacher=${s.id}'), icon: const Icon(Icons.calendar_month_outlined)), IconButton(tooltip:'Attestation de service', onPressed: ()=>_generateStaffDocument(s), icon: const Icon(Icons.description_outlined)), IconButton(onPressed: ()=>_addOrEdit(s), icon: const Icon(Icons.edit_outlined)) ]),
         ); }),
         loading: ()=>const Center(child: CircularProgressIndicator()),
         error: (e,_)=>Center(child: Text('Erreur: $e')),

@@ -85,10 +85,10 @@ class DocumentRepository {
     await _audit.log(userId: actorUserId, username: actorUsername, module: 'Document Studio', targetObject: id, description: 'Modèle document supprimé (corbeille)', result: 'Succès');
   }
 
-  /// Sème les modèles par défaut si absents.
+  /// Sème les modèles par défaut si absents (ajoute les modèles manquants).
   Future<void> ensureDefaultTemplates() async {
     final existing = await listTemplates();
-    if (existing.isNotEmpty) return;
+    final existingIds = existing.map((e) => e.id).toSet();
     final defaults = <Map<String, dynamic>>[
       _tpl('bulletin_default', 'Bulletin de notes (modèle)', 'bulletin', true, {
         'title': 'Bulletin de notes',
@@ -115,14 +115,21 @@ class DocumentRepository {
         'body': 'Nom : {{eleve.nom}}\nMatricule : {{eleve.matricule}}\nClasse : {{eleve.classe}}\nAnnée : {{annee.libelle}}',
         'footer': 'Document officiel',
       }),
-      _tpl('attestation_default', 'Attestation (modèle)', 'attestation', true, {
-        'title': 'ATTESTATION',
+      _tpl('attestation_default', 'Attestation de scolarité (modèle)', 'attestation', true, {
+        'title': 'ATTESTATION DE SCOLARITÉ',
         'header': '{{etablissement.nom}}',
         'body': 'Nous attestons que {{eleve.nom}} ({{eleve.matricule}}) est inscrit(e) en classe de {{eleve.classe}} pour l\'année {{annee.libelle}}.',
         'footer': 'Fait le {{date.jour}}',
       }),
+      _tpl('attestation_personnel_default', 'Attestation de service - personnel (modèle)', 'attestation_personnel', true, {
+        'title': 'ATTESTATION DE SERVICE',
+        'header': '{{etablissement.nom}}\n{{etablissement.adresse}}',
+        'body': 'Nous attestons que {{personnel.nom}} ({{personnel.matricule}}), exerçant la fonction de {{personnel.fonction}} au sein de {{personnel.departement}}, est en service dans notre établissement pour l\'année {{annee.libelle}}.',
+        'footer': 'Fait le {{date.jour}}',
+      }),
     ];
     for (final d in defaults) {
+      if (existingIds.contains(d['id'] as String)) continue;
       await upsertTemplate(
         id: d['id'] as String,
         name: d['name'] as String,
