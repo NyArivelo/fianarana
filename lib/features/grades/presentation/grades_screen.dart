@@ -648,7 +648,13 @@ class _GradesScreenState extends ConsumerState<GradesScreen> {
       appBar: AppBar(
         title: const Text('Évaluations & Notes'),
         actions: [
-          OutlinedButton.icon(
+                    OutlinedButton.icon(
+            onPressed: _downloadGradeTemplate,
+            icon: const Icon(Icons.download_outlined, size: 14),
+            label: const Text('Modèle'),
+          ),
+          const SizedBox(width: 8),
+OutlinedButton.icon(
             onPressed: _importGrades,
             icon: const Icon(Icons.upload_file_outlined, size: 16),
             label: const Text('Importer'),

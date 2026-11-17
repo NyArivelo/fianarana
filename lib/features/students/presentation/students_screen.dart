@@ -93,7 +93,13 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
       appBar: AppBar(
         title: const Text('Élèves & Inscriptions'),
         actions: [
-          FilledButton.icon(
+                      OutlinedButton.icon(
+              onPressed: _downloadStudentTemplate,
+              icon: const Icon(Icons.download_outlined, size: 16),
+              label: const Text('Modèle import'),
+            ),
+            const SizedBox(width: 8),
+FilledButton.icon(
             onPressed: () => context.go('/students/new'),
             icon: const Icon(Icons.person_add_alt_1, size: 16),
             label: const Text('Inscrire un élève'),
