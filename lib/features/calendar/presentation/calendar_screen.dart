@@ -1,8 +1,10 @@
+import 'package:fianarana/core/utils/csv_export.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:fianarana/core/database/app_database.dart';
 import 'package:fianarana/features/auth/application/auth_controller.dart';
+import 'package:fianarana/core/security/permission_providers.dart';
 import 'package:fianarana/features/calendar/application/calendar_providers.dart';
 import 'package:fianarana/features/calendar/data/calendar_repository.dart';
 
@@ -228,9 +230,84 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> with SingleTick
     }
   }
 
+
+  Future<void> _exportCurrentCalendar() async {
+    try {
+      final ts = DateTime.now().millisecondsSinceEpoch;
+      if (_tab.index == 0) {
+        final rows = ref.read(calendarEventsProvider((
+          classId: _classId,
+          includeGlobal: true,
+          isEphemeris: false,
+          from: _rangeStart,
+          to: _rangeEnd,
+        ))).valueOrNull ?? const <CalendarEntry>[];
+        final file = await CsvExport.export(
+          filename: 'calendrier_scolaire_$ts.csv',
+          headers: const ['Titre','Categorie','Classe','Debut','Fin','Journee_entiere','Heure_debut','Heure_fin','Lieu','Description','Ephemeride'],
+          rows: rows.map((e) {
+            final ev = e.event;
+            return <String?>[
+              ev.title,
+              ev.category,
+              e.classLabel ?? (ev.classId == null ? 'Etablissement' : ''),
+              ev.startDate.toIso8601String(),
+              ev.endDate?.toIso8601String(),
+              ev.allDay ? 'Oui' : 'Non',
+              ev.startTime,
+              ev.endTime,
+              ev.location,
+              ev.description,
+              ev.isEphemeris ? 'Oui' : 'Non',
+            ];
+          }).toList(),
+        );
+        if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Export calendrier : ${file.path}')));
+      } else {
+        final rows = ref.read(calendarEventsProvider((
+          classId: null,
+          includeGlobal: true,
+          isEphemeris: true,
+          from: null,
+          to: null,
+        ))).valueOrNull ?? const <CalendarEntry>[];
+        final periods = ref.read(calendarPeriodsProvider).valueOrNull ?? const <Period>[];
+        final year = ref.read(activeSchoolYearProvider).valueOrNull;
+        final groups = _buildEphemerisGroups(rows, periods, year);
+        final file = await CsvExport.export(
+          filename: 'ephemeride_$ts.csv',
+          headers: const ['Groupe','Periode','Titre','Categorie','Debut','Fin','Journee_entiere','Heure_debut','Heure_fin','Lieu','Description'],
+          rows: [
+            for (final g in groups)
+              for (final e in g.entries)
+                <String?>[
+                  g.label,
+                  g.subtitle,
+                  e.event.title,
+                  e.event.category,
+                  e.event.startDate.toIso8601String(),
+                  e.event.endDate?.toIso8601String(),
+                  e.event.allDay ? 'Oui' : 'Non',
+                  e.event.startTime,
+                  e.event.endTime,
+                  e.event.location,
+                  e.event.description,
+                ],
+          ],
+        );
+        if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Export éphéméride : ${file.path}')));
+      }
+    } catch (e) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erreur export : $e')));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final perms = ref.watch(currentPermissionsProvider).valueOrNull ?? const <String>{};
+    final canManage = perms.contains('calendar.create') || perms.contains('calendar.update');
+    final canExport = perms.contains('calendar.read');
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF020617) : const Color(0xFFF8FAFC),
       appBar: AppBar(
@@ -245,8 +322,14 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> with SingleTick
           ],
         ),
         actions: [
+          OutlinedButton.icon(
+            onPressed: canExport ? _exportCurrentCalendar : null,
+            icon: const Icon(Icons.download_outlined, size: 16),
+            label: const Text('Exporter CSV'),
+          ),
+          const SizedBox(width: 8),
           FilledButton.icon(
-            onPressed: () => _openEventDialog(initialDate: _selectedDay ?? _month),
+            onPressed: canManage ? () => _openEventDialog(initialDate: _selectedDay ?? _month) : null,
             icon: const Icon(Icons.add, size: 16),
             label: const Text('Nouvel événement'),
           ),
