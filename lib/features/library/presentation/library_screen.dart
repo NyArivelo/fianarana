@@ -1,8 +1,13 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:printing/printing.dart';
 
 import 'package:fianarana/core/widgets/app_ui.dart';
 import 'package:fianarana/features/auth/application/auth_controller.dart';
+import 'package:fianarana/features/documents/application/document_providers.dart';
+import 'package:fianarana/features/documents/services/document_studio_pdf_service.dart';
 import 'package:fianarana/features/library/application/library_providers.dart';
 import 'package:fianarana/features/library/data/library_repository.dart';
 import 'package:fianarana/features/students/application/students_providers.dart';
@@ -55,6 +60,30 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
   void _snack(String message) {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  Future<void> _generateStudentDoc(LibraryQuitusRow r, String docType, String label) async {
+    final auth = ref.read(authControllerProvider);
+    try {
+      final tpl = await ref.read(documentRepositoryProvider).defaultTemplate(docType, actorUserId: auth.userId);
+      if (tpl == null) { _snack('Aucun modèle "$docType" actif dans Document Studio.'); return; }
+      final content = jsonDecode(tpl.contentJson as String) as Map<String, dynamic>;
+      final pdf = DocumentStudioPdfService();
+      final now = DateTime.now();
+      final ctx = <String, dynamic>{
+        'etablissement': {'nom': 'Établissement scolaire', 'adresse': ''},
+        'eleve': {
+          'nom': r.fullName,
+          'matricule': r.matricule,
+          'classe': r.classLabel ?? '-',
+        },
+        'annee': {'libelle': '2026-2027'},
+        'date': {'jour': '${now.day.toString().padLeft(2,'0')}/${now.month.toString().padLeft(2,'0')}/${now.year}'},
+        'sortie': {'date': '${now.day.toString().padLeft(2,'0')}/${now.month.toString().padLeft(2,'0')}/${now.year}', 'motif': '', 'quitus_finance': r.financeOk ? 'Oui' : 'Non', 'quitus_bibliotheque': r.libraryOk ? 'Oui' : 'Non'},
+      };
+      final bytes = await pdf.renderTemplate(templateContent: content, context: ctx, pageFormat: tpl.pageFormat);
+      await Printing.layoutPdf(onLayout: (_) async => bytes, name: '${label}_${r.matricule}.pdf');
+    } catch (e) { _snack('Erreur génération document : $e'); }
   }
 
   // ---------------------------------------------------------------------------
@@ -703,6 +732,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
                               DataColumn(label: Text('Quitus financier')),
                               DataColumn(label: Text('Quitus bibliothèque')),
                               DataColumn(label: Text('Certificat')),
+                              DataColumn(label: Text('Documents')),
                             ],
                             rows: filtered.map((r) {
                               return DataRow(cells: [
@@ -757,6 +787,10 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
                                       ? Icons.verified_outlined
                                       : Icons.block,
                                 )),
+                                DataCell(Wrap(spacing: 4, children: [
+                                  IconButton(tooltip: 'Attestation', icon: const Icon(Icons.description_outlined, size: 18), onPressed: () => _generateStudentDoc(r, 'attestation', 'attestation')),
+                                  IconButton(tooltip: 'Certificat', icon: const Icon(Icons.verified_outlined, size: 18), onPressed: () => _generateStudentDoc(r, 'certificat', 'certificat')),
+                                ])),
                               ]);
                             }).toList(),
                           ),
