@@ -73,9 +73,38 @@ class _StaffScreenState extends ConsumerState<StaffScreen> with SingleTickerProv
     final startT = TextEditingController(text: '08:00');
     final endT = TextEditingController(text: '10:00');
     final reason = TextEditingController(text: 'Absence enseignant');
-    final ok = await showDialog<bool>(context: context, builder: (ctx)=>StatefulBuilder(builder:(ctx,setD)=>AlertDialog(
+    String? slotHint;
+    final ok = await showDialog<bool>(context: context, builder: (ctx)=>StatefulBuilder(builder:(ctx,setD){
+      Future<void> suggestSlots() async {
+        if (substituteId == null && roomId == null) { setD(()=>slotHint='Sélectionnez un remplaçant et/ou une salle pour proposer des créneaux libres.'); return; }
+        final ttRepo = TimetableRepository(ref.read(appDatabaseProvider));
+        final all = await ttRepo.listEntries(actorUserId: auth.userId);
+        int toMin(String hhmm){ final p=hhmm.split(':'); if(p.length!=2) return 0; return (int.tryParse(p[0])??0)*60+(int.tryParse(p[1])??0); }
+        bool overlap(int a1,int a2,int b1,int b2)=>a1<b2 && b1<a2;
+        final busy = <List<int>>[];
+        for (final e in all) {
+          if (e.dayOfWeek != day) continue;
+          final e1=toMin(e.startTime), e2=toMin(e.endTime);
+          final teacherBusy = substituteId != null && e.teacherId == substituteId;
+          final roomBusy = roomId != null && e.roomId == roomId;
+          if (teacherBusy || roomBusy) busy.add([e1,e2]);
+        }
+        busy.sort((a,b)=>a[0].compareTo(b[0]));
+        String fmt(int m)=>'${(m~/60).toString().padLeft(2,'0')}:${(m%60).toString().padLeft(2,'0')}';
+        final slots = <String>[];
+        var cur = 8*60;
+        final endDay = 17*60;
+        while (cur + 60 <= endDay) {
+          final s1 = cur, s2 = cur + 60;
+          final conflict = busy.any((b)=>overlap(s1,s2,b[0],b[1]));
+          if (!conflict) slots.add('${fmt(s1)}-${fmt(s2)}');
+          cur += 60;
+        }
+        setD(()=>slotHint = slots.isEmpty ? 'Aucun créneau libre d\'1h trouvé entre 08:00 et 17:00 pour le jour/ressources sélectionnés.' : 'Créneaux libres suggérés (1h) : ${slots.take(10).join(', ')}${slots.length>10?' …':''}');
+      }
+      return AlertDialog(
       title: const Text('Absence enseignant & remplacement/rattrapage'),
-      content: SizedBox(width: 640, child: SingleChildScrollView(child: Column(mainAxisSize: MainAxisSize.min, children:[
+      content: SizedBox(width: 680, child: SingleChildScrollView(child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children:[
         DropdownButtonFormField<String>(value: teacherId, decoration: const InputDecoration(labelText: 'Enseignant absent'), items: teachers.map((t)=>DropdownMenuItem(value:t.id, child: Text('${t.lastName} ${t.firstName}'))).toList(), onChanged: (v)=>setD(()=>teacherId=v)),
         Row(children:[Expanded(child: OutlinedButton(onPressed: () async { final d=await showDatePicker(context: ctx, initialDate: start, firstDate: DateTime(2020), lastDate: DateTime(2100)); if(d!=null) setD(()=>start=d); }, child: Text('Début ${start.day}/${start.month}'))), const SizedBox(width:8), Expanded(child: OutlinedButton(onPressed: () async { final d=await showDatePicker(context: ctx, initialDate: end, firstDate: DateTime(2020), lastDate: DateTime(2100)); if(d!=null) setD(()=>end=d); }, child: Text('Fin ${end.day}/${end.month}')))]),
         TextField(controller: reason, decoration: const InputDecoration(labelText: 'Motif')),
@@ -84,11 +113,14 @@ class _StaffScreenState extends ConsumerState<StaffScreen> with SingleTickerProv
         DropdownButtonFormField<String?>(value: substituteId, decoration: const InputDecoration(labelText: 'Enseignant remplaçant'), items: [const DropdownMenuItem<String?>(value:null, child: Text('Aucun (déclarer seulement)')), ...teachers.map((t)=>DropdownMenuItem<String?>(value:t.id, child: Text('${t.lastName} ${t.firstName}')))], onChanged: (v)=>setD(()=>substituteId=v)),
         DropdownButtonFormField<String?>(value: classId, decoration: const InputDecoration(labelText: 'Classe'), items: [const DropdownMenuItem<String?>(value:null, child: Text('-')), ...classes.map((c)=>DropdownMenuItem<String?>(value:c.id, child: Text(c.label)))], onChanged: (v)=>setD(()=>classId=v)),
         DropdownButtonFormField<String?>(value: subjectId, decoration: const InputDecoration(labelText: 'Matière'), items: [const DropdownMenuItem<String?>(value:null, child: Text('-')), ...subjects.map((s)=>DropdownMenuItem<String?>(value:s.id, child: Text(s.name)))], onChanged: (v)=>setD(()=>subjectId=v)),
-        DropdownButtonFormField<String?>(value: roomId, decoration: const InputDecoration(labelText: 'Salle (créneaux/salles à vérifier)'), items: [const DropdownMenuItem<String?>(value:null, child: Text('-')), ...rooms.map((r)=>DropdownMenuItem<String?>(value:r.id, child: Text(r.name)))], onChanged: (v)=>setD(()=>roomId=v)),
+        DropdownButtonFormField<String?>(value: roomId, decoration: const InputDecoration(labelText: 'Salle (suggestion de créneaux disponibles)'), items: [const DropdownMenuItem<String?>(value:null, child: Text('-')), ...rooms.map((r)=>DropdownMenuItem<String?>(value:r.id, child: Text(r.name)))], onChanged: (v)=>setD(()=>roomId=v)),
         Row(children:[Expanded(child: DropdownButtonFormField<String>(value: day, decoration: const InputDecoration(labelText: 'Jour'), items: const ['Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'].map((d)=>DropdownMenuItem(value:d, child: Text(d))).toList(), onChanged: (v)=>setD(()=>day=v??day))), const SizedBox(width:8), Expanded(child: TextField(controller: startT, decoration: const InputDecoration(labelText: 'Début HH:mm'))), const SizedBox(width:8), Expanded(child: TextField(controller: endT, decoration: const InputDecoration(labelText: 'Fin HH:mm')))]),
+        const SizedBox(height: 8),
+        Align(alignment: Alignment.centerLeft, child: OutlinedButton.icon(onPressed: suggestSlots, icon: const Icon(Icons.event_available_outlined, size:16), label: const Text('Suggérer créneaux libres'))),
+        if (slotHint != null) Padding(padding: const EdgeInsets.only(top:6), child: Text(slotHint!, style: const TextStyle(fontSize: 11, color: Color(0xFF2563EB)))),
       ]))),
       actions:[TextButton(onPressed: ()=>Navigator.pop(ctx,false), child: const Text('Annuler')), FilledButton(onPressed: ()=>Navigator.pop(ctx,true), child: const Text('Enregistrer'))],
-    )));
+    );}));
     if (ok == true && teacherId != null) {
       try {
         // Vérification simple des conflits pour le remplacement (enseignant/salle)
