@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:fianarana/core/utils/csv_export.dart';
+import 'package:fianarana/core/utils/xlsx_export.dart';
 import 'package:fianarana/features/auth/application/auth_controller.dart';
 import 'package:fianarana/features/students/application/students_providers.dart';
 import 'package:fianarana/features/students/data/students_repository.dart';
@@ -49,7 +50,7 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
     return '${v < 0 ? '-' : ''}${buf.toString()} MGA';
   }
 
-  Future<void> _export(List<StudentListItem> items) async {
+  Future<void> _exportCsv(List<StudentListItem> items) async {
     final file = await CsvExport.export(
       filename: 'eleves_${DateTime.now().millisecondsSinceEpoch}.csv',
       headers: const ['Matricule', 'Nom', 'Prénom', 'Sexe', 'Classe', 'Statut', 'Solde MGA'],
@@ -59,6 +60,19 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
     );
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Export CSV: ${file.path}')));
+  }
+
+  Future<void> _exportXlsx(List<StudentListItem> items) async {
+    final file = await XlsxExport.export(
+      filename: 'eleves_${DateTime.now().millisecondsSinceEpoch}.xlsx',
+      sheetName: 'Eleves',
+      headers: const ['Matricule', 'Nom', 'Prénom', 'Sexe', 'Classe', 'Statut', 'Solde MGA'],
+      rows: items
+          .map((s) => <String?>[s.matricule, s.lastName, s.firstName, s.sex, s.classLabel, s.status, '${s.balanceMga}'])
+          .toList(),
+    );
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Export XLSX: ${file.path}')));
   }
 
   @override
@@ -202,9 +216,14 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
             label: const Text('Importer (CSV/XLSX)'),
           ),
           OutlinedButton.icon(
-            onPressed: studentsAsync.maybeWhen(data: (items) => items.isEmpty ? null : () => _export(items), orElse: () => null),
+            onPressed: studentsAsync.maybeWhen(data: (items) => items.isEmpty ? null : () => _exportCsv(items), orElse: () => null),
             icon: const Icon(Icons.download_outlined, size: 16),
             label: const Text('Export CSV'),
+          ),
+          OutlinedButton.icon(
+            onPressed: studentsAsync.maybeWhen(data: (items) => items.isEmpty ? null : () => _exportXlsx(items), orElse: () => null),
+            icon: const Icon(Icons.grid_on_outlined, size: 16),
+            label: const Text('Export XLSX'),
           ),
         ],
       ),

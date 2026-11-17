@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 
 import 'package:fianarana/core/database/app_database.dart';
 import 'package:fianarana/core/utils/csv_export.dart';
+import 'package:fianarana/core/utils/xlsx_export.dart';
 import 'package:fianarana/features/auth/application/auth_controller.dart';
 import 'package:fianarana/features/staff/application/staff_providers.dart';
 import 'package:fianarana/features/staff/services/staff_import_service.dart';
@@ -185,7 +186,7 @@ class _StaffScreenState extends ConsumerState<StaffScreen> with SingleTickerProv
     }
   }
 
-  Future<void> _exportStaff(List<StaffMember> rows) async {
+  Future<void> _exportStaffCsv(List<StaffMember> rows) async {
     final f = await CsvExport.export(
       filename: 'personnel_export.csv',
       headers: const ['Matricule_Personnel', 'Nom', 'Prenom', 'Sexe', 'Fonction', 'Departement_Matiere', 'Telephone', 'Statut'],
@@ -193,6 +194,17 @@ class _StaffScreenState extends ConsumerState<StaffScreen> with SingleTickerProv
     );
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Export CSV: ${f.path}')));
+  }
+
+  Future<void> _exportStaffXlsx(List<StaffMember> rows) async {
+    final f = await XlsxExport.export(
+      filename: 'personnel_export.xlsx',
+      sheetName: 'Personnel',
+      headers: const ['Matricule_Personnel', 'Nom', 'Prenom', 'Sexe', 'Fonction', 'Departement_Matiere', 'Telephone', 'Statut'],
+      rows: rows.map((s) => <String?>[s.staffNumber, s.lastName, s.firstName, s.sex, s.functionTitle, s.departmentOrSubject, s.phone, s.status]).toList(),
+    );
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Export XLSX: ${f.path}')));
   }
 
   Widget _staffTab(BuildContext context) {
@@ -203,7 +215,10 @@ class _StaffScreenState extends ConsumerState<StaffScreen> with SingleTickerProv
         const SizedBox(width: 8),
         OutlinedButton.icon(onPressed: _importStaff, icon: const Icon(Icons.upload_file_outlined, size:16), label: const Text('Importer CSV/XLSX')),
         const SizedBox(width: 8),
-        list.maybeWhen(data: (rows)=> OutlinedButton.icon(onPressed: rows.isEmpty?null:()=>_exportStaff(rows), icon: const Icon(Icons.download_outlined, size:16), label: const Text('Export CSV')), orElse: ()=>const SizedBox.shrink()),
+        list.maybeWhen(data: (rows)=> Wrap(spacing: 8, children: [
+          OutlinedButton.icon(onPressed: rows.isEmpty?null:()=>_exportStaffCsv(rows), icon: const Icon(Icons.download_outlined, size:16), label: const Text('Export CSV')),
+          OutlinedButton.icon(onPressed: rows.isEmpty?null:()=>_exportStaffXlsx(rows), icon: const Icon(Icons.grid_on_outlined, size:16), label: const Text('Export XLSX')),
+        ]), orElse: ()=>const SizedBox.shrink()),
         const Spacer(),
       ])),
       Expanded(child: list.when(
