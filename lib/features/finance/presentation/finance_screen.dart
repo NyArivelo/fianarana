@@ -3,9 +3,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:printing/printing.dart';
 
+import 'dart:convert';
+
 import 'package:fianarana/core/utils/csv_export.dart';
 import 'package:fianarana/core/widgets/app_ui.dart';
 import 'package:fianarana/features/auth/application/auth_controller.dart';
+import 'package:fianarana/features/documents/application/document_providers.dart';
+import 'package:fianarana/features/documents/services/document_studio_pdf_service.dart';
 import 'package:fianarana/features/finance/application/finance_providers.dart';
 import 'package:fianarana/features/finance/data/finance_repository.dart';
 import 'package:fianarana/features/finance/services/receipt_service.dart';
@@ -244,6 +248,41 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
     await Printing.layoutPdf(onLayout: (_) async => bytes, name: 'recu_${r.receipt}.pdf');
   }
 
+  Future<void> _printReceiptFromTemplate(PaymentRow r) async {
+    try {
+      final auth = ref.read(authControllerProvider);
+      final docRepo = ref.read(documentRepositoryProvider);
+      final tpl = await docRepo.defaultTemplate('recu', actorUserId: auth.userId);
+      if (tpl == null) {
+        if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Aucun modèle "reçu" actif trouvé dans Document Studio.')));
+        return;
+      }
+      final content = jsonDecode(tpl.contentJson as String) as Map<String, dynamic>;
+      final pdf = DocumentStudioPdfService();
+      final d = r.date ?? DateTime.now();
+      final ctx = <String, dynamic>{
+        'etablissement': {'nom': 'Établissement scolaire', 'adresse': ''},
+        'eleve': {'nom': r.studentName, 'matricule': r.matricule, 'classe': r.classLabel ?? ''},
+        'annee': {'libelle': '2026-2027'},
+        'date': {'jour': '${d.day.toString().padLeft(2,'0')}/${d.month.toString().padLeft(2,'0')}/${d.year}'},
+        'recu': {
+          'numero': r.receipt,
+          'date': '${d.day.toString().padLeft(2,'0')}/${d.month.toString().padLeft(2,'0')}/${d.year}',
+          'libelle': r.feeLabel,
+          'du': '${r.due}',
+          'paye': '${r.paid}',
+          'reste': '${r.balance}',
+          'mode': r.method ?? '',
+          'montant': '${r.paid}',
+        },
+      };
+      final bytes = await pdf.renderTemplate(templateContent: content, context: ctx, pageFormat: tpl.pageFormat);
+      await Printing.layoutPdf(onLayout: (_) async => bytes, name: 'recu_modele_${r.receipt}.pdf');
+    } catch (e) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erreur reçu (modèle): $e')));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -449,11 +488,18 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
                                         ? Icons.lock_outline
                                         : Icons.lock_open_outlined,
                                   )),
-                                  DataCell(IconButton(
-                                    tooltip: 'Aperçu du reçu',
-                                    icon: const Icon(Icons.print_outlined, size: 18),
-                                    onPressed: () => _printReceipt(r),
-                                  )),
+                                  DataCell(Wrap(spacing: 0, children: [
+                                    IconButton(
+                                      tooltip: 'Reçu (standard)',
+                                      icon: const Icon(Icons.print_outlined, size: 18),
+                                      onPressed: () => _printReceipt(r),
+                                    ),
+                                    IconButton(
+                                      tooltip: 'Reçu (modèle Document Studio)',
+                                      icon: const Icon(Icons.description_outlined, size: 18),
+                                      onPressed: () => _printReceiptFromTemplate(r),
+                                    ),
+                                  ])),
                                 ]);
                               }).toList(),
                             ),

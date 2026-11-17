@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:printing/printing.dart';
 
+import 'package:fianarana/core/settings/app_config.dart';
 import 'package:fianarana/features/auth/application/auth_controller.dart';
 import 'package:fianarana/features/documents/application/document_providers.dart';
 import 'package:fianarana/features/documents/services/document_studio_pdf_service.dart';
@@ -102,6 +103,17 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final classesAsync = ref.watch(classesProvider);
+    final cfg = ref.watch(appConfigProvider).valueOrNull ?? AppConfig.defaults;
+    final civilFields = (cfg.civilStatusConfig['fields'] as Map?)?.cast<String, dynamic>() ?? const <String, dynamic>{};
+    Map<String, dynamic> _civil(String key) => (civilFields[key] as Map?)?.cast<String, dynamic>() ?? const <String, dynamic>{};
+    final birthCertCfg = _civil('birthCertificateNumber');
+    final natIdCfg = _civil('nationalIdNumber');
+    final showBirthCert = birthCertCfg['enabled'] != false;
+    final showNatId = natIdCfg['enabled'] != false;
+    final reqBirthCert = birthCertCfg['required'] == true;
+    final reqNatId = natIdCfg['required'] == true;
+    final birthCertLabel = (birthCertCfg['label'] as String?) ?? 'N° acte de naissance (état civil)';
+    final natIdLabel = (natIdCfg['label'] as String?) ?? 'N° identification nationale / CIN';
     final detailAsync = !isNew ? ref.watch(studentDetailProvider(widget.studentId!)) : const AsyncValue.data(null);
     final enrollmentsAsync = !isNew ? ref.watch(studentEnrollmentsProvider(widget.studentId!)) : const AsyncValue.data(<dynamic>[]);
     final guardiansAsync = !isNew ? ref.watch(studentGuardiansProvider(widget.studentId!)) : const AsyncValue.data(<dynamic>[]);
@@ -171,8 +183,18 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> {
                               label: Text(_birthDate == null ? 'Date de naissance' : '${_birthDate!.day.toString().padLeft(2,'0')}/${_birthDate!.month.toString().padLeft(2,'0')}/${_birthDate!.year}'),
                             )),
                             SizedBox(width: 260, child: TextFormField(controller: _birthPlace, decoration: const InputDecoration(labelText: 'Lieu de naissance'))),
-                            SizedBox(width: 260, child: TextFormField(controller: _birthCert, decoration: const InputDecoration(labelText: 'N° acte de naissance (état civil)'))),
-                            SizedBox(width: 260, child: TextFormField(controller: _nationalId, decoration: const InputDecoration(labelText: 'N° identification nationale / CIN'))),
+                            if (showBirthCert)
+                              SizedBox(width: 260, child: TextFormField(
+                                controller: _birthCert,
+                                decoration: InputDecoration(labelText: '$birthCertLabel${reqBirthCert ? ' *' : ''}'),
+                                validator: (v) => (reqBirthCert && (v == null || v.trim().isEmpty)) ? 'Requis' : null,
+                              )),
+                            if (showNatId)
+                              SizedBox(width: 260, child: TextFormField(
+                                controller: _nationalId,
+                                decoration: InputDecoration(labelText: '$natIdLabel${reqNatId ? ' *' : ''}'),
+                                validator: (v) => (reqNatId && (v == null || v.trim().isEmpty)) ? 'Requis' : null,
+                              )),
                           ]),
                           const SizedBox(height: 12),
                           classesAsync.when(

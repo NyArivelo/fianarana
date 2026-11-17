@@ -759,14 +759,41 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
+  Future<void> _showClosureHistory() async {
+    final db = ref.read(appDatabaseProvider);
+    final closures = await YearClosureService(db).listClosures();
+    if (!mounted) return;
+    await showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Historique des clôtures / archives'),
+        content: SizedBox(
+          width: 720,
+          height: 420,
+          child: closures.isEmpty
+              ? const Center(child: Text('Aucune clôture archivée.'))
+              : ListView(
+                  children: closures.map((c) => ListTile(
+                        leading: const Icon(Icons.inventory_2_outlined),
+                        title: Text(c.status),
+                        subtitle: Text('Date: ${formatDateFr(c.closedAt)}\nArchive: ${c.archivePath ?? "-"}\nSHA-256: ${c.archiveHash ?? "-"}', style: const TextStyle(fontSize: 11)),
+                        isThreeLine: true,
+                      )).toList(),
+                ),
+        ),
+        actions: [TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Fermer'))],
+      ),
+    );
+  }
+
   Widget _yearClosureCard() {
     return AppSectionCard(
       title: 'Clôture annuelle & archivage légal',
       subtitle: 'Archive scellée (JSON + SHA-256) en lecture seule de l\'année scolaire (coffre-fort légal).',
-      trailing: FilledButton.icon(
-          onPressed: _busy ? null : _closeSchoolYear,
-          icon: const Icon(Icons.inventory_2_outlined, size: 16),
-          label: const Text('Clôturer')),
+      trailing: Wrap(spacing: 8, children: [
+        OutlinedButton.icon(onPressed: _busy ? null : _showClosureHistory, icon: const Icon(Icons.history, size: 16), label: const Text('Historique')),
+        FilledButton.icon(onPressed: _busy ? null : _closeSchoolYear, icon: const Icon(Icons.inventory_2_outlined, size: 16), label: const Text('Clôturer')),
+      ]),
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
       child: Text(
           'Conserve une synthèse figée (périodes, effectifs, notes, finances, présences) pour archivage et préparation de la rentrée suivante.',
