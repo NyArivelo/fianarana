@@ -28,7 +28,8 @@ class DocumentRepository {
     return q.get();
   }
 
-  Future<DocumentTemplate?> getTemplate(String id) {
+  Future<DocumentTemplate?> getTemplate(String id, {String? actorUserId}) async {
+    await _require(actorUserId, 'documents.read');
     return (db.select(db.documentTemplates)..where((t) => t.id.equals(id))).getSingleOrNull();
   }
 

@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 
 import 'package:fianarana/core/database/app_database.dart';
 import 'package:fianarana/core/database/uuid.dart';
+import 'package:fianarana/core/security/affectation_scope.dart';
 import 'package:fianarana/core/security/audit_service.dart';
 import 'package:fianarana/core/security/permission_service.dart';
 
@@ -74,13 +75,46 @@ class FacilitiesRepository {
 
   Future<List<FacilityRow>> list({String? actorUserId}) async {
     await _require(actorUserId, 'library.read');
-    final facilities = await (db.select(db.facilities)
-          ..where((t) => t.isDeleted.equals(false))
-          ..orderBy([(t) => OrderingTerm.asc(t.name)]))
-        .get();
-    final sessions = await (db.select(db.timetableSessions)
-          ..where((t) => t.isDeleted.equals(false) & t.roomId.isNotNull()))
-        .get();
+    // Portée affectations : limiter aux locaux utilisés par les séances des classes/enseignant autorisés
+    final scopeClasses = await AffectationScope(db).allowedClassIdsForUser(actorUserId);
+    Set<String>? allowedRoomIds;
+    if (scopeClasses != null) {
+      String? scopeStaffId;
+      if (actorUserId != null && actorUserId.isNotEmpty) {
+        final st = await (db.select(db.staffMembers)
+              ..where((t) => t.userId.equals(actorUserId) & t.isDeleted.equals(false)))
+            .getSingleOrNull();
+        scopeStaffId = st?.id;
+      }
+      if (scopeClasses.isEmpty && scopeStaffId == null) {
+        return const <FacilityRow>[];
+      }
+      final q = db.select(db.timetableSessions)
+        ..where((t) => t.isDeleted.equals(false) & t.roomId.isNotNull());
+      if (scopeStaffId != null && scopeClasses.isNotEmpty) {
+        q.where((t) => t.classId.isIn(scopeClasses) | t.teacherId.equals(scopeStaffId));
+      } else if (scopeStaffId != null) {
+        q.where((t) => t.teacherId.equals(scopeStaffId));
+      } else {
+        q.where((t) => t.classId.isIn(scopeClasses));
+      }
+      final scopedSessions = await q.get();
+      allowedRoomIds = scopedSessions.map((s) => s.roomId).whereType<String>().toSet();
+    }
+
+    final fq = db.select(db.facilities)..where((t) => t.isDeleted.equals(false));
+    if (allowedRoomIds != null) {
+      if (allowedRoomIds.isEmpty) return const <FacilityRow>[];
+      fq.where((t) => t.id.isIn(allowedRoomIds.toList()));
+    }
+    fq.orderBy([(t) => OrderingTerm.asc(t.name)]);
+    final facilities = await fq.get();
+
+    final sq = db.select(db.timetableSessions)..where((t) => t.isDeleted.equals(false) & t.roomId.isNotNull());
+    if (allowedRoomIds != null) {
+      sq.where((t) => t.roomId.isIn(allowedRoomIds.toList()));
+    }
+    final sessions = await sq.get();
     final counts = <String, int>{};
     for (final s in sessions) {
       if (s.roomId == null) continue;
