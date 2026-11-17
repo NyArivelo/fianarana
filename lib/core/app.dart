@@ -25,14 +25,13 @@ class _FianaranaAppState extends ConsumerState<FianaranaApp> with WidgetsBinding
   Timer? _inactivity;
   Timer? _autoBackup;
   Duration _inactivityTimeout = const Duration(minutes: 5);
-  static const _autoBackupInterval = Duration(hours: 12);
+  bool _autoBackupEnabled = true;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _resetInactivity();
-    _startAutoBackup();
     _loadConfigAndMaintenance();
   }
 
@@ -41,19 +40,31 @@ class _FianaranaAppState extends ConsumerState<FianaranaApp> with WidgetsBinding
       final cfg = await ref.read(appConfigProvider.future);
       if (mounted) {
         setState(() => _inactivityTimeout = Duration(minutes: cfg.inactivityMinutes));
+        _autoBackupEnabled = cfg.autoBackupEnabled;
+        _startAutoBackup(intervalHours: cfg.autoBackupIntervalHours, enabled: cfg.autoBackupEnabled);
         final db = ref.read(appDatabaseProvider);
         await RecycleBinService(db).purgeOlderThan(Duration(days: cfg.recycleRetentionDays));
       }
     } catch (_) {}
   }
 
-  void _startAutoBackup() {
+  void _startAutoBackup({required int intervalHours, required bool enabled}) {
     _autoBackup?.cancel();
-    _autoBackup = Timer.periodic(_autoBackupInterval, (_) {
-      final db = ref.read(appDatabaseProvider);
-      final auth = ref.read(authControllerProvider);
-      if (auth.isAuthenticated) {
-        BackupService(db).createBackup(type: 'auto-planifiee', actorUserId: auth.userId, actorUsername: auth.username);
+    _autoBackupEnabled = enabled;
+    if (!enabled) return;
+    _autoBackup = Timer.periodic(Duration(hours: intervalHours.clamp(1, 168)), (_) async {
+      try {
+        if (!_autoBackupEnabled) return;
+        final db = ref.read(appDatabaseProvider);
+        final auth = ref.read(authControllerProvider);
+        if (auth.isAuthenticated) {
+          await BackupService(db).createBackup(
+              type: 'auto-planifiee',
+              actorUserId: auth.userId,
+              actorUsername: auth.username);
+        }
+      } catch (_) {
+        // Échec sauvegarde planifiée : tracé dans le service.
       }
     });
   }
@@ -78,11 +89,14 @@ class _FianaranaAppState extends ConsumerState<FianaranaApp> with WidgetsBinding
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    // Sauvegarde auto à la fermeture/mise en arrière-plan (fondation)
+    // Sauvegarde auto à la fermeture/mise en arrière-plan (si activée)
     if (state == AppLifecycleState.detached || state == AppLifecycleState.paused) {
+      if (!_autoBackupEnabled) return;
       final db = ref.read(appDatabaseProvider);
       final auth = ref.read(authControllerProvider);
-      BackupService(db).createBackup(type: 'auto', actorUserId: auth.userId, actorUsername: auth.username);
+      BackupService(db)
+          .createBackup(type: 'auto', actorUserId: auth.userId, actorUsername: auth.username)
+          .then((_) {}, onError: (_) {});
     }
   }
 

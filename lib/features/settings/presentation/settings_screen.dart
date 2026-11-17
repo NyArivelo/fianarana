@@ -649,39 +649,78 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
   Widget _backupCard() {
     final backups = ref.watch(_backupsProvider);
+    final cfg = ref.watch(appConfigProvider).valueOrNull ?? AppConfig.defaults;
     return AppSectionCard(
       title: 'Sauvegarde locale',
-      subtitle: 'Archive .zip (base SQLite + médias), restauration contrôlée.',
+      subtitle: 'Archive .zip intègre (base SQLite active + médias + manifeste), restauration contrôlée.',
       trailing: FilledButton.icon(
         onPressed: _busy ? null : _backup,
         icon: const Icon(Icons.backup_outlined, size: 16),
         label: const Text('Sauvegarder'),
       ),
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
-      child: backups.when(
-        data: (rows) => rows.isEmpty
-            ? Text('Aucune sauvegarde enregistrée.',
-                style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant))
-            : Column(children: [
-                for (final b in rows.take(4))
-                  ListTile(
-                    dense: true,
-                    contentPadding: EdgeInsets.zero,
-                    leading: const Icon(Icons.archive_outlined, size: 18),
-                    title: Text(b.filePath.split(RegExp(r'[\\/]')).last,
-                        style: const TextStyle(fontSize: 12, fontFamily: 'monospace')),
-                    subtitle: Text('${formatDateFr(b.createdAtBackup)} • ${b.type} • ${b.status}',
-                        style: const TextStyle(fontSize: 10)),
-                    trailing: IconButton(
-                      tooltip: 'Restaurer',
-                      icon: const Icon(Icons.restore, size: 18),
-                      onPressed: _busy ? null : () => _restore(b),
-                    ),
-                  ),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+          decoration: BoxDecoration(
+            border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Row(children: [
+            Expanded(
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                const Text('Sauvegarde planifiée automatique', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+                Text('Sauvegarde périodique (utilisateur connecté) et à la mise en arrière-plan/fermeture. Prise en compte au redémarrage.',
+                    style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.onSurfaceVariant)),
               ]),
-        loading: () => const LinearProgressIndicator(),
-        error: (e, _) => Text('Erreur sauvegardes : $e'),
-      ),
+            ),
+            Switch(
+              value: cfg.autoBackupEnabled,
+              onChanged: _busy ? null : (v) async {
+                await saveAppSetting(ref, kAutoBackupEnabledKey, v ? '1' : '0');
+                _setMessage(v ? 'Sauvegarde planifiée activée (effectif au redémarrage).' : 'Sauvegarde planifiée désactivée (effectif au redémarrage).');
+              },
+            ),
+            const SizedBox(width: 8),
+            DropdownButton<int>(
+              value: cfg.autoBackupIntervalHours,
+              onChanged: (!cfg.autoBackupEnabled || _busy) ? null : (v) async {
+                if (v == null) return;
+                await saveAppSetting(ref, kAutoBackupIntervalHoursKey, '');
+                _setMessage('Intervalle de sauvegarde enregistré (h, effectif au redémarrage).');
+              },
+              items: const [1, 6, 12, 24, 48, 72, 168]
+                  .map((h) => DropdownMenuItem(value: h, child: Text('Toutes les h')))
+                  .toList(),
+            ),
+          ]),
+        ),
+        const SizedBox(height: 10),
+        backups.when(
+          data: (rows) => rows.isEmpty
+              ? Text('Aucune sauvegarde enregistrée.',
+                  style: TextStyle(fontSize: 12, color: Theme.of(context).colorScheme.onSurfaceVariant))
+              : Column(children: [
+                  for (final b in rows.take(4))
+                    ListTile(
+                      dense: true,
+                      contentPadding: EdgeInsets.zero,
+                      leading: Icon(b.status == 'ok' ? Icons.archive_outlined : Icons.error_outline, size: 18, color: b.status == 'ok' ? null : Theme.of(context).colorScheme.error),
+                      title: Text(b.filePath.split(RegExp(r'[\\/]')).last,
+                          style: const TextStyle(fontSize: 12, fontFamily: 'monospace')),
+                      subtitle: Text(' •  • ',
+                          style: const TextStyle(fontSize: 10)),
+                      trailing: IconButton(
+                        tooltip: 'Restaurer',
+                        icon: const Icon(Icons.restore, size: 18),
+                        onPressed: _busy ? null : () => _restore(b),
+                      ),
+                    ),
+                ]),
+          loading: () => const LinearProgressIndicator(),
+          error: (e, _) => Text('Erreur sauvegardes : '),
+        ),
+      ]),
     );
   }
 
