@@ -41,7 +41,8 @@ final _settingsStatsProvider = FutureProvider<Map<String, int>>((ref) async {
 });
 
 final _backupsProvider = FutureProvider<List<BackupRecord>>((ref) {
-  return BackupService(ref.watch(appDatabaseProvider)).listBackups();
+  final auth = ref.watch(authControllerProvider);
+  return BackupService(ref.watch(appDatabaseProvider)).listBackups(actorUserId: auth.userId);
 });
 
 final _auditLogsProvider = FutureProvider<List<AuditLog>>((ref) {
@@ -212,7 +213,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               const SizedBox(height: 8),
               Expanded(
                 child: FutureBuilder<List<DeletedEntry>>(
-                  future: svc.listDeleted(entityFilter: filter == 'Tous' ? null : filter),
+                  future: svc.listDeleted(entityFilter: filter == 'Tous' ? null : filter, actorUserId: auth.userId),
                   builder: (ctx, snap) {
                     if (snap.connectionState != ConnectionState.done) {
                       return const Center(child: CircularProgressIndicator());

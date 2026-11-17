@@ -18,10 +18,17 @@ class RbacSeed {
     'finance': ['read', 'create', 'update', 'validate', 'cancel', 'export', 'print', 'close_cash_desk'],
     'library': ['read', 'create', 'update', 'validate'],
     'staff': ['read', 'create', 'update', 'archive'],
+    'timetable': ['read', 'create', 'update', 'delete'],
+    'calendar': ['read', 'create', 'update', 'delete'],
+    'facilities': ['read', 'create', 'update', 'delete'],
     'settings': ['read', 'update'],
     'security': ['read', 'update', 'export'],
-    'documents': ['read', 'create', 'update', 'publish', 'export', 'print'],
+    'documents': ['read', 'create', 'update', 'publish', 'export', 'print', 'delete'],
     'audit': ['read', 'export'],
+    'backups': ['read', 'create', 'restore'],
+    'recycle': ['read', 'restore', 'purge'],
+    'users': ['read', 'create', 'update'],
+    'roles': ['read', 'update'],
   };
 
   Future<void> ensureDefaults() async {
@@ -72,23 +79,28 @@ class RbacSeed {
       'grades.read','grades.validate','grades.reject','grades.publish','grades.export','grades.print',
       'attendance.read','attendance.export',
       'finance.read','finance.export',
+      'timetable.read','calendar.read','facilities.read','staff.read','library.read',
       'documents.read','documents.publish','documents.export','documents.print',
-      'audit.read','audit.export','security.read',
+      'audit.read','audit.export','security.read','settings.read','backups.read',
     ]);
     await grant(secretariatId, [
       'students.read','students.create','students.update','students.export','students.print',
       'enrollments.read','enrollments.create','enrollments.update','enrollments.validate',
+      'timetable.read','calendar.read','staff.read','library.read','facilities.read',
       'documents.read','documents.create','documents.print','documents.export',
+      'settings.read',
     ]);
     await grant(caisseId, [
       'students.read','enrollments.read',
       'finance.read','finance.create','finance.update','finance.validate','finance.cancel','finance.export','finance.print','finance.close_cash_desk',
       'documents.read','documents.create','documents.print',
+      'settings.read',
     ]);
     await grant(enseignantId, [
       'students.read','grades.read','grades.create','grades.update','attendance.read','attendance.create','attendance.update',
+      'timetable.read','calendar.read','documents.read','settings.read',
     ]);
-    await grant(biblioId, ['library.read','library.create','library.update','library.validate','students.read']);
-    await grant(surveillantId, ['attendance.read','attendance.create','attendance.update','students.read']);
+    await grant(biblioId, ['library.read','library.create','library.update','library.validate','students.read','facilities.read','documents.read','settings.read']);
+    await grant(surveillantId, ['attendance.read','attendance.create','attendance.update','students.read','timetable.read','calendar.read','settings.read']);
   }
 }

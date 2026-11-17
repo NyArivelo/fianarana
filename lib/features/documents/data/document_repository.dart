@@ -21,7 +21,7 @@ class DocumentRepository {
   }
 
   Future<List<DocumentTemplate>> listTemplates({String? docType, String? actorUserId}) async {
-    await _require(actorUserId, 'settings.read');
+    await _require(actorUserId, 'documents.read');
     final q = db.select(db.documentTemplates)..where((t) => t.isDeleted.equals(false));
     if (docType != null && docType.isNotEmpty) q.where((t) => t.docType.equals(docType));
     q.orderBy([(t) => OrderingTerm.asc(t.docType), (t) => OrderingTerm.asc(t.name)]);
@@ -34,7 +34,7 @@ class DocumentRepository {
 
   Future<DocumentTemplate?> defaultTemplate(String docType, {String? actorUserId}) async {
     if (actorUserId != null && actorUserId.isNotEmpty) {
-      await _require(actorUserId, 'settings.read');
+      await _require(actorUserId, 'documents.read');
     }
     final q = db.select(db.documentTemplates)
       ..where((t) => t.isDeleted.equals(false) & t.isActive.equals(true) & t.docType.equals(docType))
@@ -54,7 +54,7 @@ class DocumentRepository {
     String? actorUserId,
     String? actorUsername,
   }) async {
-    await _require(actorUserId, 'settings.update');
+    await _require(actorUserId, 'documents.update');
     final tid = id ?? newUuid();
     final now = DateTime.now();
     if (isDefault) {
@@ -79,7 +79,7 @@ class DocumentRepository {
   }
 
   Future<void> deleteTemplate(String id, {String? actorUserId, String? actorUsername}) async {
-    await _require(actorUserId, 'settings.update');
+    await _require(actorUserId, 'documents.delete');
     await (db.update(db.documentTemplates)..where((t) => t.id.equals(id)))
         .write(DocumentTemplatesCompanion(isDeleted: const Value(true), deletedAt: Value(DateTime.now())));
     await _audit.log(userId: actorUserId, username: actorUsername, module: 'Document Studio', targetObject: id, description: 'Modèle document supprimé (corbeille)', result: 'Succès');

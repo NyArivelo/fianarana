@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:fianarana/core/security/permission_providers.dart';
 import 'package:fianarana/core/workspace/app_shell.dart';
 import 'package:fianarana/features/attendance/presentation/attendance_screen.dart';
 import 'package:fianarana/features/auth/application/auth_controller.dart';
@@ -26,6 +27,10 @@ import 'package:fianarana/features/timetable/presentation/timetable_screen.dart'
 
 final appRouterProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authControllerProvider);
+  final permsAsync = ref.watch(currentPermissionsProvider);
+  final perms = permsAsync.valueOrNull;
+  final permsLoaded = permsAsync.hasValue;
+
   return GoRouter(
     initialLocation: '/bootstrap',
     redirect: (context, state) {
@@ -35,11 +40,18 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       final inSetup = loc == '/setup';
       final loggingIn = loc == '/login';
 
-      // Bootstrap/setup gèrent eux-mêmes leur flux initial
       if (inBootstrap || inSetup) return null;
 
       if (!loggedIn && !loggingIn) return '/login';
       if (loggedIn && loggingIn) return '/';
+
+      // RBAC bloquant au niveau navigation (si permissions chargées)
+      if (loggedIn && permsLoaded) {
+        final required = requiredPermissionForRoute(loc);
+        if (required != null && !(perms?.contains(required) ?? false)) {
+          return '/';
+        }
+      }
       return null;
     },
     routes: [

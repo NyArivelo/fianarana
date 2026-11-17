@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:fianarana/core/security/permission_providers.dart';
 import 'package:fianarana/features/auth/application/auth_controller.dart';
 import 'package:fianarana/features/search/presentation/global_search_dialog.dart';
 
@@ -27,7 +28,7 @@ class AppShell extends ConsumerWidget {
         _header(context, ref, auth, isDark, border),
         Expanded(
           child: Row(children: [
-            _sidebar(context, isDark, border),
+            _sidebar(context, ref, isDark, border),
             Expanded(
               child: Container(
                 color: isDark ? const Color(0xFF020617) : const Color(0xFFF8FAFC),
@@ -76,7 +77,7 @@ class AppShell extends ConsumerWidget {
                   style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: isDark ? const Color(0xFF93C5FD) : const Color(0xFF1D4ED8))),
             ),
           ]),
-          Text('Installation locale • SQLite Drift (UUID)',
+          Text('Installation locale — SQLite Drift (UUID)',
               style: TextStyle(fontSize: 10, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B))),
         ]),
         const Spacer(),
@@ -160,7 +161,55 @@ class AppShell extends ConsumerWidget {
     );
   }
 
-  Widget _sidebar(BuildContext context, bool isDark, Color border) {
+  Future<void> _showQuickSwitch(BuildContext context, WidgetRef ref) async {
+    final userCtrl = TextEditingController();
+    final passCtrl = TextEditingController();
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Changement rapide d\'utilisateur'),
+        content: Column(mainAxisSize: MainAxisSize.min, children: [
+          TextField(controller: userCtrl, decoration: const InputDecoration(labelText: 'Identifiant')),
+          const SizedBox(height: 8),
+          TextField(controller: passCtrl, obscureText: true, decoration: const InputDecoration(labelText: 'Mot de passe')),
+        ]),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Annuler')),
+          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Changer')),
+        ],
+      ),
+    );
+    if (ok == true) {
+      await ref.read(authControllerProvider.notifier).switchUser(username: userCtrl.text.trim(), password: passCtrl.text);
+    }
+  }
+
+  bool _canSeeRoute(WidgetRef ref, String route) {
+    final perms = ref.watch(currentPermissionsProvider).valueOrNull;
+    if (perms == null) return true; // en chargement: ne pas masquer agressivement
+    final required = requiredPermissionForRoute(route);
+    if (required == null) return true;
+    return perms.contains(required);
+  }
+
+  Widget _sidebar(BuildContext context, WidgetRef ref, bool isDark, Color border) {
+    final pilotage = <Widget>[
+      if (_canSeeRoute(ref, '/')) _navItem(context, icon: Icons.dashboard_rounded, label: 'Tableau de bord', route: '/'),
+      if (_canSeeRoute(ref, '/students')) _navItem(context, icon: Icons.people_outline, label: 'Élèves & Inscriptions', route: '/students'),
+      if (_canSeeRoute(ref, '/attendance')) _navItem(context, icon: Icons.fact_check_outlined, label: 'Présences & Discipline', route: '/attendance'),
+      if (_canSeeRoute(ref, '/grades')) _navItem(context, icon: Icons.grading_outlined, label: 'Évaluations & Notes', route: '/grades'),
+      if (_canSeeRoute(ref, '/timetable')) _navItem(context, icon: Icons.calendar_month_outlined, label: 'Emplois du temps', route: '/timetable'),
+      if (_canSeeRoute(ref, '/calendar')) _navItem(context, icon: Icons.event_note_outlined, label: 'Calendrier & Éphéméride', route: '/calendar'),
+    ];
+    final admin = <Widget>[
+      if (_canSeeRoute(ref, '/finance')) _navItem(context, icon: Icons.payments_outlined, label: 'Finances & Caisse', route: '/finance'),
+      if (_canSeeRoute(ref, '/staff')) _navItem(context, icon: Icons.badge_outlined, label: 'Personnel & RH', route: '/staff'),
+      if (_canSeeRoute(ref, '/library')) _navItem(context, icon: Icons.menu_book_outlined, label: 'Bibliothèque & Quitus', route: '/library'),
+      if (_canSeeRoute(ref, '/facilities')) _navItem(context, icon: Icons.meeting_room_outlined, label: 'Locaux & Équipements', route: '/facilities'),
+      if (_canSeeRoute(ref, '/documents')) _navItem(context, icon: Icons.auto_awesome_mosaic_outlined, label: 'Document Studio', route: '/documents'),
+      if (_canSeeRoute(ref, '/settings')) _navItem(context, icon: Icons.settings_outlined, label: 'Paramètres', route: '/settings'),
+    ];
+
     return Container(
       width: 228,
       decoration: BoxDecoration(
@@ -170,21 +219,15 @@ class AppShell extends ConsumerWidget {
       child: Column(children: [
         Expanded(
           child: ListView(padding: const EdgeInsets.all(8), children: [
-            _sideLabel('Pilotage & Scolarité'),
-            _navItem(context, icon: Icons.dashboard_rounded, label: 'Tableau de bord', route: '/'),
-            _navItem(context, icon: Icons.people_outline, label: 'Élèves & Inscriptions', route: '/students'),
-            _navItem(context, icon: Icons.fact_check_outlined, label: 'Présences & Discipline', route: '/attendance'),
-            _navItem(context, icon: Icons.grading_outlined, label: 'Évaluations & Notes', route: '/grades'),
-            _navItem(context, icon: Icons.calendar_month_outlined, label: 'Emplois du temps', route: '/timetable'),
-            _navItem(context, icon: Icons.event_note_outlined, label: 'Calendrier & éphéméride', route: '/calendar'),
-            const SizedBox(height: 6),
-            _sideLabel('Administration & Ressources'),
-            _navItem(context, icon: Icons.payments_outlined, label: 'Finances & Caisse', route: '/finance'),
-            _navItem(context, icon: Icons.badge_outlined, label: 'Personnel & RH', route: '/staff'),
-            _navItem(context, icon: Icons.menu_book_outlined, label: 'Bibliothèque & Quitus', route: '/library'),
-            _navItem(context, icon: Icons.meeting_room_outlined, label: 'Locaux & équipements', route: '/facilities'),
-            _navItem(context, icon: Icons.auto_awesome_mosaic_outlined, label: 'Document Studio', route: '/documents'),
-            _navItem(context, icon: Icons.settings_outlined, label: 'Paramètres', route: '/settings'),
+            if (pilotage.isNotEmpty) ...[
+              _sideLabel('Pilotage & Scolarité'),
+              ...pilotage,
+              const SizedBox(height: 6),
+            ],
+            if (admin.isNotEmpty) ...[
+              _sideLabel('Administration & Ressources'),
+              ...admin,
+            ],
           ]),
         ),
         Container(
@@ -202,7 +245,7 @@ class AppShell extends ConsumerWidget {
               Text('Sauvegarde & base', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600)),
             ]),
             SizedBox(height: 4),
-            Text('SQLite Drift locale • Sauvegarde .zip', style: TextStyle(fontSize: 10, color: Color(0xFF64748B))),
+            Text('SQLite Drift locale — Sauvegarde .zip', style: TextStyle(fontSize: 10, color: Color(0xFF64748B))),
           ]),
         ),
         const Padding(
@@ -229,7 +272,7 @@ class AppShell extends ConsumerWidget {
         SizedBox(width: 6),
         Text('SQLite 3 (Drift) — Clés primaires UUID v4 — Base locale', style: TextStyle(fontSize: 11)),
         SizedBox(width: 16),
-        Text('Ctrl+F recherche • Ctrl+L verrouiller • Ctrl+W fermer', style: TextStyle(fontSize: 11, color: Color(0xFF64748B))),
+        Text('Ctrl+F recherche — Ctrl+L verrouiller — Ctrl+W fermer', style: TextStyle(fontSize: 11, color: Color(0xFF64748B))),
         Spacer(),
         Text('Prêt', style: TextStyle(fontSize: 11, color: Color(0xFF2563EB), fontWeight: FontWeight.w600)),
       ]),

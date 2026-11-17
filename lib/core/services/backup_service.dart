@@ -10,6 +10,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:fianarana/core/database/app_database.dart';
 import 'package:fianarana/core/database/uuid.dart';
 import 'package:fianarana/core/security/audit_service.dart';
+import 'package:fianarana/core/security/permission_service.dart';
 
 /// Sauvegarde/restauration locale intègre : archive .zip de la base SQLite active
 /// (+ journaux WAL/SHM si présents) et du dossier médias, avec manifeste, somme
@@ -17,7 +18,15 @@ import 'package:fianarana/core/security/audit_service.dart';
 class BackupService {
   final AppDatabase db;
   late final AuditService _audit = AuditService(db);
+  late final PermissionService _perm = PermissionService(db);
   BackupService(this.db);
+
+  Future<void> _require(String? userId, String permission) async {
+    if (userId == null || userId.isEmpty) return; // appel système/auto
+    if (!await _perm.userHasPermission(userId, permission)) {
+      throw StateError('Action non autorisée ($permission)');
+    }
+  }
 
   Future<Directory> _appDataDir() async {
     final dir = await getApplicationSupportDirectory();
@@ -46,6 +55,7 @@ class BackupService {
     String? actorUserId,
     String? actorUsername,
   }) async {
+    await _require(actorUserId, 'backups.create');
     final dataDir = await _appDataDir();
     final backupsDir = Directory(p.join(dataDir.path, 'backups'));
     if (!backupsDir.existsSync()) backupsDir.createSync(recursive: true);
@@ -146,6 +156,7 @@ class BackupService {
     String? actorUserId,
     String? actorUsername,
   }) async {
+    await _require(actorUserId, 'backups.restore');
     final zipFile = File(zipPath);
     if (!zipFile.existsSync()) {
       throw StateError('Archive de sauvegarde introuvable.');
@@ -220,7 +231,8 @@ class BackupService {
     }
   }
 
-  Future<List<BackupRecord>> listBackups() {
+  Future<List<BackupRecord>> listBackups({String? actorUserId}) async {
+    await _require(actorUserId, 'backups.read');
     return (db.select(db.backupRecords)
           ..where((t) => t.isDeleted.equals(false))
           ..orderBy([(t) => OrderingTerm.desc(t.createdAtBackup)]))

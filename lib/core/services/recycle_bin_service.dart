@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 
 import 'package:fianarana/core/database/app_database.dart';
 import 'package:fianarana/core/security/audit_service.dart';
+import 'package:fianarana/core/security/permission_service.dart';
 
 class DeletedEntry {
   final String entity;
@@ -16,7 +17,15 @@ class DeletedEntry {
 class RecycleBinService {
   final AppDatabase db;
   late final AuditService _audit = AuditService(db);
+  late final PermissionService _perm = PermissionService(db);
   RecycleBinService(this.db);
+
+  Future<void> _require(String? userId, String permission) async {
+    if (userId == null || userId.isEmpty) return; // maintenance système
+    if (!await _perm.userHasPermission(userId, permission)) {
+      throw StateError('Action non autorisée ($permission)');
+    }
+  }
 
   static const allEntityTypes = <String>[
     'Établissements',
@@ -53,7 +62,8 @@ class RecycleBinService {
     'Snapshots bulletins',
   ];
 
-  Future<List<DeletedEntry>> listDeleted({String? entityFilter}) async {
+  Future<List<DeletedEntry>> listDeleted({String? entityFilter, String? actorUserId}) async {
+    await _require(actorUserId, 'recycle.read');
     final out = <DeletedEntry>[];
     Future<void> add(String entity, Future<List<DeletedEntry>> Function() loader) async {
       if (entityFilter != null && entityFilter.isNotEmpty && entityFilter != 'Tous' && entityFilter != entity) return;
@@ -130,6 +140,7 @@ class RecycleBinService {
   }
 
   Future<void> restore(String entity, String id, {String? actorUserId, String? actorUsername}) async {
+    await _require(actorUserId, 'recycle.restore');
     final now = DateTime.now();
     switch (entity) {
       case 'Établissements':
@@ -241,7 +252,8 @@ class RecycleBinService {
         result: 'Succès');
   }
 
-  Future<int> purgeOlderThan(Duration retention) async {
+  Future<int> purgeOlderThan(Duration retention, {String? actorUserId}) async {
+    await _require(actorUserId, 'recycle.purge');
     final cutoff = DateTime.now().subtract(retention);
     var n = 0;
     n += await (db.delete(db.establishments)..where((t) => t.isDeleted.equals(true) & t.deletedAt.isSmallerThanValue(cutoff))).go();
