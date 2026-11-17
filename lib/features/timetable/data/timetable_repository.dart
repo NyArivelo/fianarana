@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 
 import 'package:fianarana/core/database/app_database.dart';
 import 'package:fianarana/core/database/uuid.dart';
+import 'package:fianarana/core/security/affectation_scope.dart';
 import 'package:fianarana/core/security/audit_service.dart';
 import 'package:fianarana/core/security/permission_service.dart';
 
@@ -77,6 +78,15 @@ class TimetableRepository {
     String? day,
   }) async {
     await _require(actorUserId, 'settings.read');
+    final scopeClasses = await AffectationScope(db).allowedClassIdsForUser(actorUserId);
+    String? scopeStaffId;
+    if (scopeClasses != null && actorUserId != null) {
+      final st = await (db.select(db.staffMembers)..where((t)=>t.userId.equals(actorUserId) & t.isDeleted.equals(false))).getSingleOrNull();
+      scopeStaffId = st?.id;
+      if (scopeClasses.isEmpty && scopeStaffId == null) return const <TimetableEntry>[];
+      if (classId != null && classId.isNotEmpty && !scopeClasses.contains(classId)) return const <TimetableEntry>[];
+      if (teacherId != null && teacherId.isNotEmpty && scopeStaffId != null && teacherId != scopeStaffId) return const <TimetableEntry>[];
+    }
     final s = db.timetableSessions;
     final c = db.classes;
     final sub = db.subjects;
@@ -90,7 +100,15 @@ class TimetableRepository {
       leftOuterJoin(r, r.id.equalsExp(s.roomId)),
     ]);
     query.where(s.isDeleted.equals(false));
-    if (classId != null && classId.isNotEmpty) query.where(s.classId.equals(classId));
+    if (classId != null && classId.isNotEmpty) {
+      query.where(s.classId.equals(classId));
+    } else if (scopeClasses != null) {
+      if (scopeStaffId != null) {
+        query.where(s.classId.isIn(scopeClasses) | s.teacherId.equals(scopeStaffId));
+      } else {
+        query.where(s.classId.isIn(scopeClasses));
+      }
+    }
     if (teacherId != null && teacherId.isNotEmpty) query.where(s.teacherId.equals(teacherId));
     if (day != null && day.isNotEmpty) query.where(s.dayOfWeek.equals(day));
     query.orderBy([

@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 
 import 'package:fianarana/core/database/app_database.dart';
 import 'package:fianarana/core/database/uuid.dart';
+import 'package:fianarana/core/security/affectation_scope.dart';
 import 'package:fianarana/core/security/audit_service.dart';
 import 'package:fianarana/core/security/permission_service.dart';
 
@@ -54,6 +55,11 @@ class AttendanceRepository {
 
   Future<List<AttendanceRow>> list({String? actorUserId, String? classId, DateTime? date, int limit = 200}) async {
     await _require(actorUserId, 'attendance.read');
+    final scopeClasses = await AffectationScope(db).allowedClassIdsForUser(actorUserId);
+    if (scopeClasses != null) {
+      if (scopeClasses.isEmpty) return const <AttendanceRow>[];
+      if (classId != null && classId.isNotEmpty && !scopeClasses.contains(classId)) return const <AttendanceRow>[];
+    }
     final a = db.attendanceEvents;
     final s = db.students;
     final c = db.classes;
@@ -64,6 +70,8 @@ class AttendanceRepository {
     j.where(a.isDeleted.equals(false));
     if (classId != null && classId.isNotEmpty) {
       j.where(a.classId.equals(classId));
+    } else if (scopeClasses != null) {
+      j.where(a.classId.isIn(scopeClasses));
     }
     if (date != null) {
       final start = DateTime(date.year, date.month, date.day);
