@@ -573,6 +573,7 @@ class _GradesScreenState extends ConsumerState<GradesScreen> {
     List<dynamic> students = [];
     final scoreCtrls = <String, TextEditingController>{};
     final scoreNodes = <String, FocusNode>{};
+    final exemptNodes = <String, FocusNode>{};
     final exempt = <String, bool>{};
     final existingId = <String, String>{};
     bool loaded = false;
@@ -591,7 +592,8 @@ class _GradesScreenState extends ConsumerState<GradesScreen> {
       );
       for (final c in scoreCtrls.values) { c.dispose(); }
       for (final n in scoreNodes.values) { n.dispose(); }
-      scoreCtrls.clear(); scoreNodes.clear(); exempt.clear(); existingId.clear();
+      for (final n in exemptNodes.values) { n.dispose(); }
+      scoreCtrls.clear(); scoreNodes.clear(); exemptNodes.clear(); exempt.clear(); existingId.clear();
       students = list;
       final byStudent = <String, GradeRow>{};
       for (final g in grades) { byStudent[g.studentId] = g; }
@@ -602,6 +604,7 @@ class _GradesScreenState extends ConsumerState<GradesScreen> {
         exempt[sid] = g?.isExempt ?? false;
         scoreCtrls[sid] = TextEditingController(text: g?.score == null ? '' : (g!.score! % 1 == 0 ? g.score!.toStringAsFixed(0) : g.score!.toString()));
         scoreNodes[sid] = FocusNode();
+        exemptNodes[sid] = FocusNode(debugLabel: 'exempt-$sid');
       }
       loaded = true;
       setD(() {});
@@ -635,7 +638,7 @@ class _GradesScreenState extends ConsumerState<GradesScreen> {
                 FilledButton.icon(onPressed: () async { await load(setD); }, icon: const Icon(Icons.table_rows, size: 16), label: const Text('Charger la grille')),
               ]),
               const SizedBox(height: 8),
-              Text('Saisie rapide : ↑/↓ pour changer d\'élève, Tab/Entrée pour avancer, Ctrl+Entrée pour enregistrer. Notes existantes préremplies.',
+              Text('Saisie rapide : ↑/↓ élève, ←/→ note↔dispensé, Entrée ligne suivante, Ctrl+Entrée enregistrer. Notes existantes préremplies.',
                   style: TextStyle(fontSize: 11, color: Theme.of(ctx).colorScheme.onSurfaceVariant)),
               const SizedBox(height: 6),
               Expanded(
@@ -670,6 +673,10 @@ class _GradesScreenState extends ConsumerState<GradesScreen> {
                                               if (event is! KeyDownEvent) return KeyEventResult.ignored;
                                               final idx = students.indexWhere((x) => (x as dynamic).id == sid);
                                               if (idx < 0) return KeyEventResult.ignored;
+                                              if (event.logicalKey == LogicalKeyboardKey.arrowRight) {
+                                                exemptNodes[sid]?.requestFocus();
+                                                return KeyEventResult.handled;
+                                              }
                                               if (event.logicalKey == LogicalKeyboardKey.arrowDown) {
                                                 for (var j = idx + 1; j < students.length; j++) {
                                                   final nid = (students[j] as dynamic).id as String;
@@ -706,7 +713,44 @@ class _GradesScreenState extends ConsumerState<GradesScreen> {
                                               },
                                             ),
                                           ))),
-                                          DataCell(Checkbox(value: ex, onChanged: (v){ setD(()=>exempt[sid]=v??false); })),
+                                          DataCell(Focus(
+                                            focusNode: exemptNodes[sid],
+                                            onKeyEvent: (node, event) {
+                                              if (event is! KeyDownEvent) return KeyEventResult.ignored;
+                                              final idx = students.indexWhere((x) => (x as dynamic).id == sid);
+                                              if (idx < 0) return KeyEventResult.ignored;
+                                              if (event.logicalKey == LogicalKeyboardKey.arrowLeft) {
+                                                scoreNodes[sid]?.requestFocus();
+                                                return KeyEventResult.handled;
+                                              }
+                                              if (event.logicalKey == LogicalKeyboardKey.arrowDown) {
+                                                for (var j = idx + 1; j < students.length; j++) {
+                                                  final nid = (students[j] as dynamic).id as String;
+                                                  exemptNodes[nid]?.requestFocus();
+                                                  break;
+                                                }
+                                                return KeyEventResult.handled;
+                                              }
+                                              if (event.logicalKey == LogicalKeyboardKey.arrowUp) {
+                                                for (var j = idx - 1; j >= 0; j--) {
+                                                  final nid = (students[j] as dynamic).id as String;
+                                                  exemptNodes[nid]?.requestFocus();
+                                                  break;
+                                                }
+                                                return KeyEventResult.handled;
+                                              }
+                                              if (event.logicalKey == LogicalKeyboardKey.enter && HardwareKeyboard.instance.isControlPressed) {
+                                                Navigator.pop(ctx, true);
+                                                return KeyEventResult.handled;
+                                              }
+                                              if (event.logicalKey == LogicalKeyboardKey.space || event.logicalKey == LogicalKeyboardKey.enter) {
+                                                setD(()=>exempt[sid]=!(exempt[sid]??false));
+                                                return KeyEventResult.handled;
+                                              }
+                                              return KeyEventResult.ignored;
+                                            },
+                                            child: Checkbox(value: ex, onChanged: (v){ setD(()=>exempt[sid]=v??false); }),
+                                          )),
                                         ]);
                                       }()
                                   ],
@@ -757,11 +801,13 @@ class _GradesScreenState extends ConsumerState<GradesScreen> {
       }
       for (final c in scoreCtrls.values) { c.dispose(); }
       for (final n in scoreNodes.values) { n.dispose(); }
+      for (final n in exemptNodes.values) { n.dispose(); }
       ref.invalidate(gradesListProvider);
       _snack('Grille enregistrée : $saved note(s), $failed échec(s).');
     } else {
       for (final c in scoreCtrls.values) { c.dispose(); }
       for (final n in scoreNodes.values) { n.dispose(); }
+      for (final n in exemptNodes.values) { n.dispose(); }
     }
   }
 
