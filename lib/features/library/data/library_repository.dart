@@ -135,6 +135,8 @@ class LibraryRepository {
 
   Future<List<LibraryCatalogueRow>> listCatalogue({String? actorUserId}) async {
     await _require(actorUserId, 'library.read');
+    final scopeClasses = await AffectationScope(db).allowedClassIdsForUser(actorUserId);
+    final scopedStudentIds = await _studentIdsInClasses(scopeClasses);
     final i = db.libraryItems;
     final l = db.libraryLoans;
     final s = db.students;
@@ -156,13 +158,15 @@ class LibraryRepository {
       final item = r.readTable(i);
       final loan = r.readTableOrNull(l);
       final student = r.readTableOrNull(s);
+      final borrowerInScope = scopedStudentIds == null || (loan?.borrowerStudentId != null && scopedStudentIds.contains(loan!.borrowerStudentId));
+      final showBorrower = loan != null && borrowerInScope;
       return LibraryCatalogueRow(
         item: item,
-        loanId: loan?.id,
-        borrowerName: student == null ? null : '${student.lastName} ${student.firstName}',
-        borrowerMatricule: student?.matricule,
-        dueDate: loan?.dueDate,
-        overdue: _isOverdue(loan?.dueDate, now),
+        loanId: showBorrower ? loan.id : null,
+        borrowerName: showBorrower && student != null ? '${student.lastName} ${student.firstName}' : null,
+        borrowerMatricule: showBorrower ? student?.matricule : null,
+        dueDate: showBorrower ? loan.dueDate : null,
+        overdue: showBorrower && _isOverdue(loan.dueDate, now),
       );
     }).toList();
   }
