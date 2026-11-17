@@ -70,12 +70,22 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      appBar: AppBar(title: const Text('Première installation')),
+      backgroundColor: isDark ? const Color(0xFF020617) : const Color(0xFFF1F5F9),
+      appBar: AppBar(
+        toolbarHeight: 48,
+        title: Row(children: [
+          Container(width: 28, height: 28, decoration: BoxDecoration(borderRadius: BorderRadius.circular(8), gradient: const LinearGradient(colors: [Color(0xFF2563EB), Color(0xFF1E40AF)])), child: const Icon(Icons.school, color: Colors.white, size: 16)),
+          const SizedBox(width: 10),
+          const Text('Première installation'),
+        ]),
+      ),
       body: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 640),
-          child: Card(
+          child: Container(
+            decoration: BoxDecoration(color: isDark ? const Color(0xFF0F172A) : Colors.white, borderRadius: BorderRadius.circular(16), border: Border.all(color: isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0))),
             child: Padding(
               padding: const EdgeInsets.all(24),
               child: Form(
