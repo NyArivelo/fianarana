@@ -166,43 +166,59 @@ class _LockOverlayState extends State<_LockOverlay> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final border = isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0);
     return Positioned.fill(
       child: Material(
-        color: Colors.black54,
+        color: const Color(0xFF020617).withOpacity(0.75),
         child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 380),
-            child: Card(
-              child: Padding(
-                padding: const EdgeInsets.all(20),
-                child: Column(mainAxisSize: MainAxisSize.min, children: [
-                  const Icon(Icons.lock, size: 40),
-                  const SizedBox(height: 8),
-                  const Text('Session verrouillée (Ctrl+L / inactivité)'),
-                  const SizedBox(height: 8),
-                  SegmentedButton<bool>(
-                    segments: const [
-                      ButtonSegment(value: false, label: Text('Mot de passe')),
-                      ButtonSegment(value: true, label: Text('PIN rapide')),
-                    ],
-                    selected: {_usePin},
-                    onSelectionChanged: (s) => setState(() { _usePin = s.first; _ctrl.clear(); _err = null; }),
-                  ),
-                  const SizedBox(height: 12),
-                  TextField(
-                    controller: _ctrl,
-                    obscureText: true,
-                    keyboardType: _usePin ? TextInputType.number : TextInputType.text,
-                    maxLength: _usePin ? 6 : null,
-                    decoration: InputDecoration(labelText: _usePin ? 'PIN (4-6 chiffres)' : 'Mot de passe'),
-                    onSubmitted: (_) => _submit(),
-                  ),
-                  if (_err != null) Padding(padding: const EdgeInsets.only(top: 4), child: Text(_err!, style: TextStyle(color: Theme.of(context).colorScheme.error))),
-                  const SizedBox(height: 8),
-                  FilledButton(onPressed: _busy ? null : _submit, child: const Text('Déverrouiller')),
-                ]),
-              ),
+          child: Container(
+            constraints: const BoxConstraints(maxWidth: 420),
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF0F172A) : Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: border),
+              boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.25), blurRadius: 30, offset: const Offset(0, 12))],
             ),
+            child: Column(mainAxisSize: MainAxisSize.min, children: [
+              Container(
+                width: 52, height: 52,
+                decoration: BoxDecoration(color: const Color(0xFF2563EB).withOpacity(0.1), borderRadius: BorderRadius.circular(14), border: Border.all(color: const Color(0xFFBFDBFE))),
+                child: const Icon(Icons.shield_outlined, color: Color(0xFF2563EB), size: 26),
+              ),
+              const SizedBox(height: 12),
+              Text('Session verrouillée', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: isDark ? Colors.white : const Color(0xFF0F172A))),
+              const SizedBox(height: 4),
+              Text('Vos onglets sont conservés. Déverrouillez avec votre mot de passe ou code PIN.', textAlign: TextAlign.center, style: TextStyle(fontSize: 12, color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B))),
+              const SizedBox(height: 16),
+              SegmentedButton<bool>(
+                segments: const [
+                  ButtonSegment(value: false, label: Text('Mot de passe'), icon: Icon(Icons.password, size: 16)),
+                  ButtonSegment(value: true, label: Text('PIN rapide'), icon: Icon(Icons.pin_outlined, size: 16)),
+                ],
+                selected: {_usePin},
+                onSelectionChanged: (s) => setState(() { _usePin = s.first; _ctrl.clear(); _err = null; }),
+              ),
+              const SizedBox(height: 14),
+              TextField(
+                controller: _ctrl,
+                obscureText: true,
+                textAlign: _usePin ? TextAlign.center : TextAlign.start,
+                style: _usePin ? const TextStyle(fontSize: 22, letterSpacing: 8, fontWeight: FontWeight.w600) : null,
+                keyboardType: _usePin ? TextInputType.number : TextInputType.text,
+                maxLength: _usePin ? 6 : null,
+                decoration: InputDecoration(labelText: _usePin ? 'Code PIN' : 'Mot de passe', counterText: ''),
+                onSubmitted: (_) => _submit(),
+              ),
+              if (_err != null) Padding(padding: const EdgeInsets.only(top: 8), child: Text(_err!, style: const TextStyle(fontSize: 12, color: Color(0xFFDC2626)))),
+              const SizedBox(height: 14),
+              SizedBox(
+                width: double.infinity,
+                height: 40,
+                child: FilledButton.icon(onPressed: _busy ? null : _submit, icon: _busy ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)) : const Icon(Icons.lock_open, size: 18), label: const Text('Déverrouiller')),
+              ),
+            ]),
           ),
         ),
       ),
