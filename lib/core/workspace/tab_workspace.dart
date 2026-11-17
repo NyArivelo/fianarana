@@ -80,6 +80,24 @@ class TabWorkspaceController extends StateNotifier<TabWorkspaceState> {
     _emit(TabWorkspaceState(tabs: next, activeIndex: active, restored: state.restored));
   }
 
+  void closeOthers(String id) {
+    final keep = state.tabs.where((t) => t.id == id).toList();
+    if (keep.isEmpty) return;
+    _emit(TabWorkspaceState(tabs: keep, activeIndex: 0, restored: state.restored));
+  }
+
+  void closeToRight(int index) {
+    if (index < 0 || index >= state.tabs.length - 1) return;
+    final tabs = state.tabs.sublist(0, index + 1);
+    var active = state.activeIndex;
+    if (active >= tabs.length) active = tabs.length - 1;
+    _emit(TabWorkspaceState(tabs: tabs, activeIndex: active, restored: state.restored));
+  }
+
+  void closeAll() {
+    _emit(TabWorkspaceState(restored: state.restored));
+  }
+
   void closeActive() {
     if (state.tabs.isEmpty) return;
     closeTab(state.tabs[state.activeIndex].id);
