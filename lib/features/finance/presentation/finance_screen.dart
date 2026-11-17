@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:printing/printing.dart';
 
 import 'package:fianarana/core/utils/csv_export.dart';
+import 'package:fianarana/core/widgets/app_ui.dart';
 import 'package:fianarana/features/auth/application/auth_controller.dart';
 import 'package:fianarana/features/finance/application/finance_providers.dart';
 import 'package:fianarana/features/finance/data/finance_repository.dart';
@@ -20,6 +21,8 @@ class FinanceScreen extends ConsumerStatefulWidget {
 class _FinanceScreenState extends ConsumerState<FinanceScreen> {
   final _search = TextEditingController();
   String? _query;
+  String _method = 'Tous';
+  bool _todayOnly = false;
 
   @override
   void dispose() {
@@ -29,7 +32,9 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
 
   Future<void> _newPayment() async {
     final auth = ref.read(authControllerProvider);
-    final students = await ref.read(studentsRepositoryProvider).list(actorUserId: auth.userId, limit: 500);
+    final students = await ref
+        .read(studentsRepositoryProvider)
+        .list(actorUserId: auth.userId, limit: 500);
     if (!mounted) return;
     final studentIdCtrl = ValueNotifier<String?>(null);
     final feeCtrl = TextEditingController(text: 'Écolage');
@@ -45,48 +50,75 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
           child: Column(mainAxisSize: MainAxisSize.min, children: [
             DropdownButtonFormField<String>(
               decoration: const InputDecoration(labelText: 'Élève'),
-              items: students.map((s) => DropdownMenuItem(value: s.id, child: Text('${s.matricule} - ${s.fullName}'))).toList(),
+              isExpanded: true,
+              items: students
+                  .map((s) => DropdownMenuItem(
+                        value: s.id,
+                        child: Text('${s.matricule} - ${s.fullName}',
+                            overflow: TextOverflow.ellipsis),
+                      ))
+                  .toList(),
               onChanged: (v) => studentIdCtrl.value = v,
             ),
             const SizedBox(height: 8),
-            TextField(controller: feeCtrl, decoration: const InputDecoration(labelText: 'Libellé des frais')),
+            TextField(
+                controller: feeCtrl,
+                decoration: const InputDecoration(labelText: 'Libellé des frais')),
             const SizedBox(height: 8),
             Row(children: [
-              Expanded(child: TextField(controller: dueCtrl, decoration: const InputDecoration(labelText: 'Montant dû (MGA)'), keyboardType: TextInputType.number)),
+              Expanded(
+                  child: TextField(
+                      controller: dueCtrl,
+                      decoration: const InputDecoration(labelText: 'Montant dû (MGA)'),
+                      keyboardType: TextInputType.number)),
               const SizedBox(width: 8),
-              Expanded(child: TextField(controller: paidCtrl, decoration: const InputDecoration(labelText: 'Montant payé (MGA)'), keyboardType: TextInputType.number)),
+              Expanded(
+                  child: TextField(
+                      controller: paidCtrl,
+                      decoration: const InputDecoration(labelText: 'Montant payé (MGA)'),
+                      keyboardType: TextInputType.number)),
             ]),
             const SizedBox(height: 8),
             DropdownButtonFormField<String>(
-              value: method,
+              initialValue: method,
               decoration: const InputDecoration(labelText: 'Mode de paiement'),
-              items: const ['Espèces','Mobile Money','Chèque','Virement'].map((m) => DropdownMenuItem(value: m, child: Text(m))).toList(),
+              items: const ['Espèces', 'Mobile Money', 'Chèque', 'Virement']
+                  .map((m) => DropdownMenuItem(value: m, child: Text(m)))
+                  .toList(),
               onChanged: (v) => method = v ?? 'Espèces',
             ),
           ]),
         ),
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Annuler')),
-          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Enregistrer & générer reçu')),
+          FilledButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              child: const Text('Enregistrer & générer reçu')),
         ],
       ),
     );
     if (ok == true && studentIdCtrl.value != null) {
       try {
         final receipt = await ref.read(financeRepositoryProvider).recordPayment(
-          studentId: studentIdCtrl.value!,
-          feeLabel: feeCtrl.text.trim().isEmpty ? 'Frais' : feeCtrl.text.trim(),
-          amountDueMga: int.tryParse(dueCtrl.text.trim()) ?? 0,
-          amountPaidMga: int.tryParse(paidCtrl.text.trim()) ?? 0,
-          paymentMethod: method,
-          actorUserId: auth.userId,
-          actorUsername: auth.username,
-        );
+              studentId: studentIdCtrl.value!,
+              feeLabel: feeCtrl.text.trim().isEmpty ? 'Frais' : feeCtrl.text.trim(),
+              amountDueMga: int.tryParse(dueCtrl.text.trim()) ?? 0,
+              amountPaidMga: int.tryParse(paidCtrl.text.trim()) ?? 0,
+              paymentMethod: method,
+              actorUserId: auth.userId,
+              actorUsername: auth.username,
+            );
         ref.invalidate(paymentsProvider);
         ref.invalidate(financeTotalsProvider);
-        if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Paiement enregistré. Reçu: $receipt')));
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Paiement enregistré. Reçu : $receipt')));
+        }
       } catch (e) {
-        if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erreur encaissement: $e')));
+        if (mounted) {
+          ScaffoldMessenger.of(context)
+              .showSnackBar(SnackBar(content: Text('Erreur encaissement : $e')));
+        }
       }
     }
   }
@@ -101,14 +133,29 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Clôture de caisse (Z)'),
-        content: SizedBox(width: 420, child: Column(mainAxisSize: MainAxisSize.min, children: [
-          TextField(controller: cashCtrl, decoration: const InputDecoration(labelText: 'Total espèces (MGA)'), keyboardType: TextInputType.number),
-          TextField(controller: mmCtrl, decoration: const InputDecoration(labelText: 'Total Mobile Money (MGA)'), keyboardType: TextInputType.number),
-          TextField(controller: chkCtrl, decoration: const InputDecoration(labelText: 'Total chèques (MGA)'), keyboardType: TextInputType.number),
-          TextField(controller: trCtrl, decoration: const InputDecoration(labelText: 'Total virements (MGA)'), keyboardType: TextInputType.number),
-          const SizedBox(height: 8),
-          const Text('Les paiements ouverts du jour seront marqués clôturés.'),
-        ])),
+        content: SizedBox(
+          width: 420,
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
+            TextField(
+                controller: cashCtrl,
+                decoration: const InputDecoration(labelText: 'Total espèces (MGA)'),
+                keyboardType: TextInputType.number),
+            TextField(
+                controller: mmCtrl,
+                decoration: const InputDecoration(labelText: 'Total Mobile Money (MGA)'),
+                keyboardType: TextInputType.number),
+            TextField(
+                controller: chkCtrl,
+                decoration: const InputDecoration(labelText: 'Total chèques (MGA)'),
+                keyboardType: TextInputType.number),
+            TextField(
+                controller: trCtrl,
+                decoration: const InputDecoration(labelText: 'Total virements (MGA)'),
+                keyboardType: TextInputType.number),
+            const SizedBox(height: 8),
+            const Text('Les paiements ouverts du jour seront marqués clôturés.'),
+          ]),
+        ),
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Annuler')),
           FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Clôturer')),
@@ -118,161 +165,364 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
     if (ok == true && auth.userId != null) {
       try {
         await ref.read(financeRepositoryProvider).closeCashDesk(
-          cashierUserId: auth.userId!,
-          totalCash: int.tryParse(cashCtrl.text) ?? 0,
-          totalMobileMoney: int.tryParse(mmCtrl.text) ?? 0,
-          totalCheck: int.tryParse(chkCtrl.text) ?? 0,
-          totalTransfer: int.tryParse(trCtrl.text) ?? 0,
-          actorUserId: auth.userId,
-          actorUsername: auth.username,
-        );
+              cashierUserId: auth.userId!,
+              totalCash: int.tryParse(cashCtrl.text) ?? 0,
+              totalMobileMoney: int.tryParse(mmCtrl.text) ?? 0,
+              totalCheck: int.tryParse(chkCtrl.text) ?? 0,
+              totalTransfer: int.tryParse(trCtrl.text) ?? 0,
+              actorUserId: auth.userId,
+              actorUsername: auth.username,
+            );
         ref.invalidate(paymentsProvider);
-        if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Caisse clôturée (Z)')));
+        if (mounted) {
+          ScaffoldMessenger.of(context)
+              .showSnackBar(const SnackBar(content: Text('Caisse clôturée (Z)')));
+        }
       } catch (e) {
-        if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erreur clôture: $e')));
+        if (mounted) {
+          ScaffoldMessenger.of(context)
+              .showSnackBar(SnackBar(content: Text('Erreur clôture : $e')));
+        }
       }
     }
   }
 
+  Future<void> _export(List<PaymentRow> rows) async {
+    final f = await CsvExport.export(
+      filename: 'paiements_export.csv',
+      headers: const [
+        'Recu',
+        'Date',
+        'Eleve',
+        'Matricule',
+        'Classe',
+        'Libelle',
+        'Du',
+        'Paye',
+        'Reste',
+        'Mode',
+        'Etat',
+      ],
+      rows: rows
+          .map((r) => <String?>[
+                r.receipt,
+                r.date?.toIso8601String(),
+                r.studentName,
+                r.matricule,
+                r.classLabel,
+                r.feeLabel,
+                '${r.due}',
+                '${r.paid}',
+                '${r.balance}',
+                r.method,
+                r.closeStatus,
+              ])
+          .toList(),
+    );
+    if (!mounted) return;
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text('Export CSV : ${f.path}')));
+  }
+
+  Future<void> _printReceipt(PaymentRow r) async {
+    final bytes = await ReceiptService().generateReceipt(
+      ReceiptData(
+        receiptNumber: r.receipt,
+        date: r.date,
+        studentName: r.studentName,
+        matricule: r.matricule,
+        classLabel: r.classLabel,
+        feeLabel: r.feeLabel,
+        amountDue: r.due,
+        amountPaid: r.paid,
+        balance: r.balance,
+        paymentMethod: r.method,
+        cashier: null,
+      ),
+      establishmentName: 'Établissement',
+    );
+    await Printing.layoutPdf(onLayout: (_) async => bytes, name: 'recu_${r.receipt}.pdf');
+  }
+
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final totalsAsync = ref.watch(financeTotalsProvider);
     final listAsync = ref.watch(paymentsProvider(_query));
+
     return Scaffold(
+      backgroundColor:
+          theme.brightness == Brightness.dark ? const Color(0xFF020617) : const Color(0xFFF8FAFC),
       appBar: AppBar(
         title: const Text('Finances & Caisse'),
         actions: [
-          OutlinedButton.icon(onPressed: () async {
-            final rows = await ref.read(paymentsProvider(_query).future);
-            final f = await CsvExport.export(filename: 'paiements_export.csv', headers: ['Recu','Date','Eleve','Matricule','Classe','Libelle','Du','Paye','Reste','Mode','Etat'], rows: rows.map((r)=>[r.receipt, r.date?.toIso8601String(), r.studentName, r.matricule, r.classLabel, r.feeLabel, '${r.due}', '${r.paid}', '${r.balance}', r.method, r.closeStatus]).toList());
-            if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Export CSV: ${f.path}')));
-          }, icon: const Icon(Icons.download), label: const Text('Export CSV')),
+          OutlinedButton.icon(
+            onPressed: () => context.go('/finance/schedules'),
+            icon: const Icon(Icons.event_note_outlined, size: 16),
+            label: const Text('Échéanciers'),
+          ),
           const SizedBox(width: 8),
-          OutlinedButton.icon(onPressed: () => context.go('/finance/schedules'), icon: const Icon(Icons.event_note_outlined), label: const Text('Échéanciers')),
+          OutlinedButton.icon(
+            onPressed: _closeCashDesk,
+            icon: const Icon(Icons.lock_clock, size: 16),
+            label: const Text('Clôture Z'),
+          ),
           const SizedBox(width: 8),
-          OutlinedButton.icon(onPressed: _closeCashDesk, icon: const Icon(Icons.lock_clock), label: const Text('Clôture Z')),
-          const SizedBox(width: 8),
-          FilledButton.icon(onPressed: _newPayment, icon: const Icon(Icons.add_card), label: const Text('Encaissement')),
-          const SizedBox(width: 8),
+          FilledButton.icon(
+            onPressed: _newPayment,
+            icon: const Icon(Icons.add_card, size: 16),
+            label: const Text('Encaissement'),
+          ),
+          const SizedBox(width: 12),
         ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            totalsAsync.when(
-              data: (t) => Wrap(
-                spacing: 12,
-                runSpacing: 12,
-                children: [
-                  _KpiCard(label: 'Transactions', value: '${t['count'] ?? 0}'),
-                  _KpiCard(label: 'Total dû (MGA)', value: '${t['due'] ?? 0}'),
-                  _KpiCard(label: 'Total payé (MGA)', value: '${t['paid'] ?? 0}'),
-                  _KpiCard(label: 'Reste à payer (MGA)', value: '${t['balance'] ?? 0}'),
-                ],
-              ),
-              loading: () => const LinearProgressIndicator(),
-              error: (e, _) => Text('Erreur totaux: $e'),
-            ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _search,
-                    decoration: const InputDecoration(prefixIcon: Icon(Icons.search), hintText: 'Rechercher (reçu, élève, matricule)...'),
-                    onSubmitted: (v) => setState(() => _query = v.trim().isEmpty ? null : v.trim()),
-                  ),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+          totalsAsync.when(
+            data: (t) {
+              final due = t['due'] ?? 0;
+              final paid = t['paid'] ?? 0;
+              final balance = t['balance'] ?? 0;
+              final rate = due == 0 ? 0 : ((paid / due) * 100).clamp(0, 100);
+              return Wrap(spacing: 12, runSpacing: 12, children: [
+                AppStatCard(
+                  icon: Icons.receipt_long_outlined,
+                  label: 'Transactions',
+                  value: '${t['count'] ?? 0}',
+                  hint: 'Reçus enregistrés',
+                  tone: AppTone.info,
                 ),
-                const SizedBox(width: 8),
-                FilledButton(onPressed: () => setState(() => _query = _search.text.trim().isEmpty ? null : _search.text.trim()), child: const Text('Filtrer')),
-              ],
-            ),
-            const SizedBox(height: 12),
+                AppStatCard(
+                  icon: Icons.savings_outlined,
+                  label: 'Total encaissé',
+                  value: formatMga(paid),
+                  tone: AppTone.success,
+                ),
+                AppStatCard(
+                  icon: Icons.pending_actions_outlined,
+                  label: 'Reste à recouvrer',
+                  value: formatMga(balance),
+                  tone: balance > 0 ? AppTone.danger : AppTone.success,
+                ),
+                AppStatCard(
+                  icon: Icons.donut_large_outlined,
+                  label: 'Taux de recouvrement',
+                  value: '${rate.toStringAsFixed(1)} %',
+                  hint: 'Payé / dû',
+                  tone: rate >= 70 ? AppTone.success : AppTone.warning,
+                ),
+              ]);
+            },
+            loading: () => const LinearProgressIndicator(),
+            error: (e, _) => Text('Erreur totaux : $e'),
+          ),
+          const SizedBox(height: 12),
+          listAsync.maybeWhen(
+            data: (rows) => _journalCard(rows),
+            orElse: () => const SizedBox.shrink(),
+          ),
+          const SizedBox(height: 12),
+          Row(children: [
             Expanded(
-              child: listAsync.when(
-                data: (rows) => Card(
-                  child: rows.isEmpty
-                      ? const Center(child: Text('Aucun paiement (importez les données de test depuis l’assistant).'))
+              child: TextField(
+                controller: _search,
+                decoration: const InputDecoration(
+                  prefixIcon: Icon(Icons.search, size: 18),
+                  hintText: 'Rechercher (reçu, élève, matricule)...',
+                ),
+                onSubmitted: (v) =>
+                    setState(() => _query = v.trim().isEmpty ? null : v.trim()),
+              ),
+            ),
+            const SizedBox(width: 8),
+            SizedBox(
+              width: 180,
+              child: DropdownButtonFormField<String>(
+                initialValue: _method,
+                isExpanded: true,
+                decoration: const InputDecoration(labelText: 'Mode'),
+                items: const ['Tous', 'Espèces', 'Mobile Money', 'Chèque', 'Virement']
+                    .map((m) => DropdownMenuItem(value: m, child: Text(m)))
+                    .toList(),
+                onChanged: (v) => setState(() => _method = v ?? 'Tous'),
+              ),
+            ),
+            const SizedBox(width: 8),
+            FilterChip(
+              label: const Text('Aujourd\'hui'),
+              selected: _todayOnly,
+              onSelected: (v) => setState(() => _todayOnly = v),
+            ),
+            const SizedBox(width: 8),
+            FilledButton(
+              onPressed: () => setState(
+                  () => _query = _search.text.trim().isEmpty ? null : _search.text.trim()),
+              child: const Text('Filtrer'),
+            ),
+            const SizedBox(width: 8),
+            OutlinedButton.icon(
+              onPressed: listAsync.maybeWhen(
+                data: (rows) => rows.isEmpty ? null : () => _export(rows),
+                orElse: () => null,
+              ),
+              icon: const Icon(Icons.download_outlined, size: 16),
+              label: const Text('Export CSV'),
+            ),
+          ]),
+          const SizedBox(height: 12),
+          Expanded(
+            child: listAsync.when(
+              data: (rows) {
+                final filtered = _applyFilters(rows);
+                return Card(
+                  clipBehavior: Clip.antiAlias,
+                  child: filtered.isEmpty
+                      ? AppEmptyState(
+                          icon: Icons.payments_outlined,
+                          title: rows.isEmpty
+                              ? 'Aucun paiement enregistré'
+                              : 'Aucun paiement dans ce filtre',
+                          message: rows.isEmpty
+                              ? 'Importez les données de test ou enregistrez un encaissement.'
+                              : null,
+                        )
                       : SingleChildScrollView(
-                          child: DataTable(
-                            columns: const [
-                              DataColumn(label: Text('Reçu')),
-                              DataColumn(label: Text('Date')),
-                              DataColumn(label: Text('Élève')),
-                              DataColumn(label: Text('Classe')),
-                              DataColumn(label: Text('Libellé')),
-                              DataColumn(label: Text('Dû')),
-                              DataColumn(label: Text('Payé')),
-                              DataColumn(label: Text('Reste')),
-                              DataColumn(label: Text('Mode')),
-                              DataColumn(label: Text('État caisse')),
-                              DataColumn(label: Text('Action')),
-                            ],
-                            rows: rows.map((r) => DataRow(cells: [
-                              DataCell(Text(r.receipt)),
-                              DataCell(Text(r.date == null ? '-' : '${r.date!.year}-${r.date!.month.toString().padLeft(2,'0')}-${r.date!.day.toString().padLeft(2,'0')}')),
-                              DataCell(Text('${r.studentName} (${r.matricule})')),
-                              DataCell(Text(r.classLabel ?? '-')),
-                              DataCell(Text(r.feeLabel)),
-                              DataCell(Text('${r.due}')),
-                              DataCell(Text('${r.paid}')),
-                              DataCell(Text('${r.balance}')),
-                              DataCell(Text(r.method ?? '-')),
-                              DataCell(Text(r.closeStatus ?? r.scheduleStatus ?? '-')),
-                              DataCell(IconButton(
-                                icon: const Icon(Icons.print_outlined),
-                                onPressed: () async {
-                                  final bytes = await ReceiptService().generateReceipt(ReceiptData(
-                                    receiptNumber: r.receipt,
-                                    date: r.date,
-                                    studentName: r.studentName,
-                                    matricule: r.matricule,
-                                    classLabel: r.classLabel,
-                                    feeLabel: r.feeLabel,
-                                    amountDue: r.due,
-                                    amountPaid: r.paid,
-                                    balance: r.balance,
-                                    paymentMethod: r.method,
-                                    cashier: null,
-                                  ), establishmentName: 'Établissement');
-                                  await Printing.layoutPdf(onLayout: (_) async => bytes, name: 'recu_${r.receipt}.pdf');
-                                },
-                              )),
-                            ])).toList(),
+                          scrollDirection: Axis.horizontal,
+                          child: SingleChildScrollView(
+                            child: DataTable(
+                              columns: const [
+                                DataColumn(label: Text('N° reçu')),
+                                DataColumn(label: Text('Date')),
+                                DataColumn(label: Text('Élève')),
+                                DataColumn(label: Text('Libellé')),
+                                DataColumn(label: Text('Dû')),
+                                DataColumn(label: Text('Payé')),
+                                DataColumn(label: Text('Reste')),
+                                DataColumn(label: Text('Mode')),
+                                DataColumn(label: Text('État caisse')),
+                                DataColumn(label: Text('PDF')),
+                              ],
+                              rows: filtered.map((r) {
+                                final closed = (r.closeStatus ?? '').toLowerCase().contains('clôt') ||
+                                    (r.closeStatus ?? '').toLowerCase().contains('clot');
+                                return DataRow(cells: [
+                                  DataCell(Text(r.receipt,
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.w700,
+                                          fontFamily: 'monospace',
+                                          color: theme.colorScheme.primary))),
+                                  DataCell(Text(formatDateIso(r.date))),
+                                  DataCell(Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Text(r.studentName,
+                                          style: const TextStyle(fontWeight: FontWeight.w600)),
+                                      Text(
+                                          '${r.matricule}${r.classLabel == null ? '' : ' • ${r.classLabel}'}',
+                                          style: const TextStyle(fontSize: 10)),
+                                    ],
+                                  )),
+                                  DataCell(Text(r.feeLabel)),
+                                  DataCell(Text(formatNumber(r.due))),
+                                  DataCell(Text(formatNumber(r.paid),
+                                      style: const TextStyle(fontWeight: FontWeight.w600))),
+                                  DataCell(AppBadge(
+                                    r.balance <= 0 ? 'Soldé' : formatMga(r.balance),
+                                    tone: r.balance <= 0 ? AppTone.success : AppTone.danger,
+                                  )),
+                                  DataCell(AppBadge(
+                                    r.method ?? '-',
+                                    tone: switch (r.method) {
+                                      'Espèces' => AppTone.info,
+                                      'Mobile Money' => AppTone.success,
+                                      'Chèque' => AppTone.warning,
+                                      'Virement' => AppTone.neutral,
+                                      _ => AppTone.neutral,
+                                    },
+                                  )),
+                                  DataCell(AppBadge(
+                                    r.closeStatus ?? r.scheduleStatus ?? 'Ouverte',
+                                    tone: closed ? AppTone.success : AppTone.warning,
+                                    icon: closed
+                                        ? Icons.lock_outline
+                                        : Icons.lock_open_outlined,
+                                  )),
+                                  DataCell(IconButton(
+                                    tooltip: 'Aperçu du reçu',
+                                    icon: const Icon(Icons.print_outlined, size: 18),
+                                    onPressed: () => _printReceipt(r),
+                                  )),
+                                ]);
+                              }).toList(),
+                            ),
                           ),
                         ),
-                ),
-                loading: () => const Center(child: CircularProgressIndicator()),
-                error: (e, _) => Center(child: Text('Erreur: $e\n(Vérifiez permission finance.read)')),
-              ),
+                );
+              },
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (e, _) => Center(
+                  child: Text(
+                      'Erreur chargement paiements : $e\n(Vérifiez la permission finance.read)')),
             ),
-          ],
-        ),
+          ),
+        ]),
       ),
     );
   }
-}
 
-class _KpiCard extends StatelessWidget {
-  final String label;
-  final String value;
-  const _KpiCard({required this.label, required this.value});
+  List<PaymentRow> _applyFilters(List<PaymentRow> rows) {
+    final now = DateTime.now();
+    return rows.where((r) {
+      if (_method != 'Tous' && r.method != _method) return false;
+      if (_todayOnly) {
+        final d = r.date;
+        if (d == null) return false;
+        if (d.year != now.year || d.month != now.month || d.day != now.day) return false;
+      }
+      return true;
+    }).toList();
+  }
 
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: 220,
-      child: Card(
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(label, style: Theme.of(context).textTheme.bodySmall),
-            const SizedBox(height: 4),
-            Text(value, style: Theme.of(context).textTheme.titleMedium),
-          ]),
-        ),
+  Widget _journalCard(List<PaymentRow> rows) {
+    // Journée de caisse : aujourd'hui, sinon la dernière date présente.
+    final dates = rows
+        .map((r) => r.date)
+        .whereType<DateTime>()
+        .map((d) => DateTime(d.year, d.month, d.day))
+        .toList()
+      ..sort((a, b) => b.compareTo(a));
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final day = dates.contains(today) ? today : (dates.isEmpty ? today : dates.first);
+    final dayRows = rows.where((r) {
+      final d = r.date;
+      return d != null && d.year == day.year && d.month == day.month && d.day == day.day;
+    }).toList();
+    final total = dayRows.fold<int>(0, (sum, r) => sum + r.paid);
+    final byMethod = <String, int>{};
+    for (final r in dayRows) {
+      final m = r.method ?? 'Autre';
+      byMethod[m] = (byMethod[m] ?? 0) + r.paid;
+    }
+
+    return AppSectionCard(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+      title: 'Journal de caisse — ${formatDateFr(day)}',
+      subtitle: '${dayRows.length} reçu(s) • Total encaissé : ${formatMga(total)}',
+      trailing: AppBadge(
+        dayRows.isEmpty ? 'Aucun mouvement' : '${formatMga(total)}',
+        tone: dayRows.isEmpty ? AppTone.neutral : AppTone.success,
+        icon: Icons.point_of_sale_outlined,
       ),
+      child: Wrap(spacing: 8, runSpacing: 8, children: [
+        for (final entry in byMethod.entries)
+          AppBadge('${entry.key} : ${formatMga(entry.value)}', tone: AppTone.info),
+        if (byMethod.isEmpty)
+          Text('Aucun encaissement sur la journée sélectionnée.',
+              style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.onSurfaceVariant)),
+      ]),
     );
   }
 }

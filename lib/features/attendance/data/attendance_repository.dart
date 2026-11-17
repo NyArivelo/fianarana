@@ -121,6 +121,51 @@ class AttendanceRepository {
     await _audit.log(userId: actorUserId, username: actorUsername, module: 'Présences', targetObject: id, description: 'Saisie présence/événement: $status pour élève $studentId', result: 'Succès');
   }
 
+  /// Enregistre l'appel d'une classe pour une date donnée.
+  ///
+  /// Les identifiants sont déterministes (`appel-<classe>-<date>-<élève>`),
+  /// ce qui permet de refaire l'appel sans créer de doublons.
+  Future<int> recordAppel({
+    required String classId,
+    required DateTime date,
+    required Map<String, String> statusByStudent,
+    String? slotOrFacts,
+    String? actorUserId,
+    String? actorUsername,
+  }) async {
+    await _require(actorUserId, 'attendance.create');
+    if (statusByStudent.isEmpty) return 0;
+    final dayKey = '${date.year}${date.month.toString().padLeft(2, '0')}${date.day.toString().padLeft(2, '0')}';
+    final at = DateTime(date.year, date.month, date.day, 8);
+    await db.transaction(() async {
+      for (final entry in statusByStudent.entries) {
+        await db.into(db.attendanceEvents).insertOnConflictUpdate(
+          AttendanceEventsCompanion.insert(
+            id: Value('appel-$classId-$dayKey-${entry.key}'),
+            category: 'Appel / Présence',
+            studentId: entry.key,
+            classId: Value(classId),
+            date: at,
+            slotOrFacts: Value(slotOrFacts),
+            status: entry.value,
+            authorUserId: Value(actorUserId),
+            updatedAt: Value(DateTime.now()),
+          ),
+        );
+      }
+    });
+    await _audit.log(
+      userId: actorUserId,
+      username: actorUsername,
+      module: 'Présences',
+      targetObject: classId,
+      description: 'Appel enregistré ($dayKey): ${statusByStudent.length} élève(s)',
+      result: 'Succès',
+      metadata: {'date': dayKey, 'effectif': statusByStudent.length},
+    );
+    return statusByStudent.length;
+  }
+
   Future<List<Student>> studentsOfClass(String classId) async {
     final rows = await db.select(db.students).join([
       innerJoin(db.enrollments, db.enrollments.studentId.equalsExp(db.students.id)),

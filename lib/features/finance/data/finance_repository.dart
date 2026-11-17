@@ -58,7 +58,7 @@ class FinanceRepository {
     }
   }
 
-  Future<List<PaymentRow>> listPayments({String? actorUserId, String? query, int limit = 300}) async {
+  Future<List<PaymentRow>> listPayments({String? actorUserId, String? query, int limit = 500}) async {
     await _require(actorUserId, 'finance.read');
     final p = db.payments;
     final s = db.students;

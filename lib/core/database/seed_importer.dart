@@ -48,6 +48,13 @@ class SeedImporter {
     return s == 'true' || s == '1' || s == 'oui';
   }
 
+  /// Extrait la première valeur numérique d'un libellé (« 35 places » → 35).
+  int? _capacity(Map<String, dynamic> m, List<String> keys) {
+    final s = _s(m, keys);
+    final match = RegExp(r'\d+').firstMatch(s);
+    return match == null ? null : int.tryParse(match.group(0)!);
+  }
+
   DateTime? _dt(Map<String, dynamic> m, List<String> keys) {
     final v = _s(m, keys);
     if (v.isEmpty) return null;
@@ -456,7 +463,7 @@ class SeedImporter {
           code: Value(_s(r, ['Code_Ou_ISBN'])),
           name: _s(r, ['Désignation_Ou_Titre', 'Designation_Ou_Titre']).isEmpty ? 'Espace' : _s(r, ['Désignation_Ou_Titre', 'Designation_Ou_Titre']),
           category: Value(_s(r, ['Catégorie_Ou_Auteur', 'Categorie_Ou_Auteur'])),
-          capacity: Value(_i(r, ['Exemplaire_Ou_Capacité', 'Exemplaire_Ou_Capacite'], 0)),
+          capacity: Value(_capacity(r, ['Exemplaire_Ou_Capacité', 'Exemplaire_Ou_Capacite'])),
           status: Value(_s(r, ['Statut_Opérationnel', 'Statut_Operationnel']).isEmpty ? 'Disponible' : _s(r, ['Statut_Opérationnel', 'Statut_Operationnel'])),
         ));
         n++;
