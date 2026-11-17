@@ -283,6 +283,59 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
     }
   }
 
+  Future<void> _showClosuresAndReport() async {
+    final auth = ref.read(authControllerProvider);
+    final repo = ref.read(financeRepositoryProvider);
+    final closures = await repo.listClosures(actorUserId: auth.userId);
+    final report = await repo.report(actorUserId: auth.userId);
+    if (!mounted) return;
+    await showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Clôtures de caisse & rapport financier'),
+        content: SizedBox(
+          width: 820,
+          height: 520,
+          child: DefaultTabController(
+            length: 2,
+            child: Column(children: [
+              const TabBar(tabs: [Tab(text: 'Rapport / cohérence'), Tab(text: 'Historique clôtures (Z)')]),
+              Expanded(child: TabBarView(children: [
+                SingleChildScrollView(
+                  padding: const EdgeInsets.all(12),
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    Wrap(spacing: 10, runSpacing: 10, children: [
+                      AppStatCard(icon: Icons.receipt_long, label: 'Transactions', value: '${report.paymentsCount}', tone: AppTone.info),
+                      AppStatCard(icon: Icons.payments, label: 'Total dû', value: formatMga(report.totalDue), tone: AppTone.neutral),
+                      AppStatCard(icon: Icons.savings, label: 'Total encaissé', value: formatMga(report.totalPaid), tone: AppTone.success),
+                      AppStatCard(icon: Icons.warning_amber, label: 'Reste à recouvrer', value: formatMga(report.totalBalance), tone: report.totalBalance > 0 ? AppTone.danger : AppTone.success),
+                      AppStatCard(icon: Icons.event_busy, label: 'Échéances dues/retard', value: '${report.dueSchedules}', tone: report.dueSchedules > 0 ? AppTone.warning : AppTone.success),
+                      AppStatCard(icon: Icons.notification_important, label: 'En retard', value: '${report.overdueSchedules}', tone: report.overdueSchedules > 0 ? AppTone.danger : AppTone.success),
+                    ]),
+                    const SizedBox(height: 16),
+                    const Text('Encaissements par mode', style: TextStyle(fontWeight: FontWeight.w700)),
+                    const SizedBox(height: 8),
+                    if (report.paidByMethod.isEmpty) const Text('Aucune donnée.')
+                    else ...report.paidByMethod.entries.map((e) => ListTile(dense: true, title: Text(e.key), trailing: Text(formatMga(e.value), style: const TextStyle(fontWeight: FontWeight.w600)))),
+                  ]),
+                ),
+                closures.isEmpty
+                    ? const Center(child: Text('Aucune clôture enregistrée.'))
+                    : ListView(children: closures.map((c) => ListTile(
+                          leading: const Icon(Icons.lock_clock),
+                          title: Text('${c.closureDate.year}-${c.closureDate.month.toString().padLeft(2, '0')}-${c.closureDate.day.toString().padLeft(2, '0')} • ${c.status}'),
+                          subtitle: Text('Espèces ${formatMga(c.totalCash)} • MM ${formatMga(c.totalMobileMoney)} • Chèque ${formatMga(c.totalCheck)} • Virement ${formatMga(c.totalTransfer)}'),
+                          trailing: Text(formatMga(c.totalCash + c.totalMobileMoney + c.totalCheck + c.totalTransfer), style: const TextStyle(fontWeight: FontWeight.w700)),
+                        )).toList()),
+              ])),
+            ]),
+          ),
+        ),
+        actions: [TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Fermer'))],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -299,6 +352,12 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
             onPressed: () => context.go('/finance/schedules'),
             icon: const Icon(Icons.event_note_outlined, size: 16),
             label: const Text('Échéanciers'),
+          ),
+          const SizedBox(width: 8),
+          OutlinedButton.icon(
+            onPressed: _showClosuresAndReport,
+            icon: const Icon(Icons.assessment_outlined, size: 16),
+            label: const Text('Rapport / Clôtures'),
           ),
           const SizedBox(width: 8),
           OutlinedButton.icon(

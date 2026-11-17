@@ -23,7 +23,16 @@ final cashClosuresProvider = FutureProvider((ref) {
   return ref.watch(financeRepositoryProvider).listClosures(actorUserId: userId);
 });
 
-final schedulesProvider = FutureProvider.family((ref, bool overdueOnly) {
+final schedulesProvider = FutureProvider.family<List<ScheduleRow>, ({bool overdueOnly, String? status})>((ref, args) {
   final userId = ref.watch(authControllerProvider).userId;
-  return ref.watch(financeRepositoryProvider).listSchedules(actorUserId: userId, overdueOnly: overdueOnly);
+  return ref.watch(financeRepositoryProvider).listScheduleRows(
+    actorUserId: userId,
+    overdueOnly: args.overdueOnly,
+    statusFilter: args.status,
+  );
+});
+
+final financeReportProvider = FutureProvider<FinanceReport>((ref) {
+  final userId = ref.watch(authControllerProvider).userId;
+  return ref.watch(financeRepositoryProvider).report(actorUserId: userId);
 });

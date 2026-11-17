@@ -38,6 +38,33 @@ class PaymentRow {
   });
 }
 
+class ScheduleRow {
+  final PaymentSchedule schedule;
+  final String? studentName;
+  final String? matricule;
+  final String? classLabel;
+  ScheduleRow({required this.schedule, this.studentName, this.matricule, this.classLabel});
+}
+
+class FinanceReport {
+  final int totalDue;
+  final int totalPaid;
+  final int totalBalance;
+  final int paymentsCount;
+  final int overdueSchedules;
+  final int dueSchedules;
+  final Map<String, int> paidByMethod;
+  FinanceReport({
+    required this.totalDue,
+    required this.totalPaid,
+    required this.totalBalance,
+    required this.paymentsCount,
+    required this.overdueSchedules,
+    required this.dueSchedules,
+    required this.paidByMethod,
+  });
+}
+
 class UnauthorizedActionException implements Exception {
   final String permission;
   UnauthorizedActionException(this.permission);
@@ -120,12 +147,11 @@ class FinanceRepository {
     final rows = await q.get();
     var due = 0, paid = 0, bal = 0;
     for (final r in rows) {
-      if (r.isDeleted) continue;
       due += r.amountDueMga;
       paid += r.amountPaidMga;
       bal += r.balanceMga;
     }
-    return {'due': due, 'paid': paid, 'balance': bal, 'count': rows.where((r)=>!r.isDeleted).length};
+    return {'due': due, 'paid': paid, 'balance': bal, 'count': rows.length};
   }
 
   Future<String> _nextReceiptNumber() async {
@@ -142,7 +168,6 @@ class FinanceRepository {
     return 'REC-${DateTime.now().year}-${next.toString().padLeft(4, '0')}';
   }
 
-  /// Encaissement: enregistre un paiement et génère un reçu numéroté.
   Future<String> recordPayment({
     required String studentId,
     String? classId,
@@ -200,30 +225,153 @@ class FinanceRepository {
     return q.get();
   }
 
-  Future<List<PaymentSchedule>> listSchedules({String? actorUserId, bool overdueOnly = false}) async {
+  // --- Échéanciers & relances ---
+
+  Future<List<ScheduleRow>> listScheduleRows({String? actorUserId, bool overdueOnly = false, String? statusFilter}) async {
     await _require(actorUserId, 'finance.read');
     final scopeClasses = await AffectationScope(db).allowedClassIdsForUser(actorUserId);
-    if (scopeClasses != null && scopeClasses.isEmpty) return const <PaymentSchedule>[];
-    final q = db.select(db.paymentSchedules)..where((t) => t.isDeleted.equals(false));
-    if (scopeClasses != null) q.where((t) => t.classId.isIn(scopeClasses));
+    if (scopeClasses != null && scopeClasses.isEmpty) return const <ScheduleRow>[];
+    final ps = db.paymentSchedules;
+    final s = db.students;
+    final c = db.classes;
+    final j = db.select(ps).join([
+      leftOuterJoin(s, s.id.equalsExp(ps.studentId)),
+      leftOuterJoin(c, c.id.equalsExp(ps.classId)),
+    ])..where(ps.isDeleted.equals(false));
+    if (scopeClasses != null) j.where(ps.classId.isIn(scopeClasses));
     if (overdueOnly) {
-      q.where((t) => t.status.equals('En retard') | t.status.equals('Dû'));
+      j.where(ps.status.like('%retard%') | ps.status.equals('Dû') | ps.status.equals('Du'));
     }
-    q.orderBy([(t) => OrderingTerm.asc(t.dueDate)]);
-    return q.get();
+    if (statusFilter != null && statusFilter.isNotEmpty && statusFilter != 'Tous') {
+      j.where(ps.status.equals(statusFilter));
+    }
+    j.orderBy([OrderingTerm.asc(ps.dueDate), OrderingTerm.asc(ps.label)]);
+    final rows = await j.get();
+    return rows.map((r) {
+      final sch = r.readTable(ps);
+      final st = r.readTableOrNull(s);
+      final cl = r.readTableOrNull(c);
+      return ScheduleRow(
+        schedule: sch,
+        studentName: st == null ? null : '${st.lastName} ${st.firstName}',
+        matricule: st?.matricule,
+        classLabel: cl?.label,
+      );
+    }).toList();
+  }
+
+  Future<List<PaymentSchedule>> listSchedules({String? actorUserId, bool overdueOnly = false}) async {
+    final rows = await listScheduleRows(actorUserId: actorUserId, overdueOnly: overdueOnly);
+    return rows.map((r) => r.schedule).toList();
   }
 
   Future<int> countOverdueSchedules({String? actorUserId}) async {
     await _require(actorUserId, 'finance.read');
     final scopeClasses = await AffectationScope(db).allowedClassIdsForUser(actorUserId);
     if (scopeClasses != null && scopeClasses.isEmpty) return 0;
-    final q = db.select(db.paymentSchedules)..where((t) => t.status.equals('En retard') & t.isDeleted.equals(false));
+    final q = db.select(db.paymentSchedules)..where((t) => (t.status.equals('En retard') | t.status.like('%retard%')) & t.isDeleted.equals(false));
     if (scopeClasses != null) q.where((t) => t.classId.isIn(scopeClasses));
     final rows = await q.get();
     return rows.length;
   }
 
-  /// Clôture de caisse (Z) journalière pour le caissier.
+  String _computeScheduleStatus({required int due, required int paid, DateTime? dueDate, String? currentStatus}) {
+    if (paid >= due && due > 0) return 'Payé';
+    final now = DateTime.now();
+    final isOver = dueDate != null && DateTime(dueDate.year, dueDate.month, dueDate.day).isBefore(DateTime(now.year, now.month, now.day));
+    if (isOver && paid < due) {
+      if ((currentStatus ?? '').toLowerCase().contains('relanc')) return 'En retard (relancé)';
+      return 'En retard';
+    }
+    if (paid > 0 && paid < due) return 'Partiel';
+    return dueDate == null ? 'À venir' : (isOver ? 'Dû' : 'À venir');
+  }
+
+  Future<String> saveSchedule({
+    String? id,
+    required String studentId,
+    String? classId,
+    required String label,
+    required int amountDueMga,
+    int amountPaidMga = 0,
+    int installmentCount = 1,
+    int? totalAmountMga,
+    DateTime? dueDate,
+    String? status,
+    String? actorUserId,
+    String? actorUsername,
+  }) async {
+    await _require(actorUserId, 'finance.update');
+    final scopeClasses = await AffectationScope(db).allowedClassIdsForUser(actorUserId);
+    if (scopeClasses != null) {
+      String? effectiveClassId = classId;
+      if (effectiveClassId == null || effectiveClassId.isEmpty) {
+        final enr = await (db.select(db.enrollments)..where((t)=>t.studentId.equals(studentId) & t.isDeleted.equals(false))..orderBy([(t)=>OrderingTerm.desc(t.updatedAt)])).get();
+        if (enr.isNotEmpty) effectiveClassId = enr.first.classId;
+      }
+      if (effectiveClassId == null || !scopeClasses.contains(effectiveClassId)) {
+        throw StateError('Action non autorisée (portée affectations)');
+      }
+      classId = effectiveClassId;
+    }
+    final sid = id ?? newUuid();
+    final computedStatus = status ?? _computeScheduleStatus(due: amountDueMga, paid: amountPaidMga, dueDate: dueDate);
+    final now = DateTime.now();
+    await db.into(db.paymentSchedules).insertOnConflictUpdate(PaymentSchedulesCompanion.insert(
+      id: Value(sid),
+      studentId: studentId,
+      classId: Value(classId),
+      label: label,
+      totalAmountMga: Value(totalAmountMga ?? amountDueMga),
+      installmentCount: Value(installmentCount),
+      dueDate: Value(dueDate),
+      amountDueMga: Value(amountDueMga),
+      amountPaidMga: Value(amountPaidMga),
+      status: Value(computedStatus),
+      updatedAt: Value(now),
+      createdAt: Value(now),
+    ));
+    await _audit.log(userId: actorUserId, username: actorUsername, module: 'Finances', targetObject: sid, description: '${id == null ? "Création" : "Mise à jour"} échéancier "$label" élève $studentId', result: 'Succès');
+    return sid;
+  }
+
+  Future<void> updateScheduleStatus(String scheduleId, String status, {String? actorUserId, String? actorUsername}) async {
+    await _require(actorUserId, 'finance.update');
+    await (db.update(db.paymentSchedules)..where((t) => t.id.equals(scheduleId))).write(PaymentSchedulesCompanion(status: Value(status), updatedAt: Value(DateTime.now())));
+    await _audit.log(userId: actorUserId, username: actorUsername, module: 'Finances', targetObject: scheduleId, description: 'Statut échéancier mis à jour: $status', result: 'Succès');
+  }
+
+  Future<void> markRelance(String scheduleId, {String? actorUserId, String? actorUsername}) async {
+    await _require(actorUserId, 'finance.update');
+    final row = await (db.select(db.paymentSchedules)..where((t) => t.id.equals(scheduleId))).getSingleOrNull();
+    if (row == null) return;
+    final status = row.amountPaidMga >= row.amountDueMga ? 'Payé' : 'En retard (relancé)';
+    await (db.update(db.paymentSchedules)..where((t) => t.id.equals(scheduleId))).write(PaymentSchedulesCompanion(status: Value(status), updatedAt: Value(DateTime.now())));
+    await _audit.log(userId: actorUserId, username: actorUsername, module: 'Finances', targetObject: scheduleId, description: 'Relance enregistrée pour échéancier', result: 'Succès');
+  }
+
+  /// Cohérence: recalcule le statut des échéanciers selon dates/montants.
+  Future<int> refreshScheduleStatuses({String? actorUserId, String? actorUsername}) async {
+    await _require(actorUserId, 'finance.update');
+    final rows = await (db.select(db.paymentSchedules)..where((t) => t.isDeleted.equals(false))).get();
+    var n = 0;
+    for (final r in rows) {
+      final computed = _computeScheduleStatus(due: r.amountDueMga, paid: r.amountPaidMga, dueDate: r.dueDate, currentStatus: r.status);
+      if (computed != r.status) {
+        await (db.update(db.paymentSchedules)..where((t) => t.id.equals(r.id))).write(PaymentSchedulesCompanion(status: Value(computed), updatedAt: Value(DateTime.now())));
+        n++;
+      }
+    }
+    if (n > 0) {
+      await _audit.log(userId: actorUserId, username: actorUsername, module: 'Finances', targetObject: 'payment_schedules', description: 'Recalcul statuts échéanciers ($n mis à jour)', result: 'Succès');
+    }
+    return n;
+  }
+
+  Future<int> countOverdue() async => countOverdueSchedules();
+
+  // --- Caisse / rapports ---
+
   Future<String> closeCashDesk({
     required String cashierUserId,
     DateTime? date,
@@ -251,7 +399,6 @@ class FinanceRepository {
         validatedByUserId: Value(actorUserId),
         notes: Value(notes),
       ));
-      // marquer les paiements du jour/ouverts comme clôturés (simplifié)
       final start = DateTime(d.year, d.month, d.day);
       final end = start.add(const Duration(days: 1));
       await (db.update(db.payments)
@@ -260,5 +407,43 @@ class FinanceRepository {
     });
     await _audit.log(userId: actorUserId, username: actorUsername, module: 'Finances', targetObject: id, description: 'Clôture de caisse (Z) caissier $cashierUserId', result: 'Succès');
     return id;
+  }
+
+  /// Rapport/cohérence financier (vue synthèse).
+  Future<FinanceReport> report({String? actorUserId}) async {
+    final t = await totals(actorUserId: actorUserId);
+    final allSchedules = await listScheduleRows(actorUserId: actorUserId);
+    int overdue = 0, dueCount = 0;
+    for (final r in allSchedules) {
+      final st = r.schedule.status.toLowerCase();
+      if (st.contains('retard')) overdue++;
+      if (st == 'dû' || st == 'du' || st.contains('retard')) dueCount++;
+    }
+    // encaissé par mode (sur paiements visibles)
+    final cashierOnly = await _isCashierScope(actorUserId);
+    final scopeClasses = await AffectationScope(db).allowedClassIdsForUser(actorUserId);
+    final q = db.select(db.payments)..where((p) => p.isDeleted.equals(false));
+    if (cashierOnly) q.where((p) => p.cashierUserId.equals(actorUserId!));
+    if (scopeClasses != null) {
+      if (scopeClasses.isEmpty) {
+        return FinanceReport(totalDue: 0, totalPaid: 0, totalBalance: 0, paymentsCount: 0, overdueSchedules: overdue, dueSchedules: dueCount, paidByMethod: const {});
+      }
+      q.where((p) => p.classId.isIn(scopeClasses));
+    }
+    final pays = await q.get();
+    final byMethod = <String, int>{};
+    for (final p in pays) {
+      final m = (p.paymentMethod == null || p.paymentMethod!.trim().isEmpty) ? 'Autre' : p.paymentMethod!;
+      byMethod[m] = (byMethod[m] ?? 0) + p.amountPaidMga;
+    }
+    return FinanceReport(
+      totalDue: t['due'] ?? 0,
+      totalPaid: t['paid'] ?? 0,
+      totalBalance: t['balance'] ?? 0,
+      paymentsCount: t['count'] ?? 0,
+      overdueSchedules: overdue,
+      dueSchedules: dueCount,
+      paidByMethod: byMethod,
+    );
   }
 }
