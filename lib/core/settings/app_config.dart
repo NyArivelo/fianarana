@@ -11,6 +11,7 @@ const kRecycleRetentionDaysKey = 'recycle_retention_days';
 const kSandboxModeKey = 'sandbox_mode';
 const kCivilStatusConfigKey = 'civil_status_config';
 const kMasteryLevelsKey = 'mastery_levels';
+const kCompetencyCodesKey = 'competency_codes';
 
 class AppConfig {
   final int inactivityMinutes;
@@ -18,7 +19,8 @@ class AppConfig {
   final bool sandboxMode;
   final Map<String, dynamic> civilStatusConfig;
   final List<String> masteryLevels;
-  const AppConfig({required this.inactivityMinutes, required this.recycleRetentionDays, required this.sandboxMode, required this.civilStatusConfig, required this.masteryLevels});
+  final List<String> competencyCodes;
+  const AppConfig({required this.inactivityMinutes, required this.recycleRetentionDays, required this.sandboxMode, required this.civilStatusConfig, required this.masteryLevels, required this.competencyCodes});
   static const defaults = AppConfig(
     inactivityMinutes: 5,
     recycleRetentionDays: 30,
@@ -30,6 +32,7 @@ class AppConfig {
       }
     },
     masteryLevels: ['Non acquis', 'En cours', 'Acquis', 'Expert'],
+    competencyCodes: <String>[],
   );
 }
 
@@ -55,6 +58,7 @@ final appConfigProvider = FutureProvider<AppConfig>((ref) async {
     sandboxMode: parseBool(await get(kSandboxModeKey), false),
     civilStatusConfig: parseJson(await get(kCivilStatusConfigKey), AppConfig.defaults.civilStatusConfig),
     masteryLevels: parseList(await get(kMasteryLevelsKey), AppConfig.defaults.masteryLevels),
+    competencyCodes: parseList(await get(kCompetencyCodesKey), AppConfig.defaults.competencyCodes),
   );
 });
 

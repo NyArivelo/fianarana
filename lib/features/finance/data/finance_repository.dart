@@ -190,7 +190,10 @@ class FinanceRepository {
 
   Future<List<PaymentSchedule>> listSchedules({String? actorUserId, bool overdueOnly = false}) async {
     await _require(actorUserId, 'finance.read');
+    final scopeClasses = await AffectationScope(db).allowedClassIdsForUser(actorUserId);
+    if (scopeClasses != null && scopeClasses.isEmpty) return const <PaymentSchedule>[];
     final q = db.select(db.paymentSchedules)..where((t) => t.isDeleted.equals(false));
+    if (scopeClasses != null) q.where((t) => t.classId.isIn(scopeClasses));
     if (overdueOnly) {
       q.where((t) => t.status.equals('En retard') | t.status.equals('Dû'));
     }
@@ -200,7 +203,11 @@ class FinanceRepository {
 
   Future<int> countOverdueSchedules({String? actorUserId}) async {
     await _require(actorUserId, 'finance.read');
-    final rows = await (db.select(db.paymentSchedules)..where((t) => t.status.equals('En retard') & t.isDeleted.equals(false))).get();
+    final scopeClasses = await AffectationScope(db).allowedClassIdsForUser(actorUserId);
+    if (scopeClasses != null && scopeClasses.isEmpty) return 0;
+    final q = db.select(db.paymentSchedules)..where((t) => t.status.equals('En retard') & t.isDeleted.equals(false));
+    if (scopeClasses != null) q.where((t) => t.classId.isIn(scopeClasses));
+    final rows = await q.get();
     return rows.length;
   }
 

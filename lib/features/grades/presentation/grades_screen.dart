@@ -142,8 +142,11 @@ class _GradesScreenState extends ConsumerState<GradesScreen> {
     final status = ValueNotifier<String>(row.validationStatus);
     final mastery = ValueNotifier<String?>(row.masteryLevel);
     final exempt = ValueNotifier<bool>(row.isExempt);
-    final cfgLevels = ref.read(appConfigProvider).valueOrNull?.masteryLevels ?? AppConfig.defaults.masteryLevels;
-    final masteryLevels = <String?>[null, ...cfgLevels];
+    final cfg = ref.read(appConfigProvider).valueOrNull ?? AppConfig.defaults;
+    final masteryLevels = <String?>[null, ...cfg.masteryLevels];
+    final compCode = ValueNotifier<String?>((row.competencyCode ?? '').trim().isEmpty ? null : row.competencyCode!.trim());
+    final cfgCodes = cfg.competencyCodes;
+    final compOptions = <String?>{null, ...cfgCodes, if (compCode.value != null) compCode.value!}.toList();
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -166,7 +169,15 @@ class _GradesScreenState extends ConsumerState<GradesScreen> {
               items: masteryLevels.map((m)=>DropdownMenuItem<String?>(value:m, child: Text(m ?? '— Non renseigné —'))).toList(),
               onChanged: (nv)=>mastery.value=nv,
             )),
-            TextField(controller: compCtrl, decoration: const InputDecoration(labelText: 'Compétence / code (optionnel)')),
+            if (cfgCodes.isNotEmpty)
+              ValueListenableBuilder<String?>(valueListenable: compCode, builder: (c,v,_)=>DropdownButtonFormField<String?>(
+                initialValue: v,
+                decoration: const InputDecoration(labelText: 'Compétence / code (optionnel)'),
+                items: compOptions.map((m)=>DropdownMenuItem<String?>(value:m, child: Text(m ?? '— Non renseigné —'))).toList(),
+                onChanged: (nv){ compCode.value=nv; compCtrl.text = nv ?? ''; },
+              ))
+            else
+              TextField(controller: compCtrl, decoration: const InputDecoration(labelText: 'Compétence / code (optionnel)')),
             TextField(
                 controller: obsCtrl,
                 decoration: const InputDecoration(labelText: 'Observation')),
@@ -209,7 +220,7 @@ class _GradesScreenState extends ConsumerState<GradesScreen> {
               coefficient: row.coefficient,
               isExempt: exempt.value,
               masteryLevel: mastery.value,
-              competencyCode: compCtrl.text.trim().isEmpty ? null : compCtrl.text.trim(),
+              competencyCode: cfgCodes.isNotEmpty ? compCode.value : (compCtrl.text.trim().isEmpty ? null : compCtrl.text.trim()),
               observation:
                   obsCtrl.text.trim().isEmpty ? null : obsCtrl.text.trim(),
               validationStatus: status.value,
@@ -251,8 +262,10 @@ class _GradesScreenState extends ConsumerState<GradesScreen> {
     var status = 'Brouillon';
     var isExempt = false;
     String? masteryLevel;
-    final cfgLevels = ref.read(appConfigProvider).valueOrNull?.masteryLevels ?? AppConfig.defaults.masteryLevels;
-    final masteryLevels = <String?>[null, ...cfgLevels];
+    String? competencyCode;
+    final cfg = ref.read(appConfigProvider).valueOrNull ?? AppConfig.defaults;
+    final masteryLevels = <String?>[null, ...cfg.masteryLevels];
+    final cfgCodes = cfg.competencyCodes;
 
     final ok = await showDialog<bool>(
       context: context,
@@ -353,7 +366,15 @@ class _GradesScreenState extends ConsumerState<GradesScreen> {
                 items: masteryLevels.map((m)=>DropdownMenuItem<String?>(value:m, child: Text(m ?? '— Non renseigné —'))).toList(),
                 onChanged: (v) => setDialogState(() => masteryLevel = v),
               ),
-              TextField(controller: compCtrl, decoration: const InputDecoration(labelText: 'Compétence / code (optionnel)')),
+              if (cfgCodes.isNotEmpty)
+                DropdownButtonFormField<String?>(
+                  initialValue: competencyCode,
+                  decoration: const InputDecoration(labelText: 'Compétence / code (optionnel)'),
+                  items: <String?>{null, ...cfgCodes, if (competencyCode != null) competencyCode}.map((m)=>DropdownMenuItem<String?>(value:m, child: Text(m ?? '— Non renseigné —'))).toList(),
+                  onChanged: (v) => setDialogState(() { competencyCode = v; compCtrl.text = v ?? ''; }),
+                )
+              else
+                TextField(controller: compCtrl, decoration: const InputDecoration(labelText: 'Compétence / code (optionnel)')),
               const SizedBox(height: 8),
               DropdownButtonFormField<String>(
                 initialValue: status,
@@ -398,7 +419,7 @@ class _GradesScreenState extends ConsumerState<GradesScreen> {
                 double.tryParse(coefCtrl.text.replaceAll(',', '.')) ?? 1,
             isExempt: isExempt,
             masteryLevel: masteryLevel,
-            competencyCode: compCtrl.text.trim().isEmpty ? null : compCtrl.text.trim(),
+            competencyCode: cfgCodes.isNotEmpty ? competencyCode : (compCtrl.text.trim().isEmpty ? null : compCtrl.text.trim()),
             validationStatus: status,
             actorUserId: auth.userId,
             actorUsername: auth.username,
