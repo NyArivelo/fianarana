@@ -766,13 +766,23 @@ class _GradesScreenState extends ConsumerState<GradesScreen> {
                 final masteryCounts = <String, int>{};
                 int exemptCount = 0;
                 final compSet = <String>{};
+                final compScores = <String, List<double>>{};
                 for (final r in filtered) {
                   if (r.isExempt) exemptCount++;
                   final ml = (r.masteryLevel ?? '').trim();
                   if (ml.isNotEmpty) masteryCounts[ml] = (masteryCounts[ml] ?? 0) + 1;
                   final cc = (r.competencyCode ?? '').trim();
-                  if (cc.isNotEmpty) compSet.add(cc);
+                  if (cc.isNotEmpty) {
+                    compSet.add(cc);
+                    if (!r.isExempt && r.score != null && r.maxScore > 0) {
+                      compScores.putIfAbsent(cc, () => <double>[]).add((r.score! / r.maxScore) * 20.0);
+                    }
+                  }
                 }
+                final compAvg = compScores.entries.map((e) {
+                  final avg = e.value.reduce((a,b)=>a+b) / e.value.length;
+                  return MapEntry(e.key, avg);
+                }).toList()..sort((a,b)=>a.key.compareTo(b.key));
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
@@ -791,6 +801,13 @@ class _GradesScreenState extends ConsumerState<GradesScreen> {
                         if (compSet.isNotEmpty) ...[
                           const SizedBox(height: 6),
                           Text('Compétences : ${(compSet.toList()..sort()).join(', ')}', style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.onSurfaceVariant)),
+                        ],
+                        if (compAvg.isNotEmpty) ...[
+                          const SizedBox(height: 6),
+                          Wrap(spacing: 8, runSpacing: 6, children: [
+                            for (final e in compAvg)
+                              AppBadge('${e.key}: ${e.value.toStringAsFixed(1)}/20', tone: e.value >= 10 ? AppTone.success : AppTone.warning),
+                          ]),
                         ],
                       ]),
                     ),
