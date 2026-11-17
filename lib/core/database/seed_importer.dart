@@ -83,6 +83,7 @@ class SeedImporter {
     counts['conseils_classe'] = await _importCouncils();
     counts['decisions_conseil'] = await _importCouncilDecisions();
     counts['corbeille_test'] = await _importRecycleBinTestData();
+    counts['donnees_test_fonctions'] = await _importFeatureTestData();
     // RBAC/permissions de base (donn�es de test s�curit�) + trace d'import
     await RbacSeed(db).ensureDefaults();
     await AuditService(db).log(
@@ -93,6 +94,109 @@ class SeedImporter {
       metadata: counts,
     );
     return counts.entries.map((e) => '${e.key}=${e.value}').join(', ');
+  }
+
+
+  Future<int> _importFeatureTestData() async {
+    // Donn�es de test compl�mentaires pour les fonctionnalit�s livr�es (idempotent).
+    var n = 0;
+    Future<void> upsert(TableInfo tbl, Insertable row) async { await db.into(tbl).insertOnConflictUpdate(row); n++; }
+
+    final anyStudent = await (db.select(db.students)..where((t) => t.isDeleted.equals(false))..limit(1)).getSingleOrNull();
+    final anyClass = await (db.select(db.classes)..where((t) => t.isDeleted.equals(false))..limit(1)).getSingleOrNull();
+    final anyPeriod = await (db.select(db.periods)..where((t) => t.isDeleted.equals(false))..limit(1)).getSingleOrNull();
+    final anyStaff = await (db.select(db.staffMembers)..where((t) => t.isDeleted.equals(false))..limit(1)).getSingleOrNull();
+    final anyYear = await (db.select(db.schoolYears)..where((t) => t.isDeleted.equals(false))..limit(1)).getSingleOrNull();
+    final anyUser = await (db.select(db.users)..where((t) => t.isDeleted.equals(false))..limit(1)).getSingleOrNull();
+
+    // Snapshot de bulletin publi� (P0.4) - test de r�impression depuis version fig�e
+    if (anyStudent != null) {
+      final snap = jsonEncode({
+        'student': {'id': anyStudent.id, 'name': '${anyStudent.lastName} ${anyStudent.firstName}', 'matricule': anyStudent.matricule, 'classId': anyClass?.id, 'classLabel': anyClass?.label},
+        'periodId': anyPeriod?.id,
+        'periodLabel': anyPeriod?.name ?? 'P�riode (test)',
+        'subjects': [
+          {'subject': 'Math�matiques', 'score': 14.0, 'maxScore': 20.0, 'coefficient': 2.0, 'isExempt': false},
+          {'subject': 'Fran�ais', 'score': 12.5, 'maxScore': 20.0, 'coefficient': 2.0, 'isExempt': false},
+        ],
+        'average': 13.25,
+        'mention': 'Assez bien',
+        'generatedAt': DateTime.now().toIso8601String(),
+        'establishmentName': '�tablissement scolaire (test)',
+        'note': 'Snapshot de test (donn�es fig�es)',
+      });
+      await upsert(db.bulletinSnapshots, BulletinSnapshotsCompanion.insert(
+        id: const Value('test-bulletin-snapshot-1'),
+        studentId: anyStudent.id,
+        classId: Value(anyClass?.id),
+        periodId: Value(anyPeriod?.id),
+        docType: const Value('bulletin'),
+        snapshotJson: snap,
+        publishedAt: DateTime.now().subtract(const Duration(days: 1)),
+        publishedByUserId: Value(anyUser?.id),
+        status: const Value('Publi�'),
+        hashSha256: Value(sha256.convert(utf8.encode(snap)).toString()),
+      ));
+    }
+
+    // Absence enseignant (test)
+    if (anyStaff != null) {
+      await upsert(db.teacherAbsences, TeacherAbsencesCompanion.insert(
+        id: const Value('test-teacher-absence-1'),
+        teacherId: anyStaff.id,
+        startDate: DateTime.now().add(const Duration(days: 1)),
+        endDate: DateTime.now().add(const Duration(days: 1)),
+        reason: const Value('Absence test (donn�e de d�monstration)'),
+        status: const Value('D�clar�e'),
+        notes: const Value('Entr�e de test pour module absences/remplacements'),
+      ));
+    }
+
+    // Cl�ture de caisse (test)
+    if (anyUser != null) {
+      await upsert(db.cashClosures, CashClosuresCompanion.insert(
+        id: const Value('test-cash-closure-1'),
+        cashierUserId: anyUser.id,
+        closureDate: DateTime.now(),
+        totalCash: const Value(50000),
+        totalCheck: const Value(0),
+        totalTransfer: const Value(25000),
+        totalMobileMoney: const Value(10000),
+        status: const Value('Cl�tur�'),
+        notes: const Value('Cl�ture de caisse de test (donn�e de d�monstration)'),
+      ));
+    }
+
+    // Mod�le Document Studio de test
+    await upsert(db.documentTemplates, DocumentTemplatesCompanion.insert(
+      id: const Value('test-doc-template-1'),
+      name: 'Attestation de test (Document Studio)',
+      docType: 'attestation',
+      pageFormat: const Value('A4'),
+      contentJson: jsonEncode({
+        'title': 'ATTESTATION (TEST)',
+        'header': '{{etablissement.nom}}',
+        'body': 'Ceci est un mod�le de test.\n�l�ve : {{eleve.nom}} ({{eleve.matricule}})\nClasse : {{eleve.classe}}',
+        'footer': 'Document de test - {{date.jour}}',
+      }),
+      description: const Value('Mod�le de test pour valider Document Studio'),
+      isDefault: const Value(false),
+      isActive: const Value(true),
+    ));
+
+    // Cl�ture annuelle (test archivage)
+    if (anyYear != null) {
+      await upsert(db.yearClosures, YearClosuresCompanion.insert(
+        id: const Value('test-year-closure-1'),
+        schoolYearId: anyYear.id,
+        closedAt: DateTime.now().subtract(const Duration(days: 30)),
+        closedByUserId: Value(anyUser?.id),
+        status: const Value('Cl�tur�e (test)'),
+        summaryJson: Value(jsonEncode({'note': 'Cl�ture annuelle de test', 'students': 0, 'sealed': false})),
+      ));
+    }
+
+    return n;
   }
 
   Future<int> _importRecycleBinTestData() async {
