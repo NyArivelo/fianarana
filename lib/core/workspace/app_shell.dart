@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:fianarana/core/security/permission_providers.dart';
+import 'package:fianarana/core/workspace/tab_workspace.dart';
 import 'package:fianarana/features/auth/application/auth_controller.dart';
 import 'package:fianarana/features/search/presentation/global_search_dialog.dart';
 
@@ -37,7 +38,7 @@ class AppShell extends ConsumerWidget {
             ),
           ]),
         ),
-        _statusBar(isDark, border),
+        _statusBar(isDark, border, ref),
       ]),
     );
   }
@@ -259,7 +260,9 @@ class AppShell extends ConsumerWidget {
     );
   }
 
-  Widget _statusBar(bool isDark, Color border) {
+  Widget _statusBar(bool isDark, Color border, WidgetRef ref) {
+    final ws = ref.watch(tabWorkspaceProvider);
+    final tabInfo = ws.tabs.isEmpty ? 'MDI: navigation' : 'MDI: ${ws.tabs.length} onglet(s)';
     return Container(
       height: 28,
       padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -267,14 +270,16 @@ class AppShell extends ConsumerWidget {
         color: isDark ? const Color(0xFF0F172A) : Colors.white,
         border: Border(top: BorderSide(color: border)),
       ),
-      child: Row(children: const [
-        Icon(Icons.circle, size: 8, color: Color(0xFF2563EB)),
-        SizedBox(width: 6),
-        Text('SQLite 3 (Drift) — Clés primaires UUID v4 — Base locale', style: TextStyle(fontSize: 11)),
-        SizedBox(width: 16),
-        Text('Ctrl+F recherche — Ctrl+L verrouiller — Ctrl+W fermer', style: TextStyle(fontSize: 11, color: Color(0xFF64748B))),
-        Spacer(),
-        Text('Prêt', style: TextStyle(fontSize: 11, color: Color(0xFF2563EB), fontWeight: FontWeight.w600)),
+      child: Row(children: [
+        const Icon(Icons.circle, size: 8, color: Color(0xFF2563EB)),
+        const SizedBox(width: 6),
+        const Text('SQLite 3 (Drift) — Clés primaires UUID v4 — Base locale', style: TextStyle(fontSize: 11)),
+        const SizedBox(width: 16),
+        Text(tabInfo, style: const TextStyle(fontSize: 11, color: Color(0xFF64748B))),
+        const SizedBox(width: 16),
+        const Text('Ctrl+F recherche — Ctrl+L verrouiller — Ctrl+W fermer', style: TextStyle(fontSize: 11, color: Color(0xFF64748B))),
+        const Spacer(),
+        const Text('Prêt', style: TextStyle(fontSize: 11, color: Color(0xFF2563EB), fontWeight: FontWeight.w600)),
       ]),
     );
   }
@@ -292,7 +297,11 @@ class AppShell extends ConsumerWidget {
 
   Widget _navItem(BuildContext context, {required IconData icon, required String label, required String route}) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final selected = _isSelected(route);
+    final ws = ref.watch(tabWorkspaceProvider);
+    final activeRoute = ws.tabs.isNotEmpty ? ws.tabs[ws.activeIndex].route : location;
+    final selected = route == '/'
+        ? activeRoute == '/' || (ws.tabs.isEmpty && _isSelected(route))
+        : activeRoute == route || activeRoute.startsWith('$route/') || (ws.tabs.isEmpty && _isSelected(route));
     final selBg = isDark ? const Color(0xFF172554).withValues(alpha: 0.7) : const Color(0xFFEFF6FF);
     final selFg = isDark ? const Color(0xFF93C5FD) : const Color(0xFF1D4ED8);
     final fg = selected ? selFg : (isDark ? const Color(0xFFCBD5E1) : const Color(0xFF475569));
@@ -301,7 +310,14 @@ class AppShell extends ConsumerWidget {
       decoration: BoxDecoration(color: selected ? selBg : Colors.transparent, borderRadius: BorderRadius.circular(8)),
       child: InkWell(
         borderRadius: BorderRadius.circular(8),
-        onTap: () => context.go(route),
+        onTap: () {
+          // MDI: ouvrir/activer l'onglet du module (état persistant) et synchroniser la route
+          final opened = openRouteTab(ref, route);
+          context.go(route);
+          if (!opened) {
+            // route non tabulée: conserver navigation standard
+          }
+        },
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
           child: Row(children: [

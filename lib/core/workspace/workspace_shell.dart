@@ -82,7 +82,12 @@ class WorkspaceShell extends ConsumerWidget {
               ],
             ),
           ),
-          Expanded(child: ws.tabs[ws.activeIndex].builder(context)),
+          Expanded(
+            child: KeyedSubtree(
+              key: ValueKey(ws.tabs[ws.activeIndex].id),
+              child: ws.tabs[ws.activeIndex].builder(context),
+            ),
+          ),
         ],
       ),
     );
