@@ -5,6 +5,7 @@ import 'package:crypto/crypto.dart';
 import 'package:drift/drift.dart' show OrderingTerm;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
@@ -14,6 +15,7 @@ import 'package:fianarana/core/database/seed_importer.dart';
 import 'package:fianarana/core/services/backup_service.dart';
 import 'package:fianarana/core/services/recycle_bin_service.dart';
 import 'package:fianarana/core/services/year_closure_service.dart';
+import 'package:fianarana/core/settings/app_config.dart';
 import 'package:fianarana/core/settings/ui_settings.dart';
 import 'package:fianarana/core/utils/csv_export.dart';
 import 'package:fianarana/core/widgets/app_ui.dart';
@@ -471,6 +473,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   const SizedBox(height: 12),
                   _securityCard(),
                   const SizedBox(height: 12),
+                  _advancedAdminCard(),
+                  const SizedBox(height: 12),
                   _displayCard(),
                   const SizedBox(height: 12),
                   _aboutCard(),
@@ -499,6 +503,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 _auditCard(),
                 const SizedBox(height: 12),
                 _securityCard(),
+                const SizedBox(height: 12),
+                _advancedAdminCard(),
                 const SizedBox(height: 12),
                 _displayCard(),
                 const SizedBox(height: 12),
@@ -719,6 +725,52 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         ]),
         loading: () => const LinearProgressIndicator(),
         error: (e, _) => Text('Erreur réglage affichage : $e'),
+      ),
+    );
+  }
+
+  Future<void> _saveCivilStatusConfig() async {
+    final current = ref.read(appConfigProvider).valueOrNull?.civilStatusConfig ?? AppConfig.defaults.civilStatusConfig;
+    final ctrl = TextEditingController(text: const JsonEncoder.withIndent('  ').convert(current));
+    final ok = await showDialog<bool>(context: context, builder: (ctx)=>AlertDialog(
+      title: const Text('Configuration état civil / champs régionaux'),
+      content: SizedBox(width: 640, height: 360, child: TextField(controller: ctrl, maxLines: null, expands: true, decoration: const InputDecoration(labelText: 'JSON (champs, libellés, requis, formats)', alignLabelWithHint: true))),
+      actions:[TextButton(onPressed: ()=>Navigator.pop(ctx,false), child: const Text('Annuler')), FilledButton(onPressed: ()=>Navigator.pop(ctx,true), child: const Text('Enregistrer'))],
+    ));
+    if (ok==true) { await saveAppSetting(ref, kCivilStatusConfigKey, ctrl.text); _setMessage('Configuration état civil enregistrée.'); }
+  }
+
+  Future<void> _checkUpdate() async {
+    _setMessage('Mise à jour logique: version 1.1 (schéma v6). Vérification distante non configurée en local; les migrations Drift s\'appliquent automatiquement au redémarrage.');
+  }
+
+  Future<void> _setSandbox(bool v) async {
+    await saveAppSetting(ref, kSandboxModeKey, v ? '1' : '0');
+    _setMessage(v ? 'Mode démonstration/bac à sable activé (indicateur). Réimportez les données de test pour former sans altérer la production.' : 'Mode démonstration désactivé (production).');
+  }
+
+  Widget _advancedAdminCard() {
+    final cfgAsync = ref.watch(appConfigProvider);
+    return AppSectionCard(
+      title: 'Administration avancée & conformité',
+      subtitle: 'Utilisateurs/rôles, bac à sable, mises à jour, sécurité session, corbeille et état civil.',
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+      child: cfgAsync.when(
+        data: (cfg) => Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Wrap(spacing: 8, runSpacing: 8, children: [
+            OutlinedButton.icon(onPressed: ()=>context.go('/settings/users'), icon: const Icon(Icons.manage_accounts_outlined, size:16), label: const Text('Utilisateurs & rôles')),
+            OutlinedButton.icon(onPressed: _checkUpdate, icon: const Icon(Icons.system_update_alt, size:16), label: const Text('Vérifier mise à jour')),
+            OutlinedButton.icon(onPressed: _saveCivilStatusConfig, icon: const Icon(Icons.badge_outlined, size:16), label: const Text('Champs état civil')),
+          ]),
+          const SizedBox(height: 10),
+          SwitchListTile(contentPadding: EdgeInsets.zero, value: cfg.sandboxMode, onChanged: _setSandbox, title: const Text('Mode démonstration / bac à sable'), subtitle: const Text('Formation avec données fictives (bascule logique, réimport guidé).')),
+          Row(children:[const Expanded(child: Text('Inactivité avant verrouillage (min)')), DropdownButton<int>(value: cfg.inactivityMinutes, items: const [1,2,5,10,15,30].map((m)=>DropdownMenuItem(value:m, child: Text('$m'))).toList(), onChanged: (v) async { if(v!=null){ await saveAppSetting(ref, kInactivityMinutesKey, '$v'); _setMessage('Délai d\'inactivité enregistré (appliqué au prochain lancement/session).'); } })]),
+          Row(children:[const Expanded(child: Text('Rétention corbeille (jours, purge auto)')), DropdownButton<int>(value: cfg.recycleRetentionDays, items: const [7,30,60,90,365].map((d)=>DropdownMenuItem(value:d, child: Text('$d'))).toList(), onChanged: (v) async { if(v!=null){ await saveAppSetting(ref, kRecycleRetentionDaysKey, '$v'); _setMessage('Rétention corbeille enregistrée.'); } })]),
+          const SizedBox(height: 4),
+          Text('Portées RBAC (Globale/Affectations/Caisse), audit exportable par période (JSON/CSV + SHA-256), sauvegardes .zip, migrations Drift automatiques.', style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.onSurfaceVariant)),
+        ]),
+        loading: ()=>const LinearProgressIndicator(),
+        error: (e,_)=>Text('Erreur config: $e'),
       ),
     );
   }

@@ -5,6 +5,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:fianarana/core/database/database_provider.dart';
+import 'package:fianarana/core/services/recycle_bin_service.dart';
+import 'package:fianarana/core/settings/app_config.dart';
 import 'package:fianarana/core/routing/app_router.dart';
 import 'package:fianarana/core/services/backup_service.dart';
 import 'package:fianarana/core/settings/ui_settings.dart';
@@ -22,7 +24,7 @@ class FianaranaApp extends ConsumerStatefulWidget {
 class _FianaranaAppState extends ConsumerState<FianaranaApp> with WidgetsBindingObserver {
   Timer? _inactivity;
   Timer? _autoBackup;
-  static const _inactivityTimeout = Duration(minutes: 5);
+  Duration _inactivityTimeout = const Duration(minutes: 5);
   static const _autoBackupInterval = Duration(hours: 12);
 
   @override
@@ -31,6 +33,18 @@ class _FianaranaAppState extends ConsumerState<FianaranaApp> with WidgetsBinding
     WidgetsBinding.instance.addObserver(this);
     _resetInactivity();
     _startAutoBackup();
+    _loadConfigAndMaintenance();
+  }
+
+  Future<void> _loadConfigAndMaintenance() async {
+    try {
+      final cfg = await ref.read(appConfigProvider.future);
+      if (mounted) {
+        setState(() => _inactivityTimeout = Duration(minutes: cfg.inactivityMinutes));
+        final db = ref.read(appDatabaseProvider);
+        await RecycleBinService(db).purgeOlderThan(Duration(days: cfg.recycleRetentionDays));
+      }
+    } catch (_) {}
   }
 
   void _startAutoBackup() {
