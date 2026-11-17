@@ -96,4 +96,25 @@ class AdminRepository {
     await (db.update(db.users)..where((t)=>t.id.equals(userId))).write(UsersCompanion(passwordHash: Value(passwordHasher.hash(newPassword)), mustChangePassword: const Value(true), failedLoginCount: const Value(0), lockedUntil: const Value(null), updatedAt: Value(DateTime.now())));
     await _audit.log(userId: actorUserId, username: actorUsername, module: 'Administration', targetObject: userId, description: 'Réinitialisation du mot de passe', result: 'Succès');
   }
+
+  Future<List<Permission>> listPermissions({String? actorUserId}) async {
+    await _require(actorUserId, 'roles.read');
+    return (db.select(db.permissions)..where((t)=>t.isDeleted.equals(false))..orderBy([(t)=>OrderingTerm.asc(t.module), (t)=>OrderingTerm.asc(t.code)])).get();
+  }
+
+  Future<Set<String>> permissionIdsOfRole(String roleId) async {
+    final rows = await (db.select(db.rolePermissions)..where((t)=>t.roleId.equals(roleId))).get();
+    return rows.map((r)=>r.permissionId).toSet();
+  }
+
+  Future<void> setRolePermissions(String roleId, Set<String> permissionIds, {String? actorUserId, String? actorUsername}) async {
+    await _require(actorUserId, 'roles.update');
+    await db.transaction(() async {
+      await (db.delete(db.rolePermissions)..where((t)=>t.roleId.equals(roleId))).go();
+      for (final pid in permissionIds) {
+        await db.into(db.rolePermissions).insert(RolePermissionsCompanion.insert(roleId: roleId, permissionId: pid));
+      }
+    });
+    await _audit.log(userId: actorUserId, username: actorUsername, module: 'Administration', targetObject: roleId, description: 'Mise à jour des permissions du rôle', result: 'Succès');
+  }
 }

@@ -63,12 +63,70 @@ class _UsersAdminScreenState extends ConsumerState<UsersAdminScreen> {
     }
   }
 
+  Future<void> _editRolePermissions() async {
+    final auth = ref.read(authControllerProvider);
+    final repo = ref.read(_adminRepoProvider);
+    final roles = await repo.listRoles(actorUserId: auth.userId);
+    final perms = await repo.listPermissions(actorUserId: auth.userId);
+    if (!mounted || roles.isEmpty) return;
+    String roleId = roles.first.id;
+    Set<String> selected = await repo.permissionIdsOfRole(roleId);
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => StatefulBuilder(builder: (ctx, setD) => AlertDialog(
+        title: const Text('Permissions par rôle'),
+        content: SizedBox(width: 760, height: 560, child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          DropdownButtonFormField<String>(
+            value: roleId,
+            decoration: const InputDecoration(labelText: 'Rôle'),
+            items: roles.map((r)=>DropdownMenuItem(value: r.id, child: Text(r.name))).toList(),
+            onChanged: (v) async {
+              if (v == null) return;
+              final s = await repo.permissionIdsOfRole(v);
+              setD(() { roleId = v; selected = s; });
+            },
+          ),
+          const SizedBox(height: 8),
+          const Text('Cochez les permissions accordées au rôle sélectionné.', style: TextStyle(fontSize: 12)),
+          const SizedBox(height: 8),
+          Expanded(child: ListView(
+            children: perms.map((p) => CheckboxListTile(
+              dense: true,
+              value: selected.contains(p.id),
+              onChanged: (v) => setD(() => v == true ? selected.add(p.id) : selected.remove(p.id)),
+              title: Text(p.code, style: const TextStyle(fontSize: 12, fontFamily: 'monospace')),
+              subtitle: Text('${p.module} • ${p.action}${p.description != null ? " — ${p.description}" : ""}', style: const TextStyle(fontSize: 11)),
+              controlAffinity: ListTileControlAffinity.leading,
+            )).toList(),
+          )),
+        ])),
+        actions: [
+          TextButton(onPressed: ()=>Navigator.pop(ctx,false), child: const Text('Fermer')),
+          FilledButton(onPressed: ()=>Navigator.pop(ctx,true), child: const Text('Enregistrer')),
+        ],
+      )),
+    );
+    if (ok == true) {
+      try {
+        await repo.setRolePermissions(roleId, selected, actorUserId: auth.userId, actorUsername: auth.username);
+        if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Permissions du rôle mises à jour.')));
+      } catch (e) {
+        if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erreur: $e')));
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final auth = ref.watch(authControllerProvider);
     final repo = ref.watch(_adminRepoProvider);
     return Scaffold(
-      appBar: AppBar(title: const Text('Utilisateurs & rôles (administration)'), actions:[FilledButton.icon(onPressed: ()=>_editUser(), icon: const Icon(Icons.person_add, size:16), label: const Text('Nouvel utilisateur')), const SizedBox(width:12)]),
+      appBar: AppBar(title: const Text('Utilisateurs & rôles (administration)'), actions:[
+        OutlinedButton.icon(onPressed: _editRolePermissions, icon: const Icon(Icons.security, size:16), label: const Text('Permissions rôles')),
+        const SizedBox(width: 8),
+        FilledButton.icon(onPressed: ()=>_editUser(), icon: const Icon(Icons.person_add, size:16), label: const Text('Nouvel utilisateur')),
+        const SizedBox(width:12),
+      ]),
       body: FutureBuilder(
         future: repo.listUsers(actorUserId: auth.userId),
         builder: (c, snap) {
