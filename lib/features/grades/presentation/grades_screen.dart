@@ -780,12 +780,18 @@ class _GradesScreenState extends ConsumerState<GradesScreen> {
                       padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
                       title: 'Synthèse compétences / maîtrise',
                       subtitle: '${filtered.length} note(s) • ${compSet.length} compétence(s) renseignée(s) • $exemptCount dispense(s)',
-                      child: Wrap(spacing: 8, runSpacing: 8, children: [
-                        for (final e in masteryCounts.entries)
-                          AppBadge('${e.key} : ${e.value}', tone: AppTone.info),
-                        if (masteryCounts.isEmpty)
-                          Text('Aucun niveau de maîtrise renseigné sur ce filtre.',
-                              style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.onSurfaceVariant)),
+                      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                        Wrap(spacing: 8, runSpacing: 8, children: [
+                          for (final e in masteryCounts.entries)
+                            AppBadge('${e.key} : ${e.value}', tone: AppTone.info),
+                          if (masteryCounts.isEmpty)
+                            Text('Aucun niveau de maîtrise renseigné sur ce filtre.',
+                                style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.onSurfaceVariant)),
+                        ]),
+                        if (compSet.isNotEmpty) ...[
+                          const SizedBox(height: 6),
+                          Text('Compétences : ${(compSet.toList()..sort()).join(', ')}', style: TextStyle(fontSize: 11, color: Theme.of(context).colorScheme.onSurfaceVariant)),
+                        ],
                       ]),
                     ),
                     const SizedBox(height: 8),
