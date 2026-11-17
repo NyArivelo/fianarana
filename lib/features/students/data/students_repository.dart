@@ -227,7 +227,10 @@ class StudentsRepository {
     String? sex,
     DateTime? birthDate,
     String? birthPlace,
+    String? birthCertificateNumber,
+    String? nationalIdNumber,
     String? classId,
+    String? status,
     String? medicalNotes,
     String? actorUserId,
     String? actorUsername,
@@ -235,6 +238,7 @@ class StudentsRepository {
     await _require(actorUserId, 'students.create');
     final id = newUuid();
     final now = DateTime.now();
+    final stStatus = (status == null || status.trim().isEmpty) ? 'Actif' : status.trim();
     await db.transaction(() async {
       await db.into(db.students).insert(StudentsCompanion.insert(
         id: Value(id),
@@ -244,8 +248,10 @@ class StudentsRepository {
         sex: Value(sex),
         birthDate: Value(birthDate),
         birthPlace: Value(birthPlace),
+        birthCertificateNumber: Value(birthCertificateNumber),
+        nationalIdNumber: Value(nationalIdNumber),
         medicalNotes: Value(medicalNotes),
-        status: const Value('Actif'),
+        status: Value(stStatus),
         createdAt: Value(now),
         updatedAt: Value(now),
       ));
@@ -254,7 +260,7 @@ class StudentsRepository {
           id: Value(newUuid()),
           studentId: id,
           classId: Value(classId),
-          status: const Value('Validée'),
+          status: Value(stStatus == 'Actif' ? 'Validée' : stStatus),
           enrollmentDate: Value(now),
           createdAt: Value(now),
           updatedAt: Value(now),
@@ -286,6 +292,8 @@ class StudentsRepository {
     String? sex,
     DateTime? birthDate,
     String? birthPlace,
+    String? birthCertificateNumber,
+    String? nationalIdNumber,
     String? medicalNotes,
     String? actorUserId,
     String? actorUsername,
@@ -298,6 +306,8 @@ class StudentsRepository {
       sex: Value(sex),
       birthDate: Value(birthDate),
       birthPlace: Value(birthPlace),
+      birthCertificateNumber: Value(birthCertificateNumber),
+      nationalIdNumber: Value(nationalIdNumber),
       medicalNotes: Value(medicalNotes),
       updatedAt: Value(DateTime.now()),
     ));

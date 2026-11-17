@@ -498,7 +498,10 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
                     sex: r.sex,
                     birthDate: bd,
                     birthPlace: r.birthPlace,
+                    birthCertificateNumber: r.birthCertificateNumber,
+                    nationalIdNumber: r.nationalIdNumber,
                     classId: classId,
+                    status: r.status,
                     actorUserId: auth.userId,
                     actorUsername: auth.username,
                   );

@@ -55,6 +55,7 @@ class _GradesScreenState extends ConsumerState<GradesScreen> {
                 maxScore: g.maxScore,
                 coefficient: g.coefficient,
                 isExempt: g.isExempt,
+                masteryLevel: g.masteryLevel,
                 observation: g.observation,
               ))
           .toList(),
@@ -70,14 +71,18 @@ class _GradesScreenState extends ConsumerState<GradesScreen> {
     final auth = ref.read(authControllerProvider);
     final scoreCtrl = TextEditingController(text: row.score?.toString() ?? '');
     final obsCtrl = TextEditingController(text: row.observation ?? '');
+    final compCtrl = TextEditingController(text: row.competencyCode ?? '');
     final status = ValueNotifier<String>(row.validationStatus);
+    final mastery = ValueNotifier<String?>(row.masteryLevel);
+    final exempt = ValueNotifier<bool>(row.isExempt);
+    const masteryLevels = <String?>[null, 'Non acquis', 'En cours', 'Acquis', 'Expert'];
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text('Saisie/édition note - ${row.studentName}'),
         content: SizedBox(
-          width: 420,
-          child: Column(mainAxisSize: MainAxisSize.min, children: [
+          width: 480,
+          child: SingleChildScrollView(child: Column(mainAxisSize: MainAxisSize.min, children: [
             Text('${row.subjectName ?? row.label} • ${row.label}'),
             const SizedBox(height: 8),
             TextField(
@@ -86,6 +91,14 @@ class _GradesScreenState extends ConsumerState<GradesScreen> {
                     labelText: 'Note / ${row.maxScore.toStringAsFixed(0)}'),
                 keyboardType:
                     const TextInputType.numberWithOptions(decimal: true)),
+            ValueListenableBuilder<bool>(valueListenable: exempt, builder: (c,v,_)=>CheckboxListTile(contentPadding: EdgeInsets.zero, value: v, onChanged: (nv)=>exempt.value=nv??false, title: const Text('Dispensé (neutralisé dans les moyennes)'))),
+            ValueListenableBuilder<String?>(valueListenable: mastery, builder: (c,v,_)=>DropdownButtonFormField<String?>(
+              initialValue: v,
+              decoration: const InputDecoration(labelText: 'Niveau de maîtrise (compétences/socle)'),
+              items: masteryLevels.map((m)=>DropdownMenuItem<String?>(value:m, child: Text(m ?? '— Non renseigné —'))).toList(),
+              onChanged: (nv)=>mastery.value=nv,
+            )),
+            TextField(controller: compCtrl, decoration: const InputDecoration(labelText: 'Compétence / code (optionnel)')),
             TextField(
                 controller: obsCtrl,
                 decoration: const InputDecoration(labelText: 'Observation')),
@@ -103,7 +116,7 @@ class _GradesScreenState extends ConsumerState<GradesScreen> {
                       ],
                       onChanged: (nv) => status.value = nv ?? v,
                     )),
-          ]),
+          ])),
         ),
         actions: [
           TextButton(
@@ -126,7 +139,9 @@ class _GradesScreenState extends ConsumerState<GradesScreen> {
               score: double.tryParse(scoreCtrl.text.replaceAll(',', '.')),
               maxScore: row.maxScore,
               coefficient: row.coefficient,
-              isExempt: row.isExempt,
+              isExempt: exempt.value,
+              masteryLevel: mastery.value,
+              competencyCode: compCtrl.text.trim().isEmpty ? null : compCtrl.text.trim(),
               observation:
                   obsCtrl.text.trim().isEmpty ? null : obsCtrl.text.trim(),
               validationStatus: status.value,
@@ -164,7 +179,11 @@ class _GradesScreenState extends ConsumerState<GradesScreen> {
     final scoreCtrl = TextEditingController();
     final maxCtrl = TextEditingController(text: '20');
     final coefCtrl = TextEditingController(text: '1');
+    final compCtrl = TextEditingController();
     var status = 'Brouillon';
+    var isExempt = false;
+    String? masteryLevel;
+    const masteryLevels = <String?>[null, 'Non acquis', 'En cours', 'Acquis', 'Expert'];
 
     final ok = await showDialog<bool>(
       context: context,
@@ -252,6 +271,20 @@ class _GradesScreenState extends ConsumerState<GradesScreen> {
                           const InputDecoration(labelText: 'Coefficient')),
                 ),
               ]),
+              CheckboxListTile(
+                contentPadding: EdgeInsets.zero,
+                value: isExempt,
+                onChanged: (v) => setDialogState(() => isExempt = v ?? false),
+                title: const Text('Dispensé (neutralisé dans les moyennes)'),
+                controlAffinity: ListTileControlAffinity.leading,
+              ),
+              DropdownButtonFormField<String?>(
+                initialValue: masteryLevel,
+                decoration: const InputDecoration(labelText: 'Niveau de maîtrise (compétences/socle)'),
+                items: masteryLevels.map((m)=>DropdownMenuItem<String?>(value:m, child: Text(m ?? '— Non renseigné —'))).toList(),
+                onChanged: (v) => setDialogState(() => masteryLevel = v),
+              ),
+              TextField(controller: compCtrl, decoration: const InputDecoration(labelText: 'Compétence / code (optionnel)')),
               const SizedBox(height: 8),
               DropdownButtonFormField<String>(
                 initialValue: status,
@@ -294,6 +327,9 @@ class _GradesScreenState extends ConsumerState<GradesScreen> {
             maxScore: double.tryParse(maxCtrl.text.replaceAll(',', '.')) ?? 20,
             coefficient:
                 double.tryParse(coefCtrl.text.replaceAll(',', '.')) ?? 1,
+            isExempt: isExempt,
+            masteryLevel: masteryLevel,
+            competencyCode: compCtrl.text.trim().isEmpty ? null : compCtrl.text.trim(),
             validationStatus: status,
             actorUserId: auth.userId,
             actorUsername: auth.username,
@@ -585,15 +621,23 @@ class _GradesScreenState extends ConsumerState<GradesScreen> {
                                       ? const AppBadge('Dispensé',
                                           tone: AppTone.warning,
                                           icon: Icons.block_outlined)
-                                      : AppBadge(
-                                          r.score == null
-                                              ? '—'
-                                              : '${r.score!.toStringAsFixed(2)}/${r.maxScore.toStringAsFixed(0)}',
-                                          tone: ratio == null
-                                              ? AppTone.neutral
-                                              : (ratio >= 10
-                                                  ? AppTone.success
-                                                  : AppTone.danger),
+                                      : Column(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            AppBadge(
+                                              r.score == null
+                                                  ? '—'
+                                                  : '${r.score!.toStringAsFixed(2)}/${r.maxScore.toStringAsFixed(0)}',
+                                              tone: ratio == null
+                                                  ? AppTone.neutral
+                                                  : (ratio >= 10
+                                                      ? AppTone.success
+                                                      : AppTone.danger),
+                                            ),
+                                            if (r.masteryLevel != null && r.masteryLevel!.isNotEmpty)
+                                              Text(r.masteryLevel!, style: const TextStyle(fontSize: 10, color: Color(0xFF2563EB))),
+                                          ],
                                         )),
                                   DataCell(Text(r.maxScore.toStringAsFixed(0))),
                                   DataCell(

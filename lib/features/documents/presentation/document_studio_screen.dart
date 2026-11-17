@@ -68,12 +68,12 @@ class _DocumentStudioScreenState extends ConsumerState<DocumentStudioScreen> {
             const Text('Actif'),
           ]),
           const SizedBox(height: 6),
-          const Text('Contenu configurable (placeholders {{eleve.nom}}, {{etablissement.nom}}, {{date.jour}}, etc. et formules sûres {{calc:...}} sans eval)', style: TextStyle(fontSize: 11, color: Color(0xFF64748B))),
+          const Text('Placeholders {{...}} et formules sûres {{calc:expr}} (sans eval). Variables: {{etablissement.nom}}, {{etablissement.adresse}}, {{eleve.nom}}, {{eleve.matricule}}, {{eleve.classe}}, {{annee.libelle}}, {{periode.libelle}}, {{date.jour}}, {{resultats.moyenne/rang/mention}}, {{recu.numero/date/libelle/du/paye/reste/mode}}, {{sortie.date/motif/quitus_finance/quitus_bibliotheque}}.', style: TextStyle(fontSize: 11, color: Color(0xFF64748B))),
           const SizedBox(height: 6),
           TextField(controller: titleCtrl, decoration: const InputDecoration(labelText: 'Titre')),
           TextField(controller: headerCtrl, decoration: const InputDecoration(labelText: 'En-tête'), maxLines: 2),
           TextField(controller: introCtrl, decoration: const InputDecoration(labelText: 'Introduction / identité'), maxLines: 3),
-          TextField(controller: bodyCtrl, decoration: const InputDecoration(labelText: 'Corps du document'), maxLines: 6),
+          TextField(controller: bodyCtrl, decoration: const InputDecoration(labelText: 'Corps du document'), maxLines: 8),
           TextField(controller: footerCtrl, decoration: const InputDecoration(labelText: 'Pied de page / mentions'), maxLines: 2),
         ]))),
         actions: [
@@ -148,7 +148,7 @@ class _DocumentStudioScreenState extends ConsumerState<DocumentStudioScreen> {
                   leading: CircleAvatar(backgroundColor: const Color(0xFF2563EB).withValues(alpha: 0.12), child: const Icon(Icons.description_outlined, color: Color(0xFF2563EB))),
                   title: Text(t.name as String, style: const TextStyle(fontWeight: FontWeight.w600)),
                   subtitle: Text('$typeLabel • Format ${t.pageFormat}${t.isDefault==true?' • Par défaut':''}${t.isActive==true?'':' • Inactif'}', style: const TextStyle(fontSize: 11)),
-                  trailing: Wrap(spacing: 6, children: [
+                  trailing: Wrap(spacing: 4, children: [
                     IconButton(tooltip: 'Prévisualiser', onPressed: () async {
                       try {
                         final content = jsonDecode(t.contentJson as String) as Map<String, dynamic>;
@@ -156,7 +156,30 @@ class _DocumentStudioScreenState extends ConsumerState<DocumentStudioScreen> {
                         await Printing.layoutPdf(onLayout: (_) async => bytes, name: 'apercu_${t.docType}.pdf');
                       } catch (e) { if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erreur aperçu: $e'))); }
                     }, icon: const Icon(Icons.visibility_outlined)),
+                    IconButton(tooltip: 'Dupliquer', onPressed: () async {
+                      final auth = ref.read(authControllerProvider);
+                      try {
+                        final content = jsonDecode(t.contentJson as String) as Map<String, dynamic>;
+                        await ref.read(documentRepositoryProvider).upsertTemplate(
+                          name: '${t.name} (copie)', docType: t.docType as String, pageFormat: t.pageFormat as String,
+                          content: content, description: 'Copie', isDefault: false, isActive: true,
+                          actorUserId: auth.userId, actorUsername: auth.username);
+                        ref.invalidate(documentTemplatesProvider);
+                      } catch (e) { if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erreur duplication: $e'))); }
+                    }, icon: const Icon(Icons.copy_outlined)),
                     IconButton(tooltip: 'Modifier', onPressed: ()=>_openEditor(tpl: t), icon: const Icon(Icons.edit_outlined)),
+                    IconButton(tooltip: 'Supprimer', onPressed: () async {
+                      final ok = await showDialog<bool>(context: context, builder: (ctx)=>AlertDialog(
+                        title: const Text('Supprimer le modèle ?'),
+                        content: Text('Le modèle "${t.name}" sera mis en corbeille (suppression logique).'),
+                        actions: [TextButton(onPressed: ()=>Navigator.pop(ctx,false), child: const Text('Annuler')), FilledButton(onPressed: ()=>Navigator.pop(ctx,true), child: const Text('Supprimer'))],
+                      ));
+                      if (ok == true) {
+                        final auth = ref.read(authControllerProvider);
+                        await ref.read(documentRepositoryProvider).deleteTemplate(t.id as String, actorUserId: auth.userId, actorUsername: auth.username);
+                        ref.invalidate(documentTemplatesProvider);
+                      }
+                    }, icon: const Icon(Icons.delete_outline)),
                   ]),
                   onTap: ()=>_openEditor(tpl: t),
                 ));
