@@ -534,6 +534,7 @@ class _GradesScreenState extends ConsumerState<GradesScreen> {
     String status = 'Brouillon';
     List<dynamic> students = [];
     final scoreCtrls = <String, TextEditingController>{};
+    final scoreNodes = <String, FocusNode>{};
     final exempt = <String, bool>{};
     final existingId = <String, String>{};
     bool loaded = false;
@@ -551,7 +552,8 @@ class _GradesScreenState extends ConsumerState<GradesScreen> {
         limit: 1000,
       );
       for (final c in scoreCtrls.values) { c.dispose(); }
-      scoreCtrls.clear(); exempt.clear(); existingId.clear();
+      for (final n in scoreNodes.values) { n.dispose(); }
+      scoreCtrls.clear(); scoreNodes.clear(); exempt.clear(); existingId.clear();
       students = list;
       final byStudent = <String, GradeRow>{};
       for (final g in grades) { byStudent[g.studentId] = g; }
@@ -561,6 +563,7 @@ class _GradesScreenState extends ConsumerState<GradesScreen> {
         existingId[sid] = g?.id ?? '';
         exempt[sid] = g?.isExempt ?? false;
         scoreCtrls[sid] = TextEditingController(text: g?.score == null ? '' : (g!.score! % 1 == 0 ? g.score!.toStringAsFixed(0) : g.score!.toString()));
+        scoreNodes[sid] = FocusNode();
       }
       loaded = true;
       setD(() {});
@@ -594,7 +597,7 @@ class _GradesScreenState extends ConsumerState<GradesScreen> {
                 FilledButton.icon(onPressed: () async { await load(setD); }, icon: const Icon(Icons.table_rows, size: 16), label: const Text('Charger la grille')),
               ]),
               const SizedBox(height: 8),
-              Text('Saisie rapide : Tab/Entrée pour passer d\'un élève à l\'autre. Les notes existantes (même classe/matière/période/libellé) sont préremplies.',
+              Text('Saisie rapide : ↑/↓ pour changer d\'élève, Tab/Entrée pour avancer, Ctrl+Entrée pour enregistrer. Notes existantes préremplies.',
                   style: TextStyle(fontSize: 11, color: Theme.of(ctx).colorScheme.onSurfaceVariant)),
               const SizedBox(height: 6),
               Expanded(
@@ -624,12 +627,46 @@ class _GradesScreenState extends ConsumerState<GradesScreen> {
                                         return DataRow(cells: [
                                           DataCell(Text(mat, style: const TextStyle(fontFamily: 'monospace', fontSize: 11))),
                                           DataCell(Text(name)),
-                                          DataCell(SizedBox(width: 90, child: TextField(
-                                            controller: ctrl,
-                                            enabled: !ex,
-                                            textInputAction: TextInputAction.next,
-                                            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                                            decoration: InputDecoration(isDense: true, hintText: '/${maxCtrl.text}'),
+                                          DataCell(SizedBox(width: 90, child: Focus(
+                                            onKeyEvent: (node, event) {
+                                              if (event is! KeyDownEvent) return KeyEventResult.ignored;
+                                              final idx = students.indexWhere((x) => (x as dynamic).id == sid);
+                                              if (idx < 0) return KeyEventResult.ignored;
+                                              if (event.logicalKey == LogicalKeyboardKey.arrowDown) {
+                                                for (var j = idx + 1; j < students.length; j++) {
+                                                  final nid = (students[j] as dynamic).id as String;
+                                                  if (!(exempt[nid] ?? false)) { scoreNodes[nid]?.requestFocus(); break; }
+                                                }
+                                                return KeyEventResult.handled;
+                                              }
+                                              if (event.logicalKey == LogicalKeyboardKey.arrowUp) {
+                                                for (var j = idx - 1; j >= 0; j--) {
+                                                  final nid = (students[j] as dynamic).id as String;
+                                                  if (!(exempt[nid] ?? false)) { scoreNodes[nid]?.requestFocus(); break; }
+                                                }
+                                                return KeyEventResult.handled;
+                                              }
+                                              if (event.logicalKey == LogicalKeyboardKey.enter && HardwareKeyboard.instance.isControlPressed) {
+                                                Navigator.pop(ctx, true);
+                                                return KeyEventResult.handled;
+                                              }
+                                              return KeyEventResult.ignored;
+                                            },
+                                            child: TextField(
+                                              controller: ctrl,
+                                              focusNode: scoreNodes[sid],
+                                              enabled: !ex,
+                                              textInputAction: TextInputAction.next,
+                                              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                                              decoration: InputDecoration(isDense: true, hintText: '/${maxCtrl.text}'),
+                                              onSubmitted: (_) {
+                                                final idx = students.indexWhere((x) => (x as dynamic).id == sid);
+                                                for (var j = idx + 1; j < students.length; j++) {
+                                                  final nid = (students[j] as dynamic).id as String;
+                                                  if (!(exempt[nid] ?? false)) { scoreNodes[nid]?.requestFocus(); break; }
+                                                }
+                                              },
+                                            ),
                                           ))),
                                           DataCell(Checkbox(value: ex, onChanged: (v){ setD(()=>exempt[sid]=v??false); })),
                                         ]);
@@ -681,10 +718,12 @@ class _GradesScreenState extends ConsumerState<GradesScreen> {
         } catch (_) { failed++; }
       }
       for (final c in scoreCtrls.values) { c.dispose(); }
+      for (final n in scoreNodes.values) { n.dispose(); }
       ref.invalidate(gradesListProvider);
       _snack('Grille enregistrée : $saved note(s), $failed échec(s).');
     } else {
       for (final c in scoreCtrls.values) { c.dispose(); }
+      for (final n in scoreNodes.values) { n.dispose(); }
     }
   }
 
