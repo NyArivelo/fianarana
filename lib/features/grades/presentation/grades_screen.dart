@@ -516,6 +516,178 @@ class _GradesScreenState extends ConsumerState<GradesScreen> {
     }
   }
 
+
+  Future<void> _openGridEntry() async {
+    final auth = ref.read(authControllerProvider);
+    final classes = await ref.read(classesProvider.future);
+    final subjects = await ref.read(timetableSubjectsProvider.future);
+    final periods = await ref.read(periodsProvider.future);
+    if (!mounted) return;
+    if (classes.isEmpty) { _snack('Aucune classe disponible.'); return; }
+
+    String? classId = _classId ?? classes.first.id;
+    String? subjectId = subjects.isNotEmpty ? subjects.first.id : null;
+    String? periodId = periods.isNotEmpty ? periods.first.id : null;
+    final labelCtrl = TextEditingController(text: 'Devoir');
+    final maxCtrl = TextEditingController(text: '20');
+    final coefCtrl = TextEditingController(text: '1');
+    String status = 'Brouillon';
+    List<dynamic> students = [];
+    final scoreCtrls = <String, TextEditingController>{};
+    final exempt = <String, bool>{};
+    final existingId = <String, String>{};
+    bool loaded = false;
+
+    Future<void> load(StateSetter setD) async {
+      if (classId == null) return;
+      final repo = ref.read(studentsRepositoryProvider);
+      final list = await repo.list(actorUserId: auth.userId, classId: classId, limit: 500);
+      final grades = await ref.read(gradesRepositoryProvider).list(
+        actorUserId: auth.userId,
+        classId: classId,
+        subjectId: subjectId,
+        periodId: periodId,
+        label: labelCtrl.text.trim().isEmpty ? null : labelCtrl.text.trim(),
+        limit: 1000,
+      );
+      for (final c in scoreCtrls.values) { c.dispose(); }
+      scoreCtrls.clear(); exempt.clear(); existingId.clear();
+      students = list;
+      final byStudent = <String, GradeRow>{};
+      for (final g in grades) { byStudent[g.studentId] = g; }
+      for (final st in students) {
+        final sid = (st as dynamic).id as String;
+        final g = byStudent[sid];
+        existingId[sid] = g?.id ?? '';
+        exempt[sid] = g?.isExempt ?? false;
+        scoreCtrls[sid] = TextEditingController(text: g?.score == null ? '' : (g!.score! % 1 == 0 ? g.score!.toStringAsFixed(0) : g.score!.toString()));
+      }
+      loaded = true;
+      setD(() {});
+    }
+
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => StatefulBuilder(builder: (ctx, setD) {
+        return AlertDialog(
+          title: const Text('Saisie en grille (tableur)'),
+          content: SizedBox(
+            width: 980,
+            height: 620,
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Wrap(spacing: 8, runSpacing: 8, crossAxisAlignment: WrapCrossAlignment.center, children: [
+                SizedBox(width: 220, child: DropdownButtonFormField<String>(value: classId, isExpanded: true, decoration: const InputDecoration(labelText: 'Classe'),
+                  items: classes.map((c)=>DropdownMenuItem(value: c.id, child: Text(c.label))).toList(),
+                  onChanged: (v){ classId=v; loaded=false; setD((){}); })),
+                SizedBox(width: 220, child: DropdownButtonFormField<String?>(value: subjectId, isExpanded: true, decoration: const InputDecoration(labelText: 'Matière'),
+                  items: subjects.map((s)=>DropdownMenuItem<String?>(value: s.id, child: Text(s.name))).toList(),
+                  onChanged: (v){ subjectId=v; loaded=false; setD((){}); })),
+                SizedBox(width: 220, child: DropdownButtonFormField<String?>(value: periodId, isExpanded: true, decoration: const InputDecoration(labelText: 'Période'),
+                  items: periods.map((p)=>DropdownMenuItem<String?>(value: p.id, child: Text(p.name))).toList(),
+                  onChanged: (v){ periodId=v; loaded=false; setD((){}); })),
+                SizedBox(width: 200, child: TextField(controller: labelCtrl, decoration: const InputDecoration(labelText: 'Libellé évaluation'), onChanged: (_){ loaded=false; })),
+                SizedBox(width: 90, child: TextField(controller: maxCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Barème'))),
+                SizedBox(width: 90, child: TextField(controller: coefCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Coef.'))),
+                SizedBox(width: 160, child: DropdownButtonFormField<String>(value: status, decoration: const InputDecoration(labelText: 'Statut'),
+                  items: const [DropdownMenuItem(value:'Brouillon', child: Text('Brouillon')), DropdownMenuItem(value:'Validée', child: Text('Validée'))],
+                  onChanged: (v)=>setD(()=>status=v??'Brouillon'))),
+                FilledButton.icon(onPressed: () async { await load(setD); }, icon: const Icon(Icons.table_rows, size: 16), label: const Text('Charger la grille')),
+              ]),
+              const SizedBox(height: 8),
+              Text('Saisie rapide : Tab/Entrée pour passer d\'un élève à l\'autre. Les notes existantes (même classe/matière/période/libellé) sont préremplies.',
+                  style: TextStyle(fontSize: 11, color: Theme.of(ctx).colorScheme.onSurfaceVariant)),
+              const SizedBox(height: 6),
+              Expanded(
+                child: !loaded
+                    ? const Center(child: Text('Choisissez les paramètres puis cliquez sur « Charger la grille ».'))
+                    : students.isEmpty
+                        ? const Center(child: Text('Aucun élève dans cette classe.'))
+                        : FocusTraversalGroup(
+                            child: SingleChildScrollView(
+                              child: SingleChildScrollView(
+                                scrollDirection: Axis.horizontal,
+                                child: DataTable(
+                                  columns: const [
+                                    DataColumn(label: Text('Matricule')),
+                                    DataColumn(label: Text('Élève')),
+                                    DataColumn(label: Text('Note')),
+                                    DataColumn(label: Text('Dispensé')),
+                                  ],
+                                  rows: [
+                                    for (final st in students)
+                                      () {
+                                        final sid = (st as dynamic).id as String;
+                                        final name = '${(st as dynamic).lastName} ${(st as dynamic).firstName}';
+                                        final mat = (st as dynamic).matricule as String? ?? '';
+                                        final ctrl = scoreCtrls[sid]!;
+                                        final ex = exempt[sid] ?? false;
+                                        return DataRow(cells: [
+                                          DataCell(Text(mat, style: const TextStyle(fontFamily: 'monospace', fontSize: 11))),
+                                          DataCell(Text(name)),
+                                          DataCell(SizedBox(width: 90, child: TextField(
+                                            controller: ctrl,
+                                            enabled: !ex,
+                                            textInputAction: TextInputAction.next,
+                                            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                                            decoration: InputDecoration(isDense: true, hintText: '/${maxCtrl.text}'),
+                                          ))),
+                                          DataCell(Checkbox(value: ex, onChanged: (v){ setD(()=>exempt[sid]=v??false); })),
+                                        ]);
+                                      }()
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+              ),
+            ]),
+          ),
+          actions: [
+            TextButton(onPressed: ()=>Navigator.pop(ctx,false), child: const Text('Annuler')),
+            FilledButton.icon(onPressed: loaded ? ()=>Navigator.pop(ctx,true) : null, icon: const Icon(Icons.save_outlined, size: 16), label: const Text('Enregistrer la grille')),
+          ],
+        );
+      }),
+    );
+
+    if (ok == true && loaded) {
+      final repo = ref.read(gradesRepositoryProvider);
+      final label = labelCtrl.text.trim().isEmpty ? 'Évaluation' : labelCtrl.text.trim();
+      final maxScore = double.tryParse(maxCtrl.text.replaceAll(',', '.')) ?? 20;
+      final coef = double.tryParse(coefCtrl.text.replaceAll(',', '.')) ?? 1;
+      int saved = 0, failed = 0;
+      for (final st in students) {
+        final sid = (st as dynamic).id as String;
+        try {
+          final ex = exempt[sid] ?? false;
+          final txt = scoreCtrls[sid]?.text.trim() ?? '';
+          final score = txt.isEmpty ? null : double.tryParse(txt.replaceAll(',', '.'));
+          await repo.upsertGrade(
+            id: (existingId[sid] != null && existingId[sid]!.isNotEmpty) ? existingId[sid] : null,
+            studentId: sid,
+            classId: classId,
+            subjectId: subjectId,
+            periodId: periodId,
+            label: label,
+            score: ex ? null : score,
+            maxScore: maxScore,
+            coefficient: coef,
+            isExempt: ex,
+            validationStatus: status,
+            actorUserId: auth.userId,
+            actorUsername: auth.username,
+          );
+          saved++;
+        } catch (_) { failed++; }
+      }
+      for (final c in scoreCtrls.values) { c.dispose(); }
+      ref.invalidate(gradesListProvider);
+      _snack('Grille enregistrée : $saved note(s), $failed échec(s).');
+    } else {
+      for (final c in scoreCtrls.values) { c.dispose(); }
+    }
+  }
+
   Future<void> _validate(GradeRow row) async {
     final auth = ref.read(authControllerProvider);
     try {

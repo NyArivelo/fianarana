@@ -17,6 +17,7 @@ class GradeRow {
   final String? classLabel;
   final String? subjectName;
   final String? subjectId;
+  final String? periodId;
   final String label;
   final double? score;
   final double maxScore;
@@ -35,6 +36,7 @@ class GradeRow {
     required this.classLabel,
     required this.subjectName,
     required this.subjectId,
+    required this.periodId,
     required this.label,
     required this.score,
     required this.maxScore,
@@ -68,7 +70,7 @@ class GradesRepository {
     }
   }
 
-  Future<List<GradeRow>> list({String? actorUserId, String? classId, String? subjectId, int limit = 500}) async {
+  Future<List<GradeRow>> list({String? actorUserId, String? classId, String? subjectId, String? periodId, String? label, int limit = 500}) async {
     await _require(actorUserId, 'grades.read');
     final scopeClasses = await AffectationScope(db).allowedClassIdsForUser(actorUserId);
     if (scopeClasses != null) {
@@ -91,6 +93,8 @@ class GradesRepository {
       j.where(e.classId.isIn(scopeClasses));
     }
     if (subjectId != null && subjectId.isNotEmpty) j.where(e.subjectId.equals(subjectId));
+    if (periodId != null && periodId.isNotEmpty) j.where(e.periodId.equals(periodId));
+    if (label != null && label.trim().isNotEmpty) j.where(e.label.equals(label.trim()));
     j.orderBy([OrderingTerm.asc(s.lastName), OrderingTerm.asc(e.label)]);
     j.limit(limit);
     final rows = await j.get();
@@ -107,6 +111,7 @@ class GradesRepository {
         classLabel: cl?.label,
         subjectName: sb?.name ?? sb?.code,
         subjectId: ev.subjectId,
+        periodId: ev.periodId,
         label: ev.label,
         score: ev.score,
         maxScore: ev.maxScore,
