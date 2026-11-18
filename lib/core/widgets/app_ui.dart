@@ -326,3 +326,139 @@ class AppPageHeader extends StatelessWidget {
     ]);
   }
 }
+
+/// Champ texte standard de l'application.
+class AppTextField extends StatelessWidget {
+  final TextEditingController? controller;
+  final String? label;
+  final String? hint;
+  final IconData? prefixIcon;
+  final Widget? suffixIcon;
+  final bool obscureText;
+  final int maxLines;
+  final TextInputType? keyboardType;
+  final TextInputAction? textInputAction;
+  final ValueChanged<String>? onChanged;
+  final ValueChanged<String>? onSubmitted;
+  final String? Function(String?)? validator;
+  final bool enabled;
+  final bool autofocus;
+  final double? width;
+
+  const AppTextField({
+    super.key,
+    this.controller,
+    this.label,
+    this.hint,
+    this.prefixIcon,
+    this.suffixIcon,
+    this.obscureText = false,
+    this.maxLines = 1,
+    this.keyboardType,
+    this.textInputAction,
+    this.onChanged,
+    this.onSubmitted,
+    this.validator,
+    this.enabled = true,
+    this.autofocus = false,
+    this.width,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final field = TextFormField(
+      controller: controller,
+      obscureText: obscureText,
+      maxLines: maxLines,
+      keyboardType: keyboardType,
+      textInputAction: textInputAction,
+      onChanged: onChanged,
+      onFieldSubmitted: onSubmitted,
+      validator: validator,
+      enabled: enabled,
+      autofocus: autofocus,
+      decoration: InputDecoration(
+        labelText: label,
+        hintText: hint,
+        prefixIcon: prefixIcon == null ? null : Icon(prefixIcon, size: 18),
+        suffixIcon: suffixIcon,
+      ),
+    );
+    return width == null ? field : SizedBox(width: width, child: field);
+  }
+}
+
+/// Liste déroulante standard de l'application.
+class AppSelectField<T> extends StatelessWidget {
+  final T value;
+  final String? label;
+  final List<DropdownMenuItem<T>> items;
+  final ValueChanged<T?>? onChanged;
+  final double? width;
+
+  const AppSelectField({
+    super.key,
+    required this.value,
+    this.label,
+    required this.items,
+    this.onChanged,
+    this.width,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final field = DropdownButtonFormField<T>(
+      value: value,
+      isDense: true,
+      decoration: InputDecoration(labelText: label),
+      items: items,
+      onChanged: onChanged,
+    );
+    return width == null ? field : SizedBox(width: width, child: field);
+  }
+}
+
+/// Zone de texte multilignes standard.
+class AppTextArea extends AppTextField {
+  const AppTextArea({
+    super.key,
+    super.controller,
+    super.label,
+    super.hint,
+    super.prefixIcon,
+    super.suffixIcon,
+    super.keyboardType,
+    super.onChanged,
+    super.validator,
+    super.enabled,
+    super.width,
+    int lines = 3,
+  }) : super(maxLines: lines);
+}
+
+/// Disposition responsive sans débordement horizontal fixe.
+class AppResponsiveWrap extends StatelessWidget {
+  final List<Widget> children;
+  final double spacing;
+  final double runSpacing;
+  final WrapAlignment alignment;
+
+  const AppResponsiveWrap({
+    super.key,
+    required this.children,
+    this.spacing = 10,
+    this.runSpacing = 10,
+    this.alignment = WrapAlignment.start,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Wrap(
+      spacing: spacing,
+      runSpacing: runSpacing,
+      alignment: alignment,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      children: children,
+    );
+  }
+}

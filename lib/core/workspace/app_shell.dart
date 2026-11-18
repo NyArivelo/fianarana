@@ -10,7 +10,7 @@ import 'package:fianarana/features/search/presentation/global_search_dialog.dart
 /// Coquille commune à tous les modules authentifiés : en-tête, navigation
 /// latérale, zone de contenu et barre d'état. Conforme à la maquette
 /// `design.html` (header global + sidebar + statut).
-class AppShell extends ConsumerWidget {
+class AppShell extends ConsumerStatefulWidget {
   final Widget child;
   final String location;
   const AppShell({super.key, required this.child, required this.location});
@@ -18,32 +18,45 @@ class AppShell extends ConsumerWidget {
   static const _brand = Color(0xFF2563EB);
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<AppShell> createState() => _AppShellState();
+}
+
+class _AppShellState extends ConsumerState<AppShell> {
+  static const _brand = Color(0xFF2563EB);
+  final _scaffoldKey = GlobalKey<ScaffoldState>();
+
+  @override
+  Widget build(BuildContext context) {
     final auth = ref.watch(authControllerProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final border = isDark ? const Color(0xFF1E293B) : const Color(0xFFE2E8F0);
 
-    return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF020617) : const Color(0xFFF8FAFC),
-      body: Column(children: [
-        _header(context, ref, auth, isDark, border),
-        Expanded(
-          child: Row(children: [
-            _sidebar(context, ref, isDark, border),
-            Expanded(
-              child: Container(
-                color: isDark ? const Color(0xFF020617) : const Color(0xFFF8FAFC),
-                child: child,
+    return LayoutBuilder(builder: (context, constraints) {
+      final compact = constraints.maxWidth < 900;
+      return Scaffold(
+        key: _scaffoldKey,
+        backgroundColor: isDark ? const Color(0xFF020617) : const Color(0xFFF8FAFC),
+        drawer: compact ? Drawer(child: _sidebar(context, ref, isDark, border)) : null,
+        body: Column(children: [
+          _header(context, ref, auth, isDark, border, compact),
+          Expanded(
+            child: Row(children: [
+              if (!compact) _sidebar(context, ref, isDark, border),
+              Expanded(
+                child: Container(
+                  color: isDark ? const Color(0xFF020617) : const Color(0xFFF8FAFC),
+                  child: widget.child,
+                ),
               ),
-            ),
-          ]),
-        ),
-        _statusBar(isDark, border, ref),
-      ]),
-    );
+            ]),
+          ),
+          _statusBar(isDark, border, compact),
+        ]),
+      );
+    });
   }
 
-  Widget _header(BuildContext context, WidgetRef ref, AuthState auth, bool isDark, Color border) {
+  Widget _header(BuildContext context, WidgetRef ref, AuthState auth, bool isDark, Color border, bool compact) {
     return Container(
       height: 49,
       padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -52,6 +65,12 @@ class AppShell extends ConsumerWidget {
         border: Border(bottom: BorderSide(color: border)),
       ),
       child: Row(children: [
+        if (compact)
+          IconButton(
+            tooltip: 'Ouvrir la navigation',
+            onPressed: () => _scaffoldKey.currentState?.openDrawer(),
+            icon: const Icon(Icons.menu),
+          ),
         Container(
           width: 30,
           height: 30,
@@ -261,7 +280,7 @@ class AppShell extends ConsumerWidget {
     );
   }
 
-  Widget _statusBar(bool isDark, Color border, WidgetRef ref) {
+  Widget _statusBar(bool isDark, Color border, bool compact) {
     final ws = ref.watch(tabWorkspaceProvider);
     final tabInfo = ws.tabs.isEmpty ? 'MDI: navigation' : 'MDI: ${ws.tabs.length} onglet(s)';
     return Container(
@@ -292,14 +311,14 @@ class AppShell extends ConsumerWidget {
       );
 
   bool _isSelected(String route) {
-    if (route == '/') return location == '/';
-    return location == route || location.startsWith('$route/');
+    if (route == '/') return widget.location == '/';
+    return widget.location == route || widget.location.startsWith('$route/');
   }
 
   Widget _navItem(BuildContext context, {required WidgetRef ref, required IconData icon, required String label, required String route}) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final ws = ref.watch(tabWorkspaceProvider);
-    final activeRoute = ws.tabs.isNotEmpty ? ws.tabs[ws.activeIndex].route : location;
+    final activeRoute = ws.tabs.isNotEmpty ? ws.tabs[ws.activeIndex].route : widget.location;
     final selected = route == '/'
         ? activeRoute == '/' || (ws.tabs.isEmpty && _isSelected(route))
         : activeRoute == route || activeRoute.startsWith('$route/') || (ws.tabs.isEmpty && _isSelected(route));
