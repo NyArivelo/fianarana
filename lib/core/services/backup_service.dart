@@ -17,9 +17,12 @@ import 'package:fianarana/core/security/permission_service.dart';
 /// de contrôle et traçabilité. La restauration requiert un redémarrage.
 class BackupService {
   final AppDatabase db;
+
+  /// Dossier de données actif (surchargeable pour les tests).
+  final Directory? dataDirOverride;
   late final AuditService _audit = AuditService(db);
   late final PermissionService _perm = PermissionService(db);
-  BackupService(this.db);
+  BackupService(this.db, {this.dataDirOverride});
 
   Future<void> _require(String? userId, String permission) async {
     if (userId == null || userId.isEmpty) return; // appel système/auto
@@ -29,8 +32,8 @@ class BackupService {
   }
 
   Future<Directory> _appDataDir() async {
-    final dir = await getApplicationSupportDirectory();
-    final root = Directory(p.join(dir.path, 'fianarana'));
+    final root = dataDirOverride ??
+        Directory(p.join((await getApplicationSupportDirectory()).path, 'fianarana'));
     if (!root.existsSync()) root.createSync(recursive: true);
     return root;
   }

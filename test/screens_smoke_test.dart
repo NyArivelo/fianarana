@@ -13,6 +13,7 @@ import 'package:fianarana/features/facilities/presentation/facilities_screen.dar
 import 'package:fianarana/features/facilities/presentation/facility_operations_screen.dart';
 import 'package:fianarana/features/finance/presentation/fee_catalog_screen.dart';
 import 'package:fianarana/features/finance/presentation/finance_screen.dart';
+import 'package:fianarana/features/finance/presentation/ledger_screen.dart';
 import 'package:fianarana/features/grades/presentation/grades_screen.dart';
 import 'package:fianarana/features/library/presentation/library_screen.dart';
 import 'package:fianarana/features/settings/presentation/settings_screen.dart';
@@ -94,6 +95,12 @@ void main() {
     expect(find.text('Finances & Caisse'), findsOneWidget);
     expect(find.text('TOTAL ENCAISSÉ'), findsOneWidget);
     expect(find.textContaining('Journal de caisse'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+
+    await pumpScreen(const LedgerScreen());
+    expect(find.text('Grand livre comptable'), findsOneWidget);
+    expect(find.text('Écritures de compte élève'), findsOneWidget);
+    expect(find.text('BRUT DÛ'), findsOneWidget);
     expect(tester.takeException(), isNull);
 
     await pumpScreen(const SettingsScreen());

@@ -13,9 +13,12 @@ import 'package:fianarana/core/security/permission_service.dart';
 
 class YearClosureService {
   final AppDatabase db;
+
+  /// Dossier de destination des archives (surchargeable pour les tests).
+  final Directory? archiveDirOverride;
   late final AuditService _audit = AuditService(db);
   late final PermissionService _perm = PermissionService(db);
-  YearClosureService(this.db);
+  YearClosureService(this.db, {this.archiveDirOverride});
 
   Future<void> _require(String? userId) async {
     if (userId == null || userId.isEmpty) return;
@@ -57,8 +60,8 @@ class YearClosureService {
     final content = const JsonEncoder.withIndent('  ').convert(summary);
     final bytes = utf8.encode(content);
     final hash = sha256.convert(bytes).toString();
-    final dir = await getApplicationDocumentsDirectory();
-    final outDir = Directory(p.join(dir.path, 'fianarana_archives'));
+    final outDir = archiveDirOverride ??
+        Directory(p.join((await getApplicationDocumentsDirectory()).path, 'fianarana_archives'));
     if (!outDir.existsSync()) outDir.createSync(recursive: true);
     final stamp = DateTime.now();
     final file = File(p.join(outDir.path, 'cloture_${year.code}_${stamp.year}${stamp.month.toString().padLeft(2,'0')}${stamp.day.toString().padLeft(2,'0')}.json'));

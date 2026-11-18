@@ -20,6 +20,9 @@ class FeeCatalogScreen extends ConsumerStatefulWidget {
 }
 
 class _FeeCatalogScreenState extends ConsumerState<FeeCatalogScreen> {
+  /// Valeur sentinelle pour afficher toutes les années.
+  static const _allYears = '*';
+
   String? _yearId;
 
   ({String? id, String? username}) get _actor {
@@ -55,17 +58,45 @@ class _FeeCatalogScreenState extends ConsumerState<FeeCatalogScreen> {
   @override
   Widget build(BuildContext context) {
     final years = ref.watch(schoolYearsProvider).valueOrNull ?? const <SchoolYear>[];
-    String? activeYear = _yearId;
-    if (activeYear == null && years.isNotEmpty) {
-      activeYear = years.where((y) => y.status == 'En cours').isEmpty
+    String? selectedYear;
+    if (_yearId == _allYears) {
+      selectedYear = null;
+    } else if (_yearId != null) {
+      selectedYear = _yearId;
+    } else if (years.isNotEmpty) {
+      selectedYear = years.where((y) => y.status == 'En cours').isEmpty
           ? years.first.id
           : years.firstWhere((y) => y.status == 'En cours').id;
     }
+    final activeYear = selectedYear;
     return DefaultTabController(
       length: 3,
       child: Scaffold(
         appBar: AppBar(
           title: const Text('Catalogue de frais & remises'),
+          actions: [
+            SizedBox(
+              width: 220,
+              child: DropdownButtonFormField<String>(
+                initialValue: _yearId ?? selectedYear ?? _allYears,
+                isExpanded: true,
+                decoration: const InputDecoration(
+                  isDense: true,
+                  labelText: 'Année scolaire',
+                  border: InputBorder.none,
+                ),
+                items: [
+                  const DropdownMenuItem(value: _allYears, child: Text('Toutes les années')),
+                  ...years.map((y) => DropdownMenuItem(
+                        value: y.id,
+                        child: Text(y.label, overflow: TextOverflow.ellipsis),
+                      )),
+                ],
+                onChanged: (v) => setState(() => _yearId = v),
+              ),
+            ),
+            const SizedBox(width: 12),
+          ],
           bottom: const TabBar(tabs: [
             Tab(icon: Icon(Icons.price_change_outlined, size: 18), text: 'Grille tarifaire'),
             Tab(icon: Icon(Icons.volunteer_activism_outlined, size: 18), text: 'Bourses & remises'),

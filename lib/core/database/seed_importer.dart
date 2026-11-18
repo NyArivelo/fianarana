@@ -592,7 +592,7 @@ class SeedImporter {
         feeLabel: _s(r, ['Libellé_Frais', 'Libelle_Frais']).isEmpty ? 'Frais' : _s(r, ['Libellé_Frais', 'Libelle_Frais']),
         amountDueMga: Value(_i(r, ['Montant_Dû_MGA', 'Montant_Du_MGA'], 0)),
         amountPaidMga: Value(_i(r, ['Montant_Payé_MGA', 'Montant_Paye_MGA'], 0)),
-        balanceMga: Value(_i(r, ['Reste_à_Payer_MGA', 'Reste_a_Payer_MGA'], 0)),
+        balanceMga: Value(_i(r, ['Reste_À_Payer_MGA', 'Reste_à_Payer_MGA', 'Reste_a_Payer_MGA'], 0)),
         paymentDate: Value(_dt(r, ['Date_Paiement'])),
         paymentMethod: Value(_s(r, ['Mode_Paiement'])),
         scheduleStatus: Value(_s(r, ['Statut_Échéancier', 'Statut_Echeancier'])),

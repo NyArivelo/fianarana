@@ -1,3 +1,4 @@
+import 'package:drift/drift.dart' hide isNotNull;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -5,6 +6,7 @@ import 'package:fianarana/core/database/app_database.dart';
 import 'package:fianarana/core/database/seed_importer.dart';
 import 'package:fianarana/features/calendar/data/calendar_repository.dart';
 import 'package:fianarana/features/facilities/data/facilities_repository.dart';
+import 'package:fianarana/features/finance/data/finance_repository.dart';
 import 'package:fianarana/features/library/data/library_repository.dart';
 import 'package:fianarana/features/timetable/data/timetable_repository.dart';
 
@@ -69,6 +71,51 @@ void main() {
 
     final creditNotes = await (db.select(db.creditNotes)..where((t) => t.isDeleted.equals(false))).get();
     expect(creditNotes, isNotEmpty);
+
+    // Grand livre comptable dérivé des encaissements.
+    final ledgerRepo = FinanceRepository(db);
+    final ledger = await ledgerRepo.ledger();
+    expect(ledger, isNotEmpty);
+    for (final row in ledger) {
+      expect(row.reductions, row.discount + row.scholarship + row.creditNote);
+      expect(row.netDue, row.grossDue - row.reductions);
+      expect(row.balance, row.netDue - row.paid);
+      expect(row.receipt, isNotEmpty);
+      expect(row.studentName.trim(), isNotEmpty);
+      expect(row.matricule, isNotEmpty);
+    }
+    expect(ledger.any((r) => r.classLabel != null), isTrue);
+
+    // Filtre par classe : classe du paiement ou de l'inscription de l'élève.
+    final ledgerPayments = await (db.select(db.payments)..where((t) => t.isDeleted.equals(false))).get();
+    final classOf = {for (final p in ledgerPayments) p.id: p.classId};
+    final withClass = ledger.firstWhere((r) => r.classLabel != null);
+    final enrollment = await (db.select(db.enrollments)
+          ..where((e) => e.isDeleted.equals(false) & e.studentId.equals(withClass.studentId)))
+        .getSingle();
+    final filteredClass = await (db.select(db.classes)..where((c) => c.id.equals(enrollment.classId!))).getSingle();
+    final byClass = await ledgerRepo.ledger(classId: filteredClass.id);
+    expect(byClass, isNotEmpty);
+    expect(byClass.any((r) => r.id == withClass.id), isTrue);
+    final enrolledStudentIds = (await (db.select(db.enrollments)
+              ..where((e) => e.isDeleted.equals(false) & e.classId.equals(filteredClass.id)))
+            .get())
+        .map((e) => e.studentId)
+        .toSet();
+    expect(byClass.every((r) => classOf[r.id] == filteredClass.id || enrolledStudentIds.contains(r.studentId)), isTrue);
+
+    final searchToken = ledger.first.matricule;
+    final searched = await ledgerRepo.ledger(query: searchToken);
+    expect(searched, isNotEmpty);
+    expect(searched.every((r) => r.matricule == searchToken || r.studentName.toLowerCase().contains(searchToken.toLowerCase()) ||
+        r.receipt == searchToken || r.feeLabel.toLowerCase().contains(searchToken.toLowerCase())), isTrue);
+
+    final dates = ledger.map((r) => r.date).toList()..sort();
+    final inRange = await ledgerRepo.ledger(from: dates.first, to: dates.last);
+    expect(inRange.length, ledger.length);
+    final outsideRange = await ledgerRepo.ledger(
+        from: dates.last.add(const Duration(days: 1)), to: dates.last.add(const Duration(days: 2)));
+    expect(outsideRange, isEmpty);
 
     final cases = await (db.select(db.disciplineCases)..where((t) => t.isDeleted.equals(false))).get();
     expect(cases, isNotEmpty);

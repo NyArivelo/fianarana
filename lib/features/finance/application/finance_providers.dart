@@ -36,3 +36,15 @@ final financeReportProvider = FutureProvider<FinanceReport>((ref) {
   final userId = ref.watch(authControllerProvider).userId;
   return ref.watch(financeRepositoryProvider).report(actorUserId: userId);
 });
+
+final ledgerProvider = FutureProvider.family<List<LedgerRow>,
+    ({DateTime? from, DateTime? to, String? query, String? classId})>((ref, args) {
+  final userId = ref.watch(authControllerProvider).userId;
+  return ref.watch(financeRepositoryProvider).ledger(
+        actorUserId: userId,
+        from: args.from,
+        to: args.to,
+        query: args.query,
+        classId: args.classId,
+      );
+});

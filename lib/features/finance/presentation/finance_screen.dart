@@ -458,6 +458,11 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
             onPressed: () => context.go('/finance/schedules'),
             icon: const Icon(Icons.event_note_outlined),
           ),
+          IconButton(
+            tooltip: 'Grand livre comptable',
+            onPressed: () => context.go('/finance/ledger'),
+            icon: const Icon(Icons.menu_book_outlined),
+          ),
           const SizedBox(width: 4),
           OutlinedButton.icon(
             onPressed: _showClosuresAndReport,

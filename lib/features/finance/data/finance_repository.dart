@@ -47,6 +47,46 @@ class PaymentRow {
   });
 }
 
+/// Ligne du grand livre : compte élève (brut dû, réductions, net, encaissé).
+class LedgerRow {
+  final String id;
+  final String receipt;
+  final String studentId;
+  final String studentName;
+  final String matricule;
+  final String? classLabel;
+  final String feeLabel;
+  final DateTime date;
+  final int grossDue;
+  final int discount;
+  final int scholarship;
+  final int creditNote;
+  final int netDue;
+  final int paid;
+  final int balance;
+
+  const LedgerRow({
+    required this.id,
+    required this.receipt,
+    required this.studentId,
+    required this.studentName,
+    required this.matricule,
+    required this.classLabel,
+    required this.feeLabel,
+    required this.date,
+    required this.grossDue,
+    required this.discount,
+    required this.scholarship,
+    required this.creditNote,
+    required this.netDue,
+    required this.paid,
+    required this.balance,
+  });
+
+  int get reductions => discount + scholarship + creditNote;
+  bool get isSettled => balance <= 0;
+}
+
 class ScheduleRow {
   final PaymentSchedule schedule;
   final String? studentName;
@@ -449,6 +489,104 @@ class FinanceRepository {
   }
 
   /// Rapport/cohérence financier (vue synthèse).
+  /// Grand livre détaillé : toutes les écritures de compte élève sur une période.
+  Future<List<LedgerRow>> ledger({
+    String? actorUserId,
+    DateTime? from,
+    DateTime? to,
+    String? query,
+    String? classId,
+  }) async {
+    await _require(actorUserId, 'finance.read');
+    final cashierOnly = await _isCashierScope(actorUserId);
+    final scopeClasses = await AffectationScope(db).allowedClassIdsForUser(actorUserId);
+    if (scopeClasses != null && scopeClasses.isEmpty) return const <LedgerRow>[];
+
+    final p = db.payments;
+    final s = db.students;
+    final c = db.classes;
+
+    Future<Set<String>> studentsEnrolledIn(Iterable<String> classIds) async {
+      final ids = classIds.toSet();
+      if (ids.isEmpty) return const <String>{};
+      final rows = await (db.select(db.enrollments)
+            ..where((e) => e.isDeleted.equals(false) & e.classId.isIn(ids)))
+          .get();
+      return rows.map((e) => e.studentId).toSet();
+    }
+
+    final j = db.select(p).join([
+      innerJoin(s, s.id.equalsExp(p.studentId)),
+      leftOuterJoin(c, c.id.equalsExp(p.classId)),
+    ])..where(p.isDeleted.equals(false));
+    if (cashierOnly) j.where(p.cashierUserId.equals(actorUserId!));
+    if (scopeClasses != null) {
+      final scopeStudents = await studentsEnrolledIn(scopeClasses);
+      j.where(p.classId.isIn(scopeClasses) | p.studentId.isIn(scopeStudents));
+    }
+    if (classId != null && classId.isNotEmpty) {
+      final classStudents = await studentsEnrolledIn({classId});
+      j.where(p.classId.equals(classId) | p.studentId.isIn(classStudents));
+    }
+    if (from != null) j.where(p.paymentDate.isBiggerOrEqualValue(from));
+    if (to != null) j.where(p.paymentDate.isSmallerOrEqualValue(to));
+    if (query != null && query.trim().isNotEmpty) {
+      final q = '%${query.trim()}%';
+      j.where(p.receiptNumber.like(q) |
+          s.lastName.like(q) |
+          s.firstName.like(q) |
+          s.matricule.like(q) |
+          p.feeLabel.like(q));
+    }
+    j.orderBy([OrderingTerm.asc(p.paymentDate), OrderingTerm.asc(p.receiptNumber)]);
+    final rows = await j.get();
+
+    // Complète la classe depuis l'inscription de l'élève quand le paiement
+    // ne porte pas directement de classe (données historiques/import).
+    final missingStudentIds = <String>{};
+    for (final r in rows) {
+      if (r.readTableOrNull(c) == null) {
+        missingStudentIds.add(r.readTable(s).id);
+      }
+    }
+    final classByStudent = <String, String>{};
+    if (missingStudentIds.isNotEmpty) {
+      final enr = db.enrollments;
+      final enrQuery = db.select(enr).join([
+        innerJoin(c, c.id.equalsExp(enr.classId)),
+      ])
+        ..where(enr.isDeleted.equals(false) & enr.studentId.isIn(missingStudentIds))
+        ..orderBy([OrderingTerm.desc(enr.enrollmentDate)]);
+      for (final row in await enrQuery.get()) {
+        classByStudent.putIfAbsent(row.readTable(enr).studentId, () => row.readTable(c).label);
+      }
+    }
+
+    return rows.map((r) {
+      final pay = r.readTable(p);
+      final st = r.readTable(s);
+      final cl = r.readTableOrNull(c);
+      final net = pay.netDueMga > 0 ? pay.netDueMga : pay.amountDueMga;
+      return LedgerRow(
+        id: pay.id,
+        receipt: pay.receiptNumber,
+        studentId: st.id,
+        studentName: '${st.lastName} ${st.firstName}',
+        matricule: st.matricule,
+        classLabel: cl?.label ?? classByStudent[st.id],
+        feeLabel: pay.feeLabel,
+        date: pay.paymentDate ?? pay.createdAt,
+        grossDue: pay.amountDueMga,
+        discount: pay.discountMga,
+        scholarship: pay.scholarshipMga,
+        creditNote: pay.creditNoteMga,
+        netDue: net,
+        paid: pay.amountPaidMga,
+        balance: pay.balanceMga,
+      );
+    }).toList();
+  }
+
   Future<FinanceReport> report({String? actorUserId}) async {
     final t = await totals(actorUserId: actorUserId);
     final allSchedules = await listScheduleRows(actorUserId: actorUserId);
