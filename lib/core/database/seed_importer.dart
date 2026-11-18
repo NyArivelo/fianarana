@@ -325,21 +325,30 @@ class SeedImporter {
     var n = 0;
     final defaultPass = passwordHasher.hash('Password123!'); // mot de passe de test
     for (final r in rows) {
-      final userId = _s(r, ['UUID_Utilisateur', 'UUID']);
+      final seedUserId = _s(r, ['UUID_Utilisateur', 'UUID']);
       final username = _s(r, ['Identifiant', 'Username']);
-      if (userId.isEmpty || username.isEmpty) continue;
+      if (seedUserId.isEmpty || username.isEmpty) continue;
       final roleName = _s(r, ['Rôle_Principal', 'Role_Principal', 'Role']).isEmpty ? 'Utilisateur' : _s(r, ['Rôle_Principal', 'Role_Principal', 'Role']);
       var roleId = roleCache[roleName];
       if (roleId == null) {
-        roleId = 'role-${roleName.toLowerCase().replaceAll(RegExp(r"[^a-z0-9]+"), "-")}';
+        final existingRole = await (db.select(db.roles)..where((r) => r.name.equals(roleName))).getSingleOrNull();
+        roleId = existingRole?.id ?? 'role-${roleName.toLowerCase().replaceAll(RegExp(r"[^a-z0-9]+"), "-")}';
         roleCache[roleName] = roleId;
-        await db.into(db.roles).insertOnConflictUpdate(RolesCompanion.insert(
-          id: Value(roleId),
-          name: roleName,
-          description: const Value(null),
-          isSystem: Value(roleName == 'Administrateur'),
-        ));
+        if (existingRole == null) {
+          await db.into(db.roles).insertOnConflictUpdate(RolesCompanion.insert(
+            id: Value(roleId),
+            name: roleName,
+            description: const Value(null),
+            isSystem: Value(roleName == 'Administrateur'),
+          ));
+        }
       }
+
+      // Une première installation peut déjà avoir créé un utilisateur avec ce
+      // nom (souvent admin.sys). Conserver son identifiant, son mot de passe
+      // et son état au lieu de provoquer un conflit UNIQUE(username).
+      final existing = await (db.select(db.users)..where((u) => u.username.equals(username))).getSingleOrNull();
+      final userId = existing?.id ?? seedUserId;
       final pin = _s(r, ['PIN_QuickSwitch', 'PIN']);
       final failed = _i(r, ['Echecs_Connexion', 'failedLoginCount'], 0);
       final lockedUntil = _dt(r, ['Verrouille_Jusqu', 'lockedUntil']);
@@ -348,13 +357,13 @@ class SeedImporter {
         username: username,
         fullName: _s(r, ['Nom_Complet', 'Nom']),
         email: Value(_s(r, ['Email']).isEmpty ? null : _s(r, ['Email'])),
-        passwordHash: defaultPass,
+        passwordHash: existing?.passwordHash ?? defaultPass,
         pinHash: Value(pin.isEmpty ? null : passwordHasher.hash(pin)),
-        isActive: Value(_b(r, ['Compte_Actif']) || _s(r, ['Compte_Actif']).isEmpty),
+        isActive: Value(existing?.isActive ?? (_b(r, ['Compte_Actif']) || _s(r, ['Compte_Actif']).isEmpty)),
         scopeType: Value(_s(r, ['Portée_Scope', 'Portee_Scope']).isEmpty ? 'Globale' : _s(r, ['Portée_Scope', 'Portee_Scope'])),
         lastLoginAt: Value(_dt(r, ['Dernière_Connexion_UTC', 'Derniere_Connexion_UTC'])),
-        failedLoginCount: Value(failed),
-        lockedUntil: Value(lockedUntil),
+        failedLoginCount: Value(existing?.failedLoginCount ?? failed),
+        lockedUntil: Value(existing?.lockedUntil ?? lockedUntil),
       ));
       await db.into(db.userRoles).insertOnConflictUpdate(UserRolesCompanion.insert(userId: userId, roleId: roleId));
       n++;

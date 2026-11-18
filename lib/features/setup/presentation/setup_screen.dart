@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import 'package:fianarana/core/database/database_provider.dart';
 import 'package:fianarana/core/database/seed_importer.dart';
@@ -60,6 +61,7 @@ class _SetupScreenState extends ConsumerState<SetupScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(_message ?? 'Installation terminée')),
         );
+        context.go('/login');
       }
     } catch (e) {
       setState(() => _message = 'Erreur: $e');

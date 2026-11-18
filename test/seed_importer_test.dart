@@ -1,9 +1,10 @@
-import 'package:drift/drift.dart' hide isNotNull;
+import 'package:drift/drift.dart' hide isNotNull, isNull;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:fianarana/core/database/app_database.dart';
 import 'package:fianarana/core/database/seed_importer.dart';
+import 'package:fianarana/features/auth/data/auth_repository.dart';
 import 'package:fianarana/features/calendar/data/calendar_repository.dart';
 import 'package:fianarana/features/facilities/data/facilities_repository.dart';
 import 'package:fianarana/features/finance/data/finance_repository.dart';
@@ -187,4 +188,18 @@ void main() {
         after.firstWhere((c) => c.item.id == overdueLoan.loan.itemId);
     expect(returnedItem.isBorrowed, isFalse);
   }, timeout: const Timeout(Duration(minutes: 3)));
+
+  test('l’import conserve le mot de passe de l’administrateur initial', () async {
+    final auth = AuthRepository(db);
+    await auth.createInitialAdmin(
+      username: 'admin.sys',
+      fullName: 'Administrateur personnalisé',
+      password: 'MotDePasseInitial8!',
+    );
+
+    await SeedImporter(db).importAll();
+
+    expect(await auth.authenticate('admin.sys', 'MotDePasseInitial8!'), isNotNull);
+    expect(await auth.authenticate('admin.sys', 'Password123!'), isNull);
+  });
 }
