@@ -7,12 +7,15 @@ import 'dart:convert';
 
 import 'package:fianarana/core/utils/csv_export.dart';
 import 'package:fianarana/core/utils/xlsx_export.dart';
+import 'package:fianarana/core/services/establishment_service.dart';
 import 'package:fianarana/core/widgets/app_ui.dart';
 import 'package:fianarana/features/auth/application/auth_controller.dart';
 import 'package:fianarana/core/security/permission_providers.dart';
 import 'package:fianarana/features/documents/application/document_providers.dart';
 import 'package:fianarana/features/documents/services/document_studio_pdf_service.dart';
 import 'package:fianarana/features/finance/application/finance_providers.dart';
+import 'package:fianarana/features/finance/application/fee_providers.dart';
+import 'package:fianarana/features/finance/data/fee_repository.dart';
 import 'package:fianarana/features/finance/data/finance_repository.dart';
 import 'package:fianarana/features/finance/services/receipt_service.dart';
 import 'package:fianarana/features/students/application/students_providers.dart';
@@ -46,14 +49,20 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
     final feeCtrl = TextEditingController(text: 'Écolage');
     final dueCtrl = TextEditingController(text: '0');
     final paidCtrl = TextEditingController(text: '0');
+    final discountCtrl = TextEditingController(text: '0');
+    final scholarshipCtrl = TextEditingController(text: '0');
+    final creditCtrl = TextEditingController(text: '0');
+    final fees = await ref.read(feeStructuresProvider(null).future);
+    String? feeId;
     String method = 'Espèces';
     final ok = await showDialog<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
+      builder: (ctx) => StatefulBuilder(builder: (ctx, setD) => AlertDialog(
         title: const Text('Nouvel encaissement'),
         content: SizedBox(
-          width: 520,
-          child: Column(mainAxisSize: MainAxisSize.min, children: [
+          width: 620,
+          child: SingleChildScrollView(
+            child: Column(mainAxisSize: MainAxisSize.min, children: [
             DropdownButtonFormField<String>(
               decoration: const InputDecoration(labelText: 'Élève'),
               isExpanded: true,
@@ -66,6 +75,28 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
                   .toList(),
               onChanged: (v) => studentIdCtrl.value = v,
             ),
+            const SizedBox(height: 8),
+            if (fees.isNotEmpty)
+              DropdownButtonFormField<String?>(
+                initialValue: feeId,
+                decoration: const InputDecoration(labelText: 'Frais du catalogue'),
+                isExpanded: true,
+                items: [
+                  const DropdownMenuItem<String?>(value: null, child: Text('Saisie libre')),
+                  ...fees.where((f) => f.status == 'Actif').map((f) => DropdownMenuItem<String?>(
+                        value: f.id,
+                        child: Text('${f.label} — ${formatNumber(f.amountMga)} MGA', overflow: TextOverflow.ellipsis),
+                      )),
+                ],
+                onChanged: (v) => setD(() {
+                  feeId = v;
+                  final f = v == null ? null : fees.firstWhere((x) => x.id == v);
+                  if (f != null) {
+                    feeCtrl.text = f.label;
+                    dueCtrl.text = '${f.amountMga}';
+                  }
+                }),
+              ),
             const SizedBox(height: 8),
             TextField(
                 controller: feeCtrl,
@@ -85,15 +116,35 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
                       keyboardType: TextInputType.number)),
             ]),
             const SizedBox(height: 8),
+            Row(children: [
+              Expanded(
+                  child: TextField(
+                      controller: discountCtrl,
+                      decoration: const InputDecoration(labelText: 'Remise (MGA)'),
+                      keyboardType: TextInputType.number)),
+              const SizedBox(width: 8),
+              Expanded(
+                  child: TextField(
+                      controller: scholarshipCtrl,
+                      decoration: const InputDecoration(labelText: 'Bourse (MGA)'),
+                      keyboardType: TextInputType.number)),
+              const SizedBox(width: 8),
+              Expanded(
+                  child: TextField(
+                      controller: creditCtrl,
+                      decoration: const InputDecoration(labelText: 'Avoir utilisé (MGA)'),
+                      keyboardType: TextInputType.number)),
+            ]),
+            const SizedBox(height: 8),
             DropdownButtonFormField<String>(
               initialValue: method,
               decoration: const InputDecoration(labelText: 'Mode de paiement'),
               items: const ['Espèces', 'Mobile Money', 'Chèque', 'Virement']
                   .map((m) => DropdownMenuItem(value: m, child: Text(m)))
                   .toList(),
-              onChanged: (v) => method = v ?? 'Espèces',
+              onChanged: (v) => setD(() => method = v ?? 'Espèces'),
             ),
-          ]),
+          ])),
         ),
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Annuler')),
@@ -101,15 +152,30 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
               onPressed: () => Navigator.pop(ctx, true),
               child: const Text('Enregistrer & générer reçu')),
         ],
-      ),
+      )),
     );
     if (ok == true && studentIdCtrl.value != null) {
       try {
+        final due = int.tryParse(dueCtrl.text.trim()) ?? 0;
+        final discount = int.tryParse(discountCtrl.text.trim()) ?? 0;
+        final scholarship = int.tryParse(scholarshipCtrl.text.trim()) ?? 0;
+        final credit = int.tryParse(creditCtrl.text.trim()) ?? 0;
+        final net = computeNetDue(
+          amountDueMga: due,
+          discountMga: discount,
+          scholarshipMga: scholarship,
+          creditNoteMga: credit,
+        );
         final receipt = await ref.read(financeRepositoryProvider).recordPayment(
               studentId: studentIdCtrl.value!,
+              feeStructureId: feeId,
               feeLabel: feeCtrl.text.trim().isEmpty ? 'Frais' : feeCtrl.text.trim(),
-              amountDueMga: int.tryParse(dueCtrl.text.trim()) ?? 0,
+              amountDueMga: due,
               amountPaidMga: int.tryParse(paidCtrl.text.trim()) ?? 0,
+              discountMga: discount,
+              scholarshipMga: scholarship,
+              creditNoteMga: credit,
+              discountReason: '${discount > 0 ? 'Remise ' : ''}${scholarship > 0 ? 'Bourse ' : ''}${credit > 0 ? 'Avoir' : ''}'.trim(),
               paymentMethod: method,
               actorUserId: auth.userId,
               actorUsername: auth.username,
@@ -117,8 +183,8 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
         ref.invalidate(paymentsProvider);
         ref.invalidate(financeTotalsProvider);
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Paiement enregistré. Reçu : $receipt')));
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              content: Text('Paiement enregistré. Reçu : $receipt — net à payer ${formatNumber(net)} MGA')));
         }
       } catch (e) {
         if (mounted) {
@@ -222,6 +288,7 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
   }
 
   Future<void> _printReceipt(PaymentRow r) async {
+    final est = await ref.read(establishmentProvider.future);
     final bytes = await ReceiptService().generateReceipt(
       ReceiptData(
         receiptNumber: r.receipt,
@@ -233,10 +300,16 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
         amountDue: r.due,
         amountPaid: r.paid,
         balance: r.balance,
+        discount: r.discount,
+        scholarship: r.scholarship,
+        creditNote: r.creditNote,
+        netDue: r.netDue,
         paymentMethod: r.method,
         cashier: null,
+        establishmentAddress: est.address,
+        establishmentPhone: est.phone,
       ),
-      establishmentName: 'Établissement',
+      establishmentName: est.name,
     );
     await Printing.layoutPdf(onLayout: (_) async => bytes, name: 'recu_${r.receipt}.pdf');
   }
@@ -253,8 +326,9 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
       final content = jsonDecode(tpl.contentJson as String) as Map<String, dynamic>;
       final pdf = DocumentStudioPdfService();
       final d = r.date ?? DateTime.now();
+      final est = await ref.read(establishmentProvider.future);
       final ctx = <String, dynamic>{
-        'etablissement': {'nom': 'Établissement scolaire', 'adresse': ''},
+        'etablissement': est.toTemplateContext(),
         'eleve': {'nom': r.studentName, 'matricule': r.matricule, 'classe': r.classLabel ?? ''},
         'annee': {'libelle': '2026-2027'},
         'date': {'jour': '${d.day.toString().padLeft(2,'0')}/${d.month.toString().padLeft(2,'0')}/${d.year}'},
@@ -374,12 +448,17 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
       appBar: AppBar(
         title: const Text('Finances & Caisse'),
         actions: [
-          OutlinedButton.icon(
-            onPressed: () => context.go('/finance/schedules'),
-            icon: const Icon(Icons.event_note_outlined, size: 16),
-            label: const Text('Échéanciers'),
+          IconButton(
+            tooltip: 'Catalogue de frais, bourses & avoirs',
+            onPressed: () => context.go('/finance/fees'),
+            icon: const Icon(Icons.price_change_outlined),
           ),
-          const SizedBox(width: 8),
+          IconButton(
+            tooltip: 'Échéanciers',
+            onPressed: () => context.go('/finance/schedules'),
+            icon: const Icon(Icons.event_note_outlined),
+          ),
+          const SizedBox(width: 4),
           OutlinedButton.icon(
             onPressed: _showClosuresAndReport,
             icon: const Icon(Icons.assessment_outlined, size: 16),

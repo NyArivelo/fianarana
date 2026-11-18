@@ -29,7 +29,7 @@ class StaffRepository {
       if (scopeStaffId == null) return const <StaffMember>[];
     }
     final q = db.select(db.staffMembers)..where((t) => t.isDeleted.equals(false));
-    if (scopeStaffId != null) q.where((t) => t.id.equals(scopeStaffId));
+    if (scopeStaffId != null) q.where((t) => t.id.equals(scopeStaffId!));
     if (query != null && query.trim().isNotEmpty) {
       final s = '%${query.trim()}%';
       q.where((t) => t.lastName.like(s) | t.firstName.like(s) | t.staffNumber.like(s));
@@ -91,7 +91,7 @@ class StaffRepository {
     return (db.select(db.timetableSessions)..where((t) => t.teacherId.equals(teacherId) & t.isDeleted.equals(false))).get();
   }
 
-  Future<List<FacilitiesData>> availableRooms() {
+  Future<List<Facility>> availableRooms() {
     return (db.select(db.facilities)..where((t) => t.isDeleted.equals(false))).get();
   }
 

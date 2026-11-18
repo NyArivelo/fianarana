@@ -45,7 +45,9 @@ String? requiredPermissionForRoute(String location) {
   if (loc == '/' || loc == '/bootstrap' || loc == '/setup' || loc == '/login') return null;
   if (loc.startsWith('/students')) return 'students.read';
   if (loc.startsWith('/attendance')) return 'attendance.read';
+  if (loc.startsWith('/discipline')) return 'discipline.read';
   if (loc.startsWith('/grades')) return 'grades.read';
+  if (loc.startsWith('/finance/fees')) return 'fees.read';
   if (loc.startsWith('/finance')) return 'finance.read';
   if (loc.startsWith('/timetable')) return 'timetable.read';
   if (loc.startsWith('/calendar')) return 'calendar.read';

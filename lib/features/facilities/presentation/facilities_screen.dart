@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import 'package:fianarana/core/utils/csv_export.dart';
 import 'package:fianarana/core/widgets/app_ui.dart';
@@ -202,6 +203,12 @@ class _FacilitiesScreenState extends ConsumerState<FacilitiesScreen> {
       appBar: AppBar(
         title: const Text('Locaux & équipements'),
         actions: [
+          OutlinedButton.icon(
+            onPressed: () => context.go('/facilities/operations'),
+            icon: const Icon(Icons.event_available_outlined, size: 16),
+            label: const Text('Réservations & maintenance'),
+          ),
+          const SizedBox(width: 8),
           OutlinedButton.icon(
             onPressed: canExport ? () => _exportFacilities(ref.read(facilitiesListProvider).valueOrNull?.where((r){
               final okKind = _kind == 'Tous' || r.kind == _kind;

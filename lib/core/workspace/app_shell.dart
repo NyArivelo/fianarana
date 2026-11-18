@@ -195,20 +195,21 @@ class AppShell extends ConsumerWidget {
 
   Widget _sidebar(BuildContext context, WidgetRef ref, bool isDark, Color border) {
     final pilotage = <Widget>[
-      if (_canSeeRoute(ref, '/')) _navItem(context, icon: Icons.dashboard_rounded, label: 'Tableau de bord', route: '/'),
-      if (_canSeeRoute(ref, '/students')) _navItem(context, icon: Icons.people_outline, label: 'Élèves & Inscriptions', route: '/students'),
-      if (_canSeeRoute(ref, '/attendance')) _navItem(context, icon: Icons.fact_check_outlined, label: 'Présences & Discipline', route: '/attendance'),
-      if (_canSeeRoute(ref, '/grades')) _navItem(context, icon: Icons.grading_outlined, label: 'Évaluations & Notes', route: '/grades'),
-      if (_canSeeRoute(ref, '/timetable')) _navItem(context, icon: Icons.calendar_month_outlined, label: 'Emplois du temps', route: '/timetable'),
-      if (_canSeeRoute(ref, '/calendar')) _navItem(context, icon: Icons.event_note_outlined, label: 'Calendrier & Éphéméride', route: '/calendar'),
+      if (_canSeeRoute(ref, '/')) _navItem(context, ref: ref, icon: Icons.dashboard_rounded, label: 'Tableau de bord', route: '/'),
+      if (_canSeeRoute(ref, '/students')) _navItem(context, ref: ref, icon: Icons.people_outline, label: 'Élèves & Inscriptions', route: '/students'),
+      if (_canSeeRoute(ref, '/attendance')) _navItem(context, ref: ref, icon: Icons.fact_check_outlined, label: 'Présences & Discipline', route: '/attendance'),
+      if (_canSeeRoute(ref, '/discipline')) _navItem(context, ref: ref, icon: Icons.gavel_outlined, label: 'Discipline & Sanctions', route: '/discipline'),
+      if (_canSeeRoute(ref, '/grades')) _navItem(context, ref: ref, icon: Icons.grading_outlined, label: 'Évaluations & Notes', route: '/grades'),
+      if (_canSeeRoute(ref, '/timetable')) _navItem(context, ref: ref, icon: Icons.calendar_month_outlined, label: 'Emplois du temps', route: '/timetable'),
+      if (_canSeeRoute(ref, '/calendar')) _navItem(context, ref: ref, icon: Icons.event_note_outlined, label: 'Calendrier & Éphéméride', route: '/calendar'),
     ];
     final admin = <Widget>[
-      if (_canSeeRoute(ref, '/finance')) _navItem(context, icon: Icons.payments_outlined, label: 'Finances & Caisse', route: '/finance'),
-      if (_canSeeRoute(ref, '/staff')) _navItem(context, icon: Icons.badge_outlined, label: 'Personnel & RH', route: '/staff'),
-      if (_canSeeRoute(ref, '/library')) _navItem(context, icon: Icons.menu_book_outlined, label: 'Bibliothèque & Quitus', route: '/library'),
-      if (_canSeeRoute(ref, '/facilities')) _navItem(context, icon: Icons.meeting_room_outlined, label: 'Locaux & Équipements', route: '/facilities'),
-      if (_canSeeRoute(ref, '/documents')) _navItem(context, icon: Icons.auto_awesome_mosaic_outlined, label: 'Document Studio', route: '/documents'),
-      if (_canSeeRoute(ref, '/settings')) _navItem(context, icon: Icons.settings_outlined, label: 'Paramètres', route: '/settings'),
+      if (_canSeeRoute(ref, '/finance')) _navItem(context, ref: ref, icon: Icons.payments_outlined, label: 'Finances & Caisse', route: '/finance'),
+      if (_canSeeRoute(ref, '/staff')) _navItem(context, ref: ref, icon: Icons.badge_outlined, label: 'Personnel & RH', route: '/staff'),
+      if (_canSeeRoute(ref, '/library')) _navItem(context, ref: ref, icon: Icons.menu_book_outlined, label: 'Bibliothèque & Quitus', route: '/library'),
+      if (_canSeeRoute(ref, '/facilities')) _navItem(context, ref: ref, icon: Icons.meeting_room_outlined, label: 'Locaux & Équipements', route: '/facilities'),
+      if (_canSeeRoute(ref, '/documents')) _navItem(context, ref: ref, icon: Icons.auto_awesome_mosaic_outlined, label: 'Document Studio', route: '/documents'),
+      if (_canSeeRoute(ref, '/settings')) _navItem(context, ref: ref, icon: Icons.settings_outlined, label: 'Paramètres', route: '/settings'),
     ];
 
     return Container(
@@ -295,7 +296,7 @@ class AppShell extends ConsumerWidget {
     return location == route || location.startsWith('$route/');
   }
 
-  Widget _navItem(BuildContext context, {required IconData icon, required String label, required String route}) {
+  Widget _navItem(BuildContext context, {required WidgetRef ref, required IconData icon, required String label, required String route}) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final ws = ref.watch(tabWorkspaceProvider);
     final activeRoute = ws.tabs.isNotEmpty ? ws.tabs[ws.activeIndex].route : location;

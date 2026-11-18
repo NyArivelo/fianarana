@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:crypto/crypto.dart';
 import 'package:drift/drift.dart';
 import 'package:flutter/services.dart' show rootBundle;
 
@@ -84,6 +85,7 @@ class SeedImporter {
     counts['decisions_conseil'] = await _importCouncilDecisions();
     counts['corbeille_test'] = await _importRecycleBinTestData();
     counts['donnees_test_fonctions'] = await _importFeatureTestData();
+    counts['frais_discipline_locaux'] = await _importFeesDisciplineFacilities();
     // RBAC/permissions de base (donn�es de test s�curit�) + trace d'import
     await RbacSeed(db).ensureDefaults();
     await AuditService(db).log(
@@ -173,12 +175,12 @@ class SeedImporter {
       name: 'Attestation de test (Document Studio)',
       docType: 'attestation',
       pageFormat: const Value('A4'),
-      contentJson: jsonEncode({
+      contentJson: Value(jsonEncode({
         'title': 'ATTESTATION (TEST)',
         'header': '{{etablissement.nom}}',
         'body': 'Ceci est un mod�le de test.\n�l�ve : {{eleve.nom}} ({{eleve.matricule}})\nClasse : {{eleve.classe}}',
         'footer': 'Document de test - {{date.jour}}',
-      }),
+      })),
       description: const Value('Mod�le de test pour valider Document Studio'),
       isDefault: const Value(false),
       isActive: const Value(true),
@@ -808,5 +810,162 @@ class SeedImporter {
     } catch (_) {
       return 0;
     }
+  }
+
+  /// Données de test pour les fonctionnalités livrées : catalogue de frais,
+  /// bourses/avoirs, discipline et réservations/maintenance des locaux.
+  Future<int> _importFeesDisciplineFacilities() async {
+    var n = 0;
+    final now = DateTime.now();
+    final year = await (db.select(db.schoolYears)
+          ..where((t) => t.isDeleted.equals(false))
+          ..orderBy([(t) => OrderingTerm.desc(t.startDate)])
+          ..limit(1))
+        .getSingleOrNull();
+    final student = await (db.select(db.students)
+          ..where((t) => t.isDeleted.equals(false))
+          ..limit(1))
+        .getSingleOrNull();
+    final secondStudent = await (db.select(db.students)
+          ..where((t) => t.isDeleted.equals(false))
+          ..limit(1, offset: 1))
+        .getSingleOrNull();
+    final enrollment = student == null
+        ? null
+        : await (db.select(db.enrollments)
+              ..where((t) => t.studentId.equals(student.id) & t.isDeleted.equals(false))
+              ..orderBy([(t) => OrderingTerm.desc(t.updatedAt)])
+              ..limit(1))
+            .getSingleOrNull();
+    final level = await (db.select(db.levels)
+          ..where((t) => t.isDeleted.equals(false))
+          ..limit(1))
+        .getSingleOrNull();
+    final facility = await (db.select(db.facilities)
+          ..where((t) => t.isDeleted.equals(false))
+          ..limit(1))
+        .getSingleOrNull();
+    final adminUser = await (db.select(db.users)
+          ..where((t) => t.isDeleted.equals(false))
+          ..limit(1))
+        .getSingleOrNull();
+
+    // Catalogue de frais
+    Future<void> fee(String id, String code, String label, String category, int amount, int installments) async {
+      await db.into(db.feeStructures).insertOnConflictUpdate(FeeStructuresCompanion.insert(
+        id: Value(id),
+        schoolYearId: Value(year?.id),
+        levelId: Value(level?.id),
+        code: code,
+        label: label,
+        category: Value(category),
+        amountMga: Value(amount),
+        installmentCount: Value(installments),
+        dueDate: Value(now.add(const Duration(days: 30))),
+        isMandatory: const Value(true),
+        status: const Value('Actif'),
+      ));
+      n++;
+    }
+
+    await fee('test-fee-scolarite', 'FRAIS-SCOL', 'Scolarité annuelle', 'Scolarité', 600000, 3);
+    await fee('test-fee-inscription', 'FRAIS-INSC', 'Frais d\'inscription', 'Inscription', 50000, 1);
+    await fee('test-fee-examen', 'FRAIS-EXAM', 'Frais d\'examen', 'Examens', 25000, 1);
+
+    if (student != null) {
+      await db.into(db.studentDiscounts).insertOnConflictUpdate(StudentDiscountsCompanion.insert(
+        id: const Value('test-discount-bourse'),
+        studentId: student.id,
+        schoolYearId: Value(year?.id),
+        label: 'Bourse mérite 25%',
+        type: const Value('Bourse'),
+        amountMga: const Value(0),
+        percent: const Value(25),
+        reason: const Value('Résultats scolaires remarquables (donnée de test)'),
+        validFrom: Value(now.subtract(const Duration(days: 30))),
+        validTo: Value(now.add(const Duration(days: 200))),
+        status: const Value('Actif'),
+        approvedByUserId: Value(adminUser?.id),
+      ));
+      n++;
+    }
+    if (secondStudent != null) {
+      await db.into(db.creditNotes).insertOnConflictUpdate(CreditNotesCompanion.insert(
+        id: const Value('test-credit-note-1'),
+        studentId: secondStudent.id,
+        receiptNumber: const Value('REC-TEST-0001'),
+        amountMga: const Value(10000),
+        reason: 'Trop-perçu constaté (donnée de test)',
+        issuedDate: Value(now.subtract(const Duration(days: 5))),
+        status: const Value('Émise'),
+        approvedByUserId: Value(adminUser?.id),
+      ));
+      n++;
+    }
+
+    // Discipline
+    if (student != null) {
+      await db.into(db.disciplineCases).insertOnConflictUpdate(DisciplineCasesCompanion.insert(
+        id: const Value('test-discipline-case-1'),
+        studentId: student.id,
+        classId: Value(enrollment?.classId),
+        incidentDate: now.subtract(const Duration(days: 3)),
+        category: const Value('Retard répété'),
+        severity: const Value('Faible'),
+        facts: 'Trois retards non justifiés en une semaine (donnée de test).',
+        reportedByUserId: Value(adminUser?.id),
+        status: const Value('En cours'),
+        convocationDate: Value(now.add(const Duration(days: 2))),
+        sanction: const Value('Retenue de 1 heure'),
+        notes: const Value('Dossier de démonstration — module discipline.'),
+      ));
+      await db.into(db.disciplineActions).insertOnConflictUpdate(DisciplineActionsCompanion.insert(
+        id: const Value('test-discipline-action-1'),
+        caseId: 'test-discipline-case-1',
+        actionType: 'Convocation',
+        description: const Value('Convoquer l\'élève et le responsable légal'),
+        dueDate: Value(now.add(const Duration(days: 2))),
+        status: const Value('À faire'),
+        actorUserId: Value(adminUser?.id),
+      ));
+      await db.into(db.disciplineActions).insertOnConflictUpdate(DisciplineActionsCompanion.insert(
+        id: const Value('test-discipline-action-2'),
+        caseId: 'test-discipline-case-1',
+        actionType: 'Notification parents',
+        description: const Value('Informer le responsable légal par téléphone'),
+        dueDate: Value(now.add(const Duration(days: 1))),
+        executedAt: Value(now.subtract(const Duration(hours: 6))),
+        status: const Value('Exécutée'),
+        actorUserId: Value(adminUser?.id),
+      ));
+      n += 3;
+    }
+
+    // Locaux : réservation + maintenance
+    if (facility != null) {
+      await db.into(db.facilityReservations).insertOnConflictUpdate(FacilityReservationsCompanion.insert(
+        id: const Value('test-reservation-1'),
+        facilityId: facility.id,
+        title: 'Réunion parents-enseignants',
+        purpose: const Value('Rencontre trimestrielle (donnée de test)'),
+        startDate: now.add(const Duration(days: 7, hours: 2)),
+        endDate: now.add(const Duration(days: 7, hours: 4)),
+        requestedByUserId: Value(adminUser?.id),
+        status: const Value('Validée'),
+      ));
+      await db.into(db.facilityMaintenance).insertOnConflictUpdate(FacilityMaintenanceCompanion.insert(
+        id: const Value('test-maintenance-1'),
+        facilityId: facility.id,
+        type: const Value('Préventive'),
+        description: 'Vérification des installations électriques (donnée de test)',
+        startDate: now.add(const Duration(days: 14)),
+        endDate: Value(now.add(const Duration(days: 15))),
+        costMga: const Value(75000),
+        provider: const Value('Prestataire local'),
+        status: const Value('Planifiée'),
+      ));
+      n += 2;
+    }
+    return n;
   }
 }

@@ -14,6 +14,7 @@ class GradeRow {
   final String studentId;
   final String studentName;
   final String matricule;
+  final String? classId;
   final String? classLabel;
   final String? subjectName;
   final String? subjectId;
@@ -33,6 +34,7 @@ class GradeRow {
     required this.studentId,
     required this.studentName,
     required this.matricule,
+    required this.classId,
     required this.classLabel,
     required this.subjectName,
     required this.subjectId,
@@ -108,6 +110,7 @@ class GradesRepository {
         studentId: st.id,
         studentName: '${st.lastName} ${st.firstName}',
         matricule: st.matricule,
+        classId: ev.classId,
         classLabel: cl?.label,
         subjectName: sb?.name ?? sb?.code,
         subjectId: ev.subjectId,

@@ -138,7 +138,7 @@ class _SchedulesScreenState extends ConsumerState<SchedulesScreen> {
         final sch = r.schedule;
         final reste = (sch.amountDueMga - sch.amountPaidMga).clamp(0, 1 << 30);
         final due = sch.dueDate == null ? '' : '${sch.dueDate!.year}-${sch.dueDate!.month.toString().padLeft(2, '0')}-${sch.dueDate!.day.toString().padLeft(2, '0')}';
-        final rel = sch.lastReminderAt == null ? '' : sch.lastReminderAt!.toIso8601String();
+        final rel = sch.status.contains('relanc') ? sch.updatedAt.toIso8601String() : '';
         return <String?>[
           r.studentName ?? '',
           r.matricule ?? '',

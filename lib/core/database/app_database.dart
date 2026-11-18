@@ -49,12 +49,19 @@ LazyDatabase _openConnection() {
     ClassCouncils,
     CouncilDecisions,
     AttendanceEvents,
+    FeeStructures,
+    StudentDiscounts,
+    CreditNotes,
+    DisciplineCases,
+    DisciplineActions,
     Payments,
     PaymentSchedules,
     CashClosures,
     LibraryItems,
     LibraryLoans,
     Facilities,
+    FacilityReservations,
+    FacilityMaintenance,
     TimetableSessions,
     CalendarEvents,
     AuditLogs,
@@ -73,7 +80,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 7;
+  int get schemaVersion => 8;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -108,6 +115,24 @@ class AppDatabase extends _$AppDatabase {
           }
           if (from < 7) {
             await m.createTable(bulletinSnapshots);
+          }
+          if (from < 8) {
+            // Catalogue de frais, remises/bourses, notes de crédit
+            await m.createTable(feeStructures);
+            await m.createTable(studentDiscounts);
+            await m.createTable(creditNotes);
+            await m.addColumn(payments, payments.feeStructureId);
+            await m.addColumn(payments, payments.discountMga);
+            await m.addColumn(payments, payments.scholarshipMga);
+            await m.addColumn(payments, payments.creditNoteMga);
+            await m.addColumn(payments, payments.netDueMga);
+            await m.addColumn(payments, payments.discountReason);
+            // Discipline
+            await m.createTable(disciplineCases);
+            await m.createTable(disciplineActions);
+            // Locaux : réservations et maintenance
+            await m.createTable(facilityReservations);
+            await m.createTable(facilityMaintenance);
           }
         },
         beforeOpen: (details) async {

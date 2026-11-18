@@ -161,7 +161,7 @@ class TimetableRepository {
       q.where((t) => t.classId.equals(classId));
     } else if (scopeClasses != null) {
       if (scopeStaffId != null) {
-        q.where((t) => t.classId.isIn(scopeClasses) | t.teacherId.equals(scopeStaffId));
+        q.where((t) => t.classId.isIn(scopeClasses) | t.teacherId.equals(scopeStaffId!));
       } else {
         q.where((t) => t.classId.isIn(scopeClasses));
       }

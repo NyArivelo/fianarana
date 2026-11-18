@@ -175,7 +175,7 @@ class LibraryRepository {
     await _require(actorUserId, 'library.read');
     final scopeClasses = await AffectationScope(db).allowedClassIdsForUser(actorUserId);
     final scopedStudentIds = await _studentIdsInClasses(scopeClasses);
-    if (scopeClasses != null && scopedStudentIds.isEmpty) return const <LibraryLoanRow>[];
+    if (scopedStudentIds != null && scopedStudentIds.isEmpty) return const <LibraryLoanRow>[];
     final l = db.libraryLoans;
     final i = db.libraryItems;
     final s = db.students;
@@ -208,7 +208,7 @@ class LibraryRepository {
     }).toList();
   }
 
-  Future<Set<String>?> _studentIdsInClasses(Set<String>? scopeClasses) async {
+  Future<Set<String>?> _studentIdsInClasses(Iterable<String>? scopeClasses) async {
     if (scopeClasses == null) return null;
     if (scopeClasses.isEmpty) return <String>{};
     final rows = await (db.select(db.enrollments)
@@ -252,7 +252,7 @@ class LibraryRepository {
     await _require(actorUserId, 'students.read');
     final scopeClasses = await AffectationScope(db).allowedClassIdsForUser(actorUserId);
     final scopedStudentIds = await _studentIdsInClasses(scopeClasses);
-    if (scopeClasses != null && scopedStudentIds.isEmpty) return const <LibraryQuitusRow>[];
+    if (scopedStudentIds != null && scopedStudentIds.isEmpty) return const <LibraryQuitusRow>[];
     final q = db.select(db.students)..where((t) => t.isDeleted.equals(false));
     if (scopedStudentIds != null) q.where((t) => t.id.isIn(scopedStudentIds));
     q.orderBy([(t) => OrderingTerm.asc(t.lastName)]);

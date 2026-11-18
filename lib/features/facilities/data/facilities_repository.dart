@@ -92,9 +92,9 @@ class FacilitiesRepository {
       final q = db.select(db.timetableSessions)
         ..where((t) => t.isDeleted.equals(false) & t.roomId.isNotNull());
       if (scopeStaffId != null && scopeClasses.isNotEmpty) {
-        q.where((t) => t.classId.isIn(scopeClasses) | t.teacherId.equals(scopeStaffId));
+        q.where((t) => t.classId.isIn(scopeClasses) | t.teacherId.equals(scopeStaffId!));
       } else if (scopeStaffId != null) {
-        q.where((t) => t.teacherId.equals(scopeStaffId));
+        q.where((t) => t.teacherId.equals(scopeStaffId!));
       } else {
         q.where((t) => t.classId.isIn(scopeClasses));
       }
@@ -102,17 +102,19 @@ class FacilitiesRepository {
       allowedRoomIds = scopedSessions.map((s) => s.roomId).whereType<String>().toSet();
     }
 
+    final allowedRoomIdsList = allowedRoomIds?.toList() ?? const <String>[];
+
     final fq = db.select(db.facilities)..where((t) => t.isDeleted.equals(false));
     if (allowedRoomIds != null) {
-      if (allowedRoomIds.isEmpty) return const <FacilityRow>[];
-      fq.where((t) => t.id.isIn(allowedRoomIds.toList()));
+      if (allowedRoomIds!.isEmpty) return const <FacilityRow>[];
+      fq.where((t) => t.id.isIn(allowedRoomIdsList));
     }
     fq.orderBy([(t) => OrderingTerm.asc(t.name)]);
     final facilities = await fq.get();
 
     final sq = db.select(db.timetableSessions)..where((t) => t.isDeleted.equals(false) & t.roomId.isNotNull());
     if (allowedRoomIds != null) {
-      sq.where((t) => t.roomId.isIn(allowedRoomIds.toList()));
+      sq.where((t) => t.roomId.isIn(allowedRoomIdsList));
     }
     final sessions = await sq.get();
     final counts = <String, int>{};
@@ -185,4 +187,249 @@ class FacilitiesRepository {
     );
     return facilityId;
   }
+
+  // --- Réservations ---
+
+  Future<List<FacilityReservation>> listReservations({
+    String? facilityId,
+    String? actorUserId,
+    bool upcomingOnly = false,
+  }) async {
+    await _require(actorUserId, 'facilities.read');
+    final q = db.select(db.facilityReservations)..where((t) => t.isDeleted.equals(false));
+    if (facilityId != null && facilityId.isNotEmpty) {
+      q.where((t) => t.facilityId.equals(facilityId));
+    }
+    if (upcomingOnly) {
+      q.where((t) => t.endDate.isBiggerOrEqualValue(DateTime.now()));
+    }
+    q.orderBy([(t) => OrderingTerm.asc(t.startDate)]);
+    return q.get();
+  }
+
+  /// Vérifie qu'aucune réservation validée ne chevauche le créneau demandé.
+  Future<bool> hasReservationConflict({
+    required String facilityId,
+    required DateTime startDate,
+    required DateTime endDate,
+    String? ignoreReservationId,
+    String? actorUserId,
+  }) async {
+    final rows = await listReservations(facilityId: facilityId, actorUserId: actorUserId);
+    return rows.any((r) =>
+        r.id != ignoreReservationId &&
+        (r.status == 'Validée' || r.status == 'Demandée') &&
+        reservationsOverlap(startDate, endDate, r.startDate, r.endDate));
+  }
+
+  Future<String> saveReservation({
+    String? id,
+    required String facilityId,
+    required String title,
+    String? purpose,
+    required DateTime startDate,
+    required DateTime endDate,
+    String status = 'Demandée',
+    String? notes,
+    String? actorUserId,
+    String? actorUsername,
+  }) async {
+    await _require(actorUserId, id == null ? 'facilities.create' : 'facilities.update');
+    if (!endDate.isAfter(startDate)) {
+      throw ArgumentError('La fin de réservation doit suivre le début.');
+    }
+    if (status == 'Validée' &&
+        await hasReservationConflict(
+          facilityId: facilityId,
+          startDate: startDate,
+          endDate: endDate,
+          ignoreReservationId: id,
+          actorUserId: actorUserId,
+        )) {
+      throw StateError('Conflit de réservation sur ce créneau.');
+    }
+    final now = DateTime.now();
+    if (id == null || id.isEmpty) {
+      final reservationId = newUuid();
+      await db.into(db.facilityReservations).insert(FacilityReservationsCompanion.insert(
+        id: Value(reservationId),
+        facilityId: facilityId,
+        title: title.trim(),
+        purpose: Value(purpose),
+        startDate: startDate,
+        endDate: endDate,
+        requestedByUserId: Value(actorUserId),
+        status: Value(status),
+        notes: Value(notes),
+        createdAt: Value(now),
+        updatedAt: Value(now),
+      ));
+      await _audit.log(
+        userId: actorUserId,
+        username: actorUsername,
+        module: 'Locaux',
+        targetObject: reservationId,
+        description: 'Réservation $status: ${title.trim()}',
+        result: 'Succès',
+      );
+      return reservationId;
+    }
+    await (db.update(db.facilityReservations)..where((t) => t.id.equals(id))).write(
+      FacilityReservationsCompanion(
+        facilityId: Value(facilityId),
+        title: Value(title.trim()),
+        purpose: Value(purpose),
+        startDate: Value(startDate),
+        endDate: Value(endDate),
+        status: Value(status),
+        notes: Value(notes),
+        updatedAt: Value(now),
+      ),
+    );
+    await _audit.log(
+      userId: actorUserId,
+      username: actorUsername,
+      module: 'Locaux',
+      targetObject: id,
+      description: 'Modification réservation: ${title.trim()} ($status)',
+      result: 'Succès',
+    );
+    return id;
+  }
+
+  Future<void> cancelReservation({
+    required String id,
+    String? actorUserId,
+    String? actorUsername,
+  }) async {
+    await _require(actorUserId, 'facilities.update');
+    final now = DateTime.now();
+    await (db.update(db.facilityReservations)..where((t) => t.id.equals(id))).write(
+      FacilityReservationsCompanion(
+        status: const Value('Annulée'),
+        updatedAt: Value(now),
+      ),
+    );
+    await _audit.log(
+      userId: actorUserId,
+      username: actorUsername,
+      module: 'Locaux',
+      targetObject: id,
+      description: 'Annulation réservation $id',
+      result: 'Succès',
+    );
+  }
+
+  // --- Maintenance ---
+
+  Future<List<FacilityMaintenanceData>> listMaintenance({
+    String? facilityId,
+    String? actorUserId,
+  }) async {
+    await _require(actorUserId, 'facilities.read');
+    final q = db.select(db.facilityMaintenance)..where((t) => t.isDeleted.equals(false));
+    if (facilityId != null && facilityId.isNotEmpty) {
+      q.where((t) => t.facilityId.equals(facilityId));
+    }
+    q.orderBy([(t) => OrderingTerm.desc(t.startDate)]);
+    return q.get();
+  }
+
+  Future<String> saveMaintenance({
+    String? id,
+    required String facilityId,
+    String type = 'Corrective',
+    required String description,
+    required DateTime startDate,
+    DateTime? endDate,
+    int costMga = 0,
+    String? provider,
+    String status = 'Planifiée',
+    String? notes,
+    String? actorUserId,
+    String? actorUsername,
+  }) async {
+    await _require(actorUserId, id == null ? 'facilities.create' : 'facilities.update');
+    final now = DateTime.now();
+    if (id == null || id.isEmpty) {
+      final maintenanceId = newUuid();
+      await db.into(db.facilityMaintenance).insert(FacilityMaintenanceCompanion.insert(
+        id: Value(maintenanceId),
+        facilityId: facilityId,
+        type: Value(type),
+        description: description.trim(),
+        startDate: startDate,
+        endDate: Value(endDate),
+        costMga: Value(costMga),
+        provider: Value(provider),
+        status: Value(status),
+        notes: Value(notes),
+        createdAt: Value(now),
+        updatedAt: Value(now),
+      ));
+      await _audit.log(
+        userId: actorUserId,
+        username: actorUsername,
+        module: 'Locaux',
+        targetObject: maintenanceId,
+        description: 'Maintenance $type planifiée: ${description.trim()}',
+        result: 'Succès',
+      );
+      return maintenanceId;
+    }
+    await (db.update(db.facilityMaintenance)..where((t) => t.id.equals(id))).write(
+      FacilityMaintenanceCompanion(
+        facilityId: Value(facilityId),
+        type: Value(type),
+        description: Value(description.trim()),
+        startDate: Value(startDate),
+        endDate: Value(endDate),
+        costMga: Value(costMga),
+        provider: Value(provider),
+        status: Value(status),
+        notes: Value(notes),
+        updatedAt: Value(now),
+      ),
+    );
+    await _audit.log(
+      userId: actorUserId,
+      username: actorUsername,
+      module: 'Locaux',
+      targetObject: id,
+      description: 'Modification maintenance: ${description.trim()} ($status)',
+      result: 'Succès',
+    );
+    return id;
+  }
+
+  Future<void> completeMaintenance({
+    required String id,
+    int? costMga,
+    String? actorUserId,
+    String? actorUsername,
+  }) async {
+    await _require(actorUserId, 'facilities.update');
+    final now = DateTime.now();
+    await (db.update(db.facilityMaintenance)..where((t) => t.id.equals(id))).write(
+      FacilityMaintenanceCompanion(
+        status: const Value('Terminée'),
+        endDate: Value(now),
+        costMga: costMga == null ? const Value.absent() : Value(costMga),
+        updatedAt: Value(now),
+      ),
+    );
+    await _audit.log(
+      userId: actorUserId,
+      username: actorUsername,
+      module: 'Locaux',
+      targetObject: id,
+      description: 'Maintenance terminée $id',
+      result: 'Succès',
+    );
+  }
+}
+
+/// Deux créneaux se chevauchent si l'un commence avant la fin de l'autre.
+bool reservationsOverlap(DateTime startA, DateTime endA, DateTime startB, DateTime endB) {
+  return startA.isBefore(endB) && startB.isBefore(endA);
 }

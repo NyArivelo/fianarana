@@ -9,6 +9,7 @@ import 'package:printing/printing.dart';
 
 import 'package:fianarana/core/database/app_database.dart';
 import 'package:fianarana/core/database/database_provider.dart';
+import 'package:fianarana/core/services/establishment_service.dart';
 import 'package:fianarana/core/utils/csv_export.dart';
 import 'package:fianarana/core/utils/xlsx_export.dart';
 import 'package:fianarana/features/auth/application/auth_controller.dart';
@@ -317,8 +318,9 @@ class _StaffScreenState extends ConsumerState<StaffScreen> with SingleTickerProv
       final content = jsonDecode(tpl.contentJson as String) as Map<String, dynamic>;
       final pdf = DocumentStudioPdfService();
       final now = DateTime.now();
+      final est = await ref.read(establishmentProvider.future);
       final ctx = <String, dynamic>{
-        'etablissement': {'nom': 'Établissement scolaire', 'adresse': ''},
+        'etablissement': est.toTemplateContext(),
         'personnel': {
           'nom': '${s.lastName} ${s.firstName}',
           'matricule': s.staffNumber,

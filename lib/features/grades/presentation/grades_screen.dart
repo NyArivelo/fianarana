@@ -10,7 +10,10 @@ import 'package:printing/printing.dart';
 import 'dart:convert';
 
 import 'package:fianarana/core/database/database_provider.dart';
+import 'package:fianarana/core/services/establishment_service.dart';
 import 'package:fianarana/core/settings/app_config.dart';
+import 'package:fianarana/core/utils/csv_export.dart';
+import 'package:fianarana/core/utils/xlsx_export.dart';
 import 'package:fianarana/core/widgets/app_ui.dart';
 import 'package:fianarana/features/auth/application/auth_controller.dart';
 import 'package:fianarana/core/security/permission_providers.dart';
@@ -132,6 +135,7 @@ class _GradesScreenState extends ConsumerState<GradesScreen> {
         'observation': g.observation,
         'label': g.label,
       }).toList();
+      final est = await ref.read(establishmentProvider.future);
       return {
         'student': {'id': row.studentId, 'name': row.studentName, 'matricule': row.matricule, 'classId': row.classId ?? _classId, 'classLabel': row.classLabel},
         'periodId': inferredPeriodId,
@@ -143,7 +147,7 @@ class _GradesScreenState extends ConsumerState<GradesScreen> {
         'councilDecision': councilDecision,
         'appreciation': appreciation,
         'generatedAt': DateTime.now().toIso8601String(),
-        'establishmentName': 'établissement scolaire',
+        'establishmentName': est.name,
       };
     }
     Future<void> renderStandard(Map<String, dynamic> data) async {
@@ -205,8 +209,9 @@ class _GradesScreenState extends ConsumerState<GradesScreen> {
         final lines = subjects.map((g0){ final m=(g0 as Map).cast<String,dynamic>(); final sc=m['score']; final exempt=m['isExempt']==true; final ml=(m['masteryLevel']??'').toString(); return '- ${m['subject']}: ${exempt ? "Dispensé" : (sc!=null ? (sc as num).toDouble().toStringAsFixed(2) : "-")}${ml.isNotEmpty ? " ($ml)" : ""}'; }).join('\n');
         final now = DateTime.now();
         final student = (live['student'] as Map).cast<String,dynamic>();
+        final est = await ref.read(establishmentProvider.future);
         final ctx = <String, dynamic>{
-          'etablissement': {'nom': live['establishmentName'] ?? 'Établissement scolaire', 'adresse': ''},
+          'etablissement': est.toTemplateContext(),
           'eleve': {'nom': student['name'] ?? row.studentName, 'matricule': student['matricule'] ?? row.matricule, 'classe': student['classLabel'] ?? row.classLabel ?? ''},
           'annee': {'libelle': '2026-2027'},
           'periode': {'libelle': live['periodLabel'] ?? 'Période'},

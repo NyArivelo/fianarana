@@ -147,12 +147,10 @@ class Students extends Table with UuidPrimaryKey, AuditColumns {
   TextColumn get medicalNotes => text().nullable()();
 }
 
-class StudentGuardians extends Table {
+class StudentGuardians extends Table with UuidPrimaryKey, AuditColumns {
   TextColumn get studentId => text().references(Students, #id)();
   TextColumn get guardianId => text().references(Guardians, #id)();
   BoolColumn get isPrimary => boolean().withDefault(const Constant(false))();
-  @override
-  Set<Column> get primaryKey => {studentId, guardianId};
 }
 
 class Enrollments extends Table with UuidPrimaryKey, AuditColumns {
@@ -241,12 +239,102 @@ class AttendanceEvents extends Table with UuidPrimaryKey, AuditColumns {
 }
 
 // --- Finance ---
+/// Catalogue des frais / grille tarifaire (par année et niveau).
+/// Remplace progressivement la saisie libre du libellé de frais.
+class FeeStructures extends Table with UuidPrimaryKey, AuditColumns {
+  TextColumn get schoolYearId => text().nullable().references(SchoolYears, #id)();
+  TextColumn get levelId => text().nullable().references(Levels, #id)();
+  TextColumn get code => text()();
+  TextColumn get label => text()();
+  TextColumn get category => text().withDefault(const Constant('Scolarité'))();
+  IntColumn get amountMga => integer().withDefault(const Constant(0))();
+  IntColumn get installmentCount => integer().withDefault(const Constant(1))();
+  DateTimeColumn get dueDate => dateTime().nullable()();
+  BoolColumn get isMandatory => boolean().withDefault(const Constant(true))();
+  TextColumn get status => text().withDefault(const Constant('Actif'))();
+  @override
+  List<Set<Column>> get uniqueKeys => [{code}];
+}
+
+/// Bourses, remises et exonérations accordées à un élève.
+class StudentDiscounts extends Table with UuidPrimaryKey, AuditColumns {
+  TextColumn get studentId => text().references(Students, #id)();
+  TextColumn get schoolYearId => text().nullable().references(SchoolYears, #id)();
+  TextColumn get label => text()();
+  /// Bourse, Remise, Exonération, Fratrie...
+  TextColumn get type => text().withDefault(const Constant('Remise'))();
+  IntColumn get amountMga => integer().withDefault(const Constant(0))();
+  RealColumn get percent => real().withDefault(const Constant(0))();
+  TextColumn get reason => text().nullable()();
+  DateTimeColumn get validFrom => dateTime().nullable()();
+  DateTimeColumn get validTo => dateTime().nullable()();
+  TextColumn get status => text().withDefault(const Constant('Actif'))();
+  TextColumn get approvedByUserId => text().nullable().references(Users, #id)();
+}
+
+/// Notes de crédit (avoir) émises sur un trop-perçu ou une annulation.
+class CreditNotes extends Table with UuidPrimaryKey, AuditColumns {
+  TextColumn get studentId => text().references(Students, #id)();
+  TextColumn get receiptNumber => text().nullable()();
+  IntColumn get amountMga => integer().withDefault(const Constant(0))();
+  TextColumn get reason => text()();
+  DateTimeColumn get issuedDate => dateTime().withDefault(currentDateAndTime)();
+  /// Émise, Utilisée, Annulée
+  TextColumn get status => text().withDefault(const Constant('Émise'))();
+  TextColumn get usedOnPaymentId => text().nullable().references(Payments, #id)();
+  TextColumn get approvedByUserId => text().nullable().references(Users, #id)();
+}
+
+/// Dossier de discipline : fait, gravité, suites et suivi d'exécution.
+class DisciplineCases extends Table with UuidPrimaryKey, AuditColumns {
+  TextColumn get studentId => text().references(Students, #id)();
+  TextColumn get classId => text().nullable().references(Classes, #id)();
+  DateTimeColumn get incidentDate => dateTime()();
+  /// Incident, Indiscipline, Absence répétée, Violence, Tricherie...
+  TextColumn get category => text().withDefault(const Constant('Incident'))();
+  /// Faible, Moyenne, Grave, Très grave
+  TextColumn get severity => text().withDefault(const Constant('Moyenne'))();
+  TextColumn get facts => text()();
+  TextColumn get reportedByUserId => text().nullable().references(Users, #id)();
+  /// Ouvert, En cours, Traité, Clos
+  TextColumn get status => text().withDefault(const Constant('Ouvert'))();
+  DateTimeColumn get convocationDate => dateTime().nullable()();
+  DateTimeColumn get commissionDate => dateTime().nullable()();
+  TextColumn get decision => text().nullable()();
+  TextColumn get sanction => text().nullable()();
+  DateTimeColumn get sanctionStartDate => dateTime().nullable()();
+  DateTimeColumn get sanctionEndDate => dateTime().nullable()();
+  BoolColumn get sanctionExecuted => boolean().withDefault(const Constant(false))();
+  DateTimeColumn get closedAt => dateTime().nullable()();
+  TextColumn get notes => text().nullable()();
+}
+
+/// Actions / étapes du dossier de discipline (suivi d'exécution).
+class DisciplineActions extends Table with UuidPrimaryKey, AuditColumns {
+  TextColumn get caseId => text().references(DisciplineCases, #id)();
+  /// Convocation, Entretien, Commission, Sanction, Notification parents...
+  TextColumn get actionType => text()();
+  TextColumn get description => text().nullable()();
+  DateTimeColumn get dueDate => dateTime().nullable()();
+  DateTimeColumn get executedAt => dateTime().nullable()();
+  /// À faire, En cours, Exécutée, Annulée
+  TextColumn get status => text().withDefault(const Constant('À faire'))();
+  TextColumn get actorUserId => text().nullable().references(Users, #id)();
+}
+
 class Payments extends Table with UuidPrimaryKey, AuditColumns {
   TextColumn get receiptNumber => text().unique()();
   TextColumn get studentId => text().references(Students, #id)();
   TextColumn get classId => text().nullable().references(Classes, #id)();
   TextColumn get feeLabel => text()();
+  TextColumn get feeStructureId => text().nullable().references(FeeStructures, #id)();
   IntColumn get amountDueMga => integer().withDefault(const Constant(0))();
+  /// Remise appliquée (bourse incluse) avant calcul du net.
+  IntColumn get discountMga => integer().withDefault(const Constant(0))();
+  IntColumn get scholarshipMga => integer().withDefault(const Constant(0))();
+  IntColumn get creditNoteMga => integer().withDefault(const Constant(0))();
+  IntColumn get netDueMga => integer().withDefault(const Constant(0))();
+  TextColumn get discountReason => text().nullable()();
   IntColumn get amountPaidMga => integer().withDefault(const Constant(0))();
   IntColumn get balanceMga => integer().withDefault(const Constant(0))();
   DateTimeColumn get paymentDate => dateTime().nullable()();
@@ -308,6 +396,34 @@ class Facilities extends Table with UuidPrimaryKey, AuditColumns {
   TextColumn get category => text().nullable()();
   IntColumn get capacity => integer().nullable()();
   TextColumn get status => text().withDefault(const Constant('Disponible'))();
+}
+
+/// Réservations de locaux / équipements (créneaux datés).
+class FacilityReservations extends Table with UuidPrimaryKey, AuditColumns {
+  TextColumn get facilityId => text().references(Facilities, #id)();
+  TextColumn get title => text()();
+  TextColumn get purpose => text().nullable()();
+  DateTimeColumn get startDate => dateTime()();
+  DateTimeColumn get endDate => dateTime()();
+  TextColumn get requestedByUserId => text().nullable().references(Users, #id)();
+  /// Demandée, Validée, Refusée, Annulée, Terminée
+  TextColumn get status => text().withDefault(const Constant('Demandée'))();
+  TextColumn get notes => text().nullable()();
+}
+
+/// Fiches de maintenance préventive / corrective des locaux et équipements.
+class FacilityMaintenance extends Table with UuidPrimaryKey, AuditColumns {
+  TextColumn get facilityId => text().references(Facilities, #id)();
+  /// Préventive, Corrective
+  TextColumn get type => text().withDefault(const Constant('Corrective'))();
+  TextColumn get description => text()();
+  DateTimeColumn get startDate => dateTime()();
+  DateTimeColumn get endDate => dateTime().nullable()();
+  IntColumn get costMga => integer().withDefault(const Constant(0))();
+  TextColumn get provider => text().nullable()();
+  /// Planifiée, En cours, Terminée, Annulée
+  TextColumn get status => text().withDefault(const Constant('Planifiée'))();
+  TextColumn get notes => text().nullable()();
 }
 
 // --- Timetabling / Sessions (emploi du temps) ---

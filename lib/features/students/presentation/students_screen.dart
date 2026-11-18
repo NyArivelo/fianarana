@@ -11,6 +11,7 @@ import 'package:printing/printing.dart';
 
 import 'package:fianarana/core/utils/csv_export.dart';
 import 'package:fianarana/core/utils/xlsx_export.dart';
+import 'package:fianarana/core/services/establishment_service.dart';
 import 'package:fianarana/features/auth/application/auth_controller.dart';
 import 'package:fianarana/core/security/permission_providers.dart';
 import 'package:fianarana/features/documents/application/document_providers.dart';
@@ -335,6 +336,49 @@ class _StudentsScreenState extends ConsumerState<StudentsScreen> {
         ),
       ]),
     );
+  }
+
+  Future<void> _generateStudentDocument(StudentOverview overview, String docType, String templateType) async {
+    try {
+      final auth = ref.read(authControllerProvider);
+      final docRepo = ref.read(documentRepositoryProvider);
+      final tpl = await docRepo.defaultTemplate(templateType, actorUserId: auth.userId);
+      if (tpl == null) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              content: Text('Aucun modèle actif trouvé pour "$templateType". Créez-en un dans Document Studio.')));
+        }
+        return;
+      }
+      final s = overview.student;
+      final content = jsonDecode(tpl.contentJson) as Map<String, dynamic>;
+      final now = DateTime.now();
+      final est = await ref.read(establishmentProvider.future);
+      final ctx = <String, dynamic>{
+        'etablissement': est.toTemplateContext(),
+        'eleve': {
+          'nom': '${s.lastName} ${s.firstName}',
+          'matricule': s.matricule,
+          'classe': overview.classLabel ?? '',
+          'sexe': s.sex ?? '',
+          'date_naissance': s.birthDate == null
+              ? ''
+              : '${s.birthDate!.day.toString().padLeft(2, '0')}/${s.birthDate!.month.toString().padLeft(2, '0')}/${s.birthDate!.year}',
+          'lieu_naissance': s.birthPlace ?? '',
+        },
+        'annee': {'libelle': '2026-2027'},
+        'periode': {'libelle': ''},
+        'date': {'jour': '${now.day.toString().padLeft(2, '0')}/${now.month.toString().padLeft(2, '0')}/${now.year}'},
+        'resultats': {'moyenne': '', 'rang': '', 'mention': '', 'appreciation': ''},
+      };
+      final bytes = await DocumentStudioPdfService().renderTemplate(
+          templateContent: content, context: ctx, pageFormat: tpl.pageFormat);
+      await Printing.layoutPdf(onLayout: (_) async => bytes, name: '${docType}_${s.matricule}.pdf');
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erreur génération document: $e')));
+      }
+    }
   }
 
   Widget _detailPanel(BuildContext context, String? studentId) {

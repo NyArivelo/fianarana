@@ -10,14 +10,18 @@ import 'package:fianarana/features/auth/presentation/login_screen.dart';
 import 'package:fianarana/features/calendar/presentation/calendar_screen.dart';
 import 'package:fianarana/features/dashboard/presentation/dashboard_screen.dart';
 import 'package:fianarana/features/admin/presentation/users_admin_screen.dart';
+import 'package:fianarana/features/discipline/presentation/discipline_screen.dart';
 import 'package:fianarana/features/documents/presentation/document_studio_screen.dart';
 import 'package:fianarana/features/facilities/presentation/facilities_screen.dart';
+import 'package:fianarana/features/facilities/presentation/facility_operations_screen.dart';
+import 'package:fianarana/features/finance/presentation/fee_catalog_screen.dart';
 import 'package:fianarana/features/finance/presentation/finance_screen.dart';
 import 'package:fianarana/features/finance/presentation/schedules_screen.dart';
 import 'package:fianarana/features/grades/presentation/councils_screen.dart';
 import 'package:fianarana/features/grades/presentation/grades_screen.dart';
 import 'package:fianarana/features/library/presentation/library_screen.dart';
 import 'package:fianarana/features/settings/presentation/settings_screen.dart';
+import 'package:fianarana/features/settings/presentation/structure_settings_screen.dart';
 import 'package:fianarana/features/setup/presentation/bootstrap_screen.dart';
 import 'package:fianarana/features/setup/presentation/setup_screen.dart';
 import 'package:fianarana/features/staff/presentation/staff_screen.dart';
@@ -93,10 +97,15 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             builder: (context, state) => const AttendanceScreen(),
           ),
           GoRoute(
+            path: '/discipline',
+            builder: (context, state) => const DisciplineScreen(),
+          ),
+          GoRoute(
             path: '/finance',
             builder: (context, state) => const FinanceScreen(),
             routes: [
               GoRoute(path: 'schedules', builder: (context, state) => const SchedulesScreen()),
+              GoRoute(path: 'fees', builder: (context, state) => const FeeCatalogScreen()),
             ],
           ),
           GoRoute(
@@ -126,11 +135,18 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             builder: (context, state) => const SettingsScreen(),
             routes: [
               GoRoute(path: 'users', builder: (context, state) => const UsersAdminScreen()),
+              GoRoute(path: 'structure', builder: (context, state) => const StructureSettingsScreen()),
             ],
           ),
           GoRoute(path: '/staff', builder: (context, state) => const StaffScreen()),
           GoRoute(path: '/library', builder: (context, state) => const LibraryScreen()),
-          GoRoute(path: '/facilities', builder: (context, state) => const FacilitiesScreen()),
+          GoRoute(
+            path: '/facilities',
+            builder: (context, state) => const FacilitiesScreen(),
+            routes: [
+              GoRoute(path: 'operations', builder: (context, state) => const FacilityOperationsScreen()),
+            ],
+          ),
         ],
       ),
     ],

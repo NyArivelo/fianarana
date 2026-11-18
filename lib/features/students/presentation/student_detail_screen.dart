@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:printing/printing.dart';
 
 import 'package:fianarana/core/settings/app_config.dart';
+import 'package:fianarana/core/services/establishment_service.dart';
 import 'package:fianarana/features/auth/application/auth_controller.dart';
 import 'package:fianarana/core/security/permission_providers.dart';
 import 'package:fianarana/features/documents/application/document_providers.dart';
@@ -35,8 +36,19 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> {
   String? _classId;
   DateTime? _birthDate;
   bool _saving = false;
+  dynamic _loadedStudent;
 
   bool get isNew => widget.studentId == null || widget.studentId == 'new';
+
+  bool get canSave {
+    final perms = ref.watch(currentPermissionsProvider).valueOrNull ?? const <String>{};
+    return isNew ? perms.contains('students.create') : perms.contains('students.update');
+  }
+
+  bool get canTransfer {
+    final perms = ref.watch(currentPermissionsProvider).valueOrNull ?? const <String>{};
+    return perms.contains('students.update');
+  }
 
   @override
   void dispose() {
@@ -135,7 +147,7 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> {
                 PopupMenuButton<String>(
                   tooltip: 'Générer un document (modèle)',
                   icon: const Icon(Icons.description_outlined),
-                  onSelected: (t) => _generateFromTemplate(student, t),
+                  onSelected: (t) => _generateFromTemplate(_loadedStudent, t),
                   itemBuilder: (ctx) => const [
                     PopupMenuItem(value: 'attestation', child: Text('Attestation de scolarité')),
                     PopupMenuItem(value: 'carte', child: Text('Carte scolaire')),
@@ -149,6 +161,7 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> {
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('Erreur: $e')),
         data: (student) {
+          _loadedStudent = student;
           if (!isNew && student != null && _matricule.text.isEmpty) {
             _matricule.text = student.matricule;
             _lastName.text = student.lastName;
@@ -345,8 +358,9 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> {
       final content = jsonDecode(tpl.contentJson as String) as Map<String, dynamic>;
       final pdf = DocumentStudioPdfService();
       final now = DateTime.now();
+      final est = await ref.read(establishmentProvider.future);
       final ctx = <String, dynamic>{
-        'etablissement': {'nom': 'Établissement scolaire', 'adresse': ''},
+        'etablissement': est.toTemplateContext(),
         'eleve': {
           'nom': '${student.lastName} ${student.firstName}',
           'matricule': student.matricule,
@@ -439,6 +453,7 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> {
       );
       final now = DateTime.now();
       final overview = await repo.overview(student.id as String, actorUserId: auth.userId);
+      final est = await ref.read(establishmentProvider.future);
       final cert = await CertificateService().generateExitCertificate(
         ExitCertificateData(
           studentName: '${student.lastName} ${student.firstName}',
@@ -452,7 +467,7 @@ class _StudentDetailScreenState extends ConsumerState<StudentDetailScreen> {
           financeClearance: finance,
           libraryClearance: library,
         ),
-        establishmentName: 'Établissement scolaire',
+        establishmentName: est.name,
       );
       await Printing.layoutPdf(onLayout: (_) async => cert, name: 'certificat_sortie_${student.matricule}.pdf');
       ref.invalidate(studentsListProvider);

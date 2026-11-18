@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:crypto/crypto.dart';
-import 'package:drift/drift.dart' show OrderingTerm;
+import 'package:drift/drift.dart' hide Column;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -137,7 +137,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         title: const Text('Réimporter les données de test ?'),
         content: const Text(
             'Cette action met à jour les données de démonstration (élèves, personnel, affectations, '
-            'emploi du temps, calendrier, bibliothèque, locaux). '
+            'emploi du temps, calendrier, bibliothèque, locaux, catalogue de frais, bourses, '
+            'notes de crédit, discipline, réservations et maintenance). '
             'Les enregistrements existants portant les mêmes UUID seront écrasés. '
             'Les saisies de production ne sont pas supprimées.'),
         actions: [
@@ -558,7 +559,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       height: 16,
                       child: CircularProgressIndicator(strokeWidth: 2))),
             ),
-          const AppBadge('v1.1 • schéma v6',
+          const AppBadge('v1.1 • schéma v8',
               tone: AppTone.info, icon: Icons.storage_outlined),
           const SizedBox(width: 12),
         ],
@@ -596,21 +597,21 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               final left = ListView(
                 padding: const EdgeInsets.only(right: 6),
                 children: [
-                  _backupCard(),
+                  _backupCard(canBackupCreate: canBackupCreate, canBackupRestore: canBackupRestore),
                   const SizedBox(height: 12),
                   _seedCard(stats.valueOrNull),
                   const SizedBox(height: 12),
-                  _recycleCard(),
+                  _recycleCard(canRecycleManage: canRecycleManage),
                   const SizedBox(height: 12),
-                  _importExportCard(),
+                  _importExportCard(canSettingsUpdate: canSettingsUpdate),
                   const SizedBox(height: 12),
-                  _yearClosureCard(),
+                  _yearClosureCard(canSettingsUpdate: canSettingsUpdate),
                 ],
               );
               final right = ListView(
                 padding: const EdgeInsets.only(left: 6),
                 children: [
-                  _auditCard(),
+                  _auditCard(canAuditRead: canAuditRead, canAuditExport: canAuditExport),
                   const SizedBox(height: 12),
                   _securityCard(),
                   const SizedBox(height: 12),
@@ -629,17 +630,17 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 ]);
               }
               return ListView(children: [
-                _backupCard(),
+                _backupCard(canBackupCreate: canBackupCreate, canBackupRestore: canBackupRestore),
                 const SizedBox(height: 12),
                 _seedCard(stats.valueOrNull),
                 const SizedBox(height: 12),
-                _recycleCard(),
+                _recycleCard(canRecycleManage: canRecycleManage),
                 const SizedBox(height: 12),
-                _importExportCard(),
+                _importExportCard(canSettingsUpdate: canSettingsUpdate),
                 const SizedBox(height: 12),
-                _yearClosureCard(),
+                _yearClosureCard(canSettingsUpdate: canSettingsUpdate),
                 const SizedBox(height: 12),
-                _auditCard(),
+                _auditCard(canAuditRead: canAuditRead, canAuditExport: canAuditExport),
                 const SizedBox(height: 12),
                 _securityCard(),
                 const SizedBox(height: 12),
@@ -656,7 +657,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
-  Widget _backupCard() {
+  Widget _backupCard({required bool canBackupCreate, required bool canBackupRestore}) {
     final backups = ref.watch(_backupsProvider);
     final cfg = ref.watch(appConfigProvider).valueOrNull ?? AppConfig.defaults;
     return AppSectionCard(
@@ -738,7 +739,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     return AppSectionCard(
       title: 'Données de test',
       subtitle:
-          'Jeu de démonstration : élèves, personnel, affectations, planning, calendrier, bibliothèque et locaux.',
+          'Jeu de démonstration : élèves, personnel, affectations, planning, calendrier, bibliothèque, locaux, frais, discipline et maintenance.',
       trailing: AppBadge(
         loaded ? 'Chargées' : 'Non chargées',
         tone: loaded ? AppTone.success : AppTone.warning,
@@ -764,7 +765,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
-  Widget _recycleCard() {
+  Widget _recycleCard({required bool canRecycleManage}) {
     return AppSectionCard(
       title: 'Corbeille (admin)',
       subtitle: 'Suppression logique exhaustive, rétention configurable, restauration en un clic (réservé administrateur).',
@@ -781,16 +782,25 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
-  Widget _auditCard() {
+  Widget _auditCard({required bool canAuditRead, required bool canAuditExport}) {
     final logs = ref.watch(_auditLogsProvider);
     return AppSectionCard(
       title: 'Journal d\'audit',
       subtitle:
           'Traçabilité UTC horodatée et empreinte SHA-256. Export JSON/CSV par période accompagné d\'un fichier .sha256.',
       trailing: Wrap(spacing: 6, runSpacing: 6, children: [
-        OutlinedButton.icon(onPressed: canAuditRead ? _showAudit : null, icon: const Icon(Icons.visibility_outlined, size: 14), label: const Text('Consulter')),
-        OutlinedButton.icon(onPressed: (_busy || !canAuditExport) ? null : () => _exportAudit(asJson: false), icon: const Icon(Icons.table_view_outlined, size: 14), label: const Text('Export CSV')),
-        FilledButton.icon(onPressed: (_busy || !canAuditExport) ? null : () => _exportAudit(asJson: true), icon: const Icon(Icons.data_object, size: 14), label: const Text('Export JSON')),
+        IconButton(
+            tooltip: 'Consulter le journal',
+            onPressed: canAuditRead ? _showAudit : null,
+            icon: const Icon(Icons.visibility_outlined, size: 18)),
+        IconButton(
+            tooltip: 'Exporter en CSV (signé SHA-256)',
+            onPressed: (_busy || !canAuditExport) ? null : () => _exportAudit(asJson: false),
+            icon: const Icon(Icons.table_view_outlined, size: 18)),
+        IconButton(
+            tooltip: 'Exporter en JSON (signé SHA-256)',
+            onPressed: (_busy || !canAuditExport) ? null : () => _exportAudit(asJson: true),
+            icon: const Icon(Icons.data_object, size: 18)),
       ]),
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
       child: logs.when(
@@ -836,7 +846,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
-  Widget _importExportCard() {
+  Widget _importExportCard({required bool canSettingsUpdate}) {
     return AppSectionCard(
       title: 'Import / Export & modèles',
       subtitle: 'Modèles CSV guidés pour import (élèves, personnel, notes) et exports de données.',
@@ -880,7 +890,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
-  Widget _yearClosureCard() {
+  Widget _yearClosureCard({required bool canSettingsUpdate}) {
     return AppSectionCard(
       title: 'Clôture annuelle & archivage légal',
       subtitle: 'Archive scellée (JSON + SHA-256) en lecture seule de l\'année scolaire (coffre-fort légal).',
@@ -1026,7 +1036,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
   Future<void> _checkUpdate() async {
     _setMessage(
-        'Mise à jour logique: version 1.1 (schéma v6). Vérification distante non configurée en local; les migrations Drift s\'appliquent automatiquement au redémarrage.');
+        'Mise à jour logique: version 1.1 (schéma v8). Vérification distante non configurée en local; les migrations Drift s\'appliquent automatiquement au redémarrage.');
   }
 
   Future<void> _setSandbox(bool v) async {
@@ -1057,6 +1067,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       child: cfgAsync.when(
         data: (cfg) => Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Wrap(spacing: 8, runSpacing: 8, children: [
+            OutlinedButton.icon(
+                onPressed: () => context.go('/settings/structure'),
+                icon: const Icon(Icons.account_tree_outlined, size: 16),
+                label: const Text('Établissement & structure')),
             OutlinedButton.icon(
                 onPressed: () => context.go('/settings/users'),
                 icon: const Icon(Icons.manage_accounts_outlined, size: 16),
@@ -1132,7 +1146,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         const _InfoLine('Version', '1.1 • MVP Desktop'),
         const _InfoLine('Base de données', 'SQLite 3 (Drift) locale, clés UUID'),
-        const _InfoLine('Schéma', 'v6 — studio, absences, clôture, compétences, état civil'),
+        const _InfoLine('Schéma', 'v8 — frais, discipline, réservations, maintenance'),
         const _InfoLine('Année scolaire', '2026-2027'),
         const _InfoLine('Devise', 'Ariary malgache (MGA)'),
         const SizedBox(height: 8),

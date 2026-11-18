@@ -8,11 +8,15 @@ import 'package:fianarana/core/database/database_provider.dart';
 import 'package:fianarana/core/database/seed_importer.dart';
 import 'package:fianarana/core/theme/app_theme.dart';
 import 'package:fianarana/features/attendance/presentation/attendance_screen.dart';
+import 'package:fianarana/features/discipline/presentation/discipline_screen.dart';
 import 'package:fianarana/features/facilities/presentation/facilities_screen.dart';
+import 'package:fianarana/features/facilities/presentation/facility_operations_screen.dart';
+import 'package:fianarana/features/finance/presentation/fee_catalog_screen.dart';
 import 'package:fianarana/features/finance/presentation/finance_screen.dart';
 import 'package:fianarana/features/grades/presentation/grades_screen.dart';
 import 'package:fianarana/features/library/presentation/library_screen.dart';
 import 'package:fianarana/features/settings/presentation/settings_screen.dart';
+import 'package:fianarana/features/settings/presentation/structure_settings_screen.dart';
 
 /// Vérification de rendu des modules métier sur une base de test complète.
 ///
@@ -96,6 +100,28 @@ void main() {
     expect(find.text('Paramètres & administration'), findsOneWidget);
     expect(find.text('Données de test'), findsOneWidget);
     expect(find.text('Journal d\'audit'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+
+    await pumpScreen(const DisciplineScreen());
+    expect(find.text('Discipline & suivi des sanctions'), findsOneWidget);
+    expect(find.text('Ouvrir un dossier'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+
+    await pumpScreen(const FeeCatalogScreen());
+    expect(find.text('Catalogue de frais & remises'), findsOneWidget);
+    expect(find.text('Grille tarifaire'), findsWidgets);
+    expect(find.text('Bourses & remises'), findsWidgets);
+    expect(tester.takeException(), isNull);
+
+    await pumpScreen(const StructureSettingsScreen());
+    expect(find.text('Établissement & structure pédagogique'), findsOneWidget);
+    expect(find.text('Établissement'), findsWidgets);
+    expect(find.text('Années & périodes'), findsWidgets);
+    expect(tester.takeException(), isNull);
+
+    await pumpScreen(const FacilityOperationsScreen());
+    expect(find.text('Réservations & maintenance'), findsOneWidget);
+    expect(find.text('Réservations'), findsWidgets);
     expect(tester.takeException(), isNull);
   }, timeout: const Timeout(Duration(minutes: 5)));
 }

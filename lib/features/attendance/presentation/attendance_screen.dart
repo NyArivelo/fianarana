@@ -426,6 +426,98 @@ class _AttendanceScreenState extends ConsumerState<AttendanceScreen> {
     _snack('Export ${choice.toUpperCase()} : ${file.path}');
   }
 
+  Future<void> _downloadAttendanceTemplate() async {
+    try {
+      final choice = await showDialog<String>(
+        context: context,
+        builder: (ctx) => SimpleDialog(
+          title: const Text('Modèle d\'import présences/discipline'),
+          children: [
+            SimpleDialogOption(
+              onPressed: () => Navigator.pop(ctx, 'csv'),
+              child: const ListTile(leading: Icon(Icons.description_outlined), title: Text('Télécharger modèle CSV')),
+            ),
+            SimpleDialogOption(
+              onPressed: () => Navigator.pop(ctx, 'xlsx'),
+              child: const ListTile(leading: Icon(Icons.grid_on_outlined), title: Text('Télécharger modèle Excel XLSX')),
+            ),
+          ],
+        ),
+      );
+      if (choice == null) return;
+      final ts = DateTime.now().millisecondsSinceEpoch;
+      final file = choice == 'xlsx'
+          ? await XlsxExport.export(
+              filename: 'modele_import_presences_$ts.xlsx',
+              sheetName: 'Presences',
+              headers: AttendanceImportService.templateHeaders,
+              rows: AttendanceImportService.templateSample,
+            )
+          : await CsvExport.export(
+              filename: 'modele_import_presences_$ts.csv',
+              headers: AttendanceImportService.templateHeaders,
+              rows: AttendanceImportService.templateSample,
+            );
+      if (mounted) _snack('Modèle enregistré : ${file.path}');
+    } catch (e) {
+      if (mounted) _snack('Erreur modèle : $e');
+    }
+  }
+
+  Future<void> _importAttendance() async {
+    final pick = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['csv', 'xlsx', 'xls'],
+    );
+    if (pick == null || pick.files.single.path == null) return;
+
+    final file = File(pick.files.single.path!);
+    final auth = ref.read(authControllerProvider);
+    final students = await ref.read(studentsRepositoryProvider).list(actorUserId: auth.userId, limit: 2000);
+    final studentIdByMatricule = {for (final s in students) s.matricule: s.id};
+    final studentNameByMatricule = {for (final s in students) s.matricule: s.fullName};
+    final classes = await ref.read(studentsRepositoryProvider).allClasses(actorUserId: auth.userId);
+    final classIdByLabel = {for (final c in classes) c.label.toLowerCase(): c.id};
+
+    try {
+      final service = AttendanceImportService();
+      final raw = await service.parseFile(file);
+      final rows = service.toRows(
+        raw,
+        studentIdByMatricule: studentIdByMatricule,
+        studentNameByMatricule: studentNameByMatricule,
+        classIdByLabel: classIdByLabel,
+      );
+      if (rows.isEmpty) {
+        _snack('Aucune ligne valide trouvée dans le fichier.');
+        return;
+      }
+
+      var imported = 0;
+      for (final row in rows) {
+        if (row.error != null || row.studentId == null || row.date == null) continue;
+        final resolvedClassId = row.classId ?? _classId;
+        if (resolvedClassId == null || resolvedClassId.isEmpty) continue;
+        await ref.read(attendanceRepositoryProvider).record(
+          studentId: row.studentId!,
+          classId: resolvedClassId,
+          date: row.date!,
+          status: row.status,
+          category: row.category,
+          slotOrFacts: row.slotOrFacts,
+          justification: row.justification,
+          actorUserId: auth.userId,
+          actorUsername: auth.username,
+        );
+        imported++;
+      }
+      _invalidate();
+      _snack('Import terminé : $imported ligne(s) enregistrée(s).');
+    } catch (e) {
+      _snack('Erreur import : $e');
+    }
+  }
+
   // ---------------------------------------------------------------------------
   // Build
   // ---------------------------------------------------------------------------

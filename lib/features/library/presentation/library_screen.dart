@@ -6,6 +6,7 @@ import 'package:printing/printing.dart';
 
 import 'package:fianarana/core/utils/csv_export.dart';
 import 'package:fianarana/core/utils/xlsx_export.dart';
+import 'package:fianarana/core/services/establishment_service.dart';
 import 'package:fianarana/core/widgets/app_ui.dart';
 import 'package:fianarana/features/auth/application/auth_controller.dart';
 import 'package:fianarana/core/security/permission_providers.dart';
@@ -73,8 +74,9 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
       final content = jsonDecode(tpl.contentJson as String) as Map<String, dynamic>;
       final pdf = DocumentStudioPdfService();
       final now = DateTime.now();
+      final est = await ref.read(establishmentProvider.future);
       final ctx = <String, dynamic>{
-        'etablissement': {'nom': 'Établissement scolaire', 'adresse': ''},
+        'etablissement': est.toTemplateContext(),
         'eleve': {
           'nom': r.fullName,
           'matricule': r.matricule,
@@ -301,7 +303,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen>
       r.borrowerName ?? '',
       r.borrowerMatricule ?? '',
       r.classLabel ?? '',
-      r.loan.loanDate.toIso8601String().split('T').first,
+      r.loan.startDate.toIso8601String().split('T').first,
       r.loan.dueDate?.toIso8601String().split('T').first ?? '',
       r.loan.returnDate?.toIso8601String().split('T').first ?? '',
       r.isReturned ? 'Retourné' : 'En cours',

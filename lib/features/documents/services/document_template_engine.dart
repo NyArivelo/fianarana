@@ -117,31 +117,33 @@ class _Parser {
 
   num? parseExpression() => _parseAdd();
   num? _parseAdd() {
-    var left = _parseMul();
-    if (left == null) return null;
+    final first = _parseMul();
+    if (first == null) return null;
+    var acc = first;
     while (!atEnd) {
       final p = peek();
       if (p == null || (p.type != '+' && p.type != '-')) break;
       consume();
       final right = _parseMul();
       if (right == null) return null;
-      left = p.type == '+' ? left + right : left - right;
+      acc = p.type == '+' ? acc + right : acc - right;
     }
-    return left;
+    return acc;
   }
 
   num? _parseMul() {
-    var left = _parseUnary();
-    if (left == null) return null;
+    final first = _parseUnary();
+    if (first == null) return null;
+    var acc = first;
     while (!atEnd) {
       final p = peek();
       if (p == null || (p.type != '*' && p.type != '/')) break;
       consume();
       final right = _parseUnary();
       if (right == null) return null;
-      left = p.type == '*' ? left * right : (right == 0 ? 0 : left / right);
+      acc = p.type == '*' ? acc * right : (right == 0 ? 0 : acc / right);
     }
-    return left;
+    return acc;
   }
 
   num? _parseUnary() {

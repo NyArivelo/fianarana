@@ -5,6 +5,7 @@ import 'package:fianarana/core/database/uuid.dart';
 import 'package:fianarana/core/security/affectation_scope.dart';
 import 'package:fianarana/core/security/audit_service.dart';
 import 'package:fianarana/core/security/permission_service.dart';
+import 'package:fianarana/features/finance/data/fee_repository.dart';
 
 class PaymentRow {
   final String id;
@@ -16,6 +17,10 @@ class PaymentRow {
   final int due;
   final int paid;
   final int balance;
+  final int netDue;
+  final int discount;
+  final int scholarship;
+  final int creditNote;
   final DateTime? date;
   final String? method;
   final String? scheduleStatus;
@@ -31,6 +36,10 @@ class PaymentRow {
     required this.due,
     required this.paid,
     required this.balance,
+    this.netDue = 0,
+    this.discount = 0,
+    this.scholarship = 0,
+    this.creditNote = 0,
     required this.date,
     required this.method,
     required this.scheduleStatus,
@@ -128,6 +137,10 @@ class FinanceRepository {
         due: pay.amountDueMga,
         paid: pay.amountPaidMga,
         balance: pay.balanceMga,
+        netDue: pay.netDueMga > 0 ? pay.netDueMga : pay.amountDueMga,
+        discount: pay.discountMga,
+        scholarship: pay.scholarshipMga,
+        creditNote: pay.creditNoteMga,
         date: pay.paymentDate,
         method: pay.paymentMethod,
         scheduleStatus: pay.scheduleStatus,
@@ -147,7 +160,7 @@ class FinanceRepository {
     final rows = await q.get();
     var due = 0, paid = 0, bal = 0;
     for (final r in rows) {
-      due += r.amountDueMga;
+      due += r.netDueMga > 0 ? r.netDueMga : r.amountDueMga;
       paid += r.amountPaidMga;
       bal += r.balanceMga;
     }
@@ -174,6 +187,11 @@ class FinanceRepository {
     required String feeLabel,
     required int amountDueMga,
     required int amountPaidMga,
+    int discountMga = 0,
+    int scholarshipMga = 0,
+    int creditNoteMga = 0,
+    String? discountReason,
+    String? feeStructureId,
     DateTime? paymentDate,
     String? paymentMethod,
     String? scheduleStatus,
@@ -195,7 +213,13 @@ class FinanceRepository {
     }
     final id = newUuid();
     final receipt = await _nextReceiptNumber();
-    final balance = (amountDueMga - amountPaidMga).clamp(0, 1 << 30);
+    final netDue = computeNetDue(
+      amountDueMga: amountDueMga,
+      discountMga: discountMga,
+      scholarshipMga: scholarshipMga,
+      creditNoteMga: creditNoteMga,
+    );
+    final balance = (netDue - amountPaidMga).clamp(0, 1 << 30);
     final now = paymentDate ?? DateTime.now();
     await db.into(db.payments).insert(PaymentsCompanion.insert(
       id: Value(id),
@@ -203,7 +227,13 @@ class FinanceRepository {
       studentId: studentId,
       classId: Value(classId),
       feeLabel: feeLabel,
+      feeStructureId: Value(feeStructureId),
       amountDueMga: Value(amountDueMga),
+      discountMga: Value(discountMga),
+      scholarshipMga: Value(scholarshipMga),
+      creditNoteMga: Value(creditNoteMga),
+      netDueMga: Value(netDue),
+      discountReason: Value(discountReason),
       amountPaidMga: Value(amountPaidMga),
       balanceMga: Value(balance),
       paymentDate: Value(now),
@@ -212,7 +242,16 @@ class FinanceRepository {
       cashierUserId: Value(actorUserId),
       cashCloseStatus: const Value('Ouvert'),
     ));
-    await _audit.log(userId: actorUserId, username: actorUsername, module: 'Finances', targetObject: receipt, description: 'Encaissement $amountPaidMga MGA ($feeLabel) élève $studentId', result: 'Succès', metadata: {'paymentId': id});
+    await _audit.log(
+      userId: actorUserId,
+      username: actorUsername,
+      module: 'Finances',
+      targetObject: receipt,
+      description: 'Encaissement $amountPaidMga MGA ($feeLabel) élève $studentId'
+          '${discountMga + scholarshipMga + creditNoteMga > 0 ? ' — remises ${discountMga + scholarshipMga + creditNoteMga} MGA' : ''}',
+      result: 'Succès',
+      metadata: {'paymentId': id, 'netDue': netDue},
+    );
     return receipt;
   }
 

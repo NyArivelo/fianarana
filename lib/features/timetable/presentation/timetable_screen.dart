@@ -69,8 +69,10 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
     final subjects = await ref.read(timetableSubjectsProvider.future);
     if (!mounted) return;
 
-    String? classId = entry?.classId ?? (_mode == _TimetableMode.parClasse ? _classId : null);
-    String? teacherId = entry?.teacherId ?? (_mode == _TimetableMode.parEnseignante ? _teacherId : null);
+    String? classId = entry?.classId ??
+        (_mode == _TimetableMode.planningEnseignantes && _teacherView == _TeacherPlanningView.parClasse ? _classId : null);
+    String? teacherId = entry?.teacherId ??
+        (_mode == _TimetableMode.planningEnseignantes && _teacherView == _TeacherPlanningView.parEnseignante ? _teacherId : null);
     String? subjectId = entry?.subjectId;
     String day = entry?.dayOfWeek ?? 'Lundi';
     final startCtrl = TextEditingController(text: entry?.startTime ?? '08:00');
@@ -353,36 +355,42 @@ class _TimetableScreenState extends ConsumerState<TimetableScreen> {
                     ),
                 ],
                 if (_mode == _TimetableMode.global)
-                  Wrap(spacing: 6, children: _days.map((d) {
-                    final selected = d == _agendaDay;
-                    return ChoiceChip(
-                      label: Text(d),
-                      selected: selected,
-                      onSelected: (_) => setState(() => _agendaDay = d),
-                    );
-                  }).toList()),
-const SizedBox(height: 12),
-          Expanded(
-            child: entriesAsync.when(
-              data: (entries) {
-                final repo = ref.watch(timetableRepositoryProvider);
-                final conflicts = repo.detectConflicts(entries);
-                return Column(children: [
-                  _summaryBar(context, entries, conflicts),
-                  const SizedBox(height: 10),
-                  Expanded(
-                    child: _mode == _TimetableMode.global
-                        ? _agendaView(context, entries)
-                        : (_mode == _TimetableMode.planningEnseignantes && _teacherView == _TeacherPlanningView.parClasse)
-                            ? _teacherPlanningByClassView(context, entries)
-                            : _weeklyGrid(context, entries),
+                  Wrap(
+                    spacing: 6,
+                    children: _days.map((d) {
+                      final selected = d == _agendaDay;
+                      return ChoiceChip(
+                        label: Text(d),
+                        selected: selected,
+                        onSelected: (_) => setState(() => _agendaDay = d),
+                      );
+                    }).toList(),
                   ),
-                ]);
-              },
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (e, _) => Center(child: Text('Erreur chargement emploi du temps: $e')),
+              ],
             ),
           ),
+          const SizedBox(height: 12),
+          Expanded(
+            child: entriesAsync.when(
+                    data: (entries) {
+                      final repo = ref.watch(timetableRepositoryProvider);
+                      final conflicts = repo.detectConflicts(entries);
+                      return Column(children: [
+                        _summaryBar(context, entries, conflicts),
+                        const SizedBox(height: 10),
+                        Expanded(
+                          child: _mode == _TimetableMode.global
+                              ? _agendaView(context, entries)
+                              : (_mode == _TimetableMode.planningEnseignantes && _teacherView == _TeacherPlanningView.parClasse)
+                                  ? _teacherPlanningByClassView(context, entries)
+                                  : _weeklyGrid(context, entries),
+                        ),
+                      ]);
+                    },
+                    loading: () => const Center(child: CircularProgressIndicator()),
+                    error: (e, _) => Center(child: Text('Erreur chargement emploi du temps: $e')),
+                  ),
+                ),
         ]),
       ),
     );

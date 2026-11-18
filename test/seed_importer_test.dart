@@ -25,7 +25,9 @@ void main() {
     final summary = await SeedImporter(db).importAll();
     expect(summary, contains('emploi_du_temps='));
 
-    final sessions = await db.select(db.timetableSessions).get();
+    final sessions = await (db.select(db.timetableSessions)
+          ..where((t) => t.isDeleted.equals(false)))
+        .get();
     expect(sessions.length, greaterThan(200),
         reason: 'emploi du temps complet attendu (11 classes)');
 
@@ -53,8 +55,50 @@ void main() {
     expect(classEvents, isNotEmpty);
   }, timeout: const Timeout(Duration(minutes: 3)));
 
-  test('bibliothèque, quitus et locaux exploitent les données de test', () async {
-    await SeedImporter(db).importAll();
+  test('frais, discipline et réservations disposent de données de test', () async {
+    final summary = await SeedImporter(db).importAll();
+    expect(summary, contains('frais_discipline_locaux='));
+
+    final fees = await (db.select(db.feeStructures)..where((t) => t.isDeleted.equals(false))).get();
+    expect(fees.length, greaterThanOrEqualTo(3));
+    expect(fees.any((f) => f.amountMga > 0), isTrue);
+
+    final discounts = await (db.select(db.studentDiscounts)..where((t) => t.isDeleted.equals(false))).get();
+    expect(discounts, isNotEmpty);
+    expect(discounts.any((d) => d.percent > 0 || d.amountMga > 0), isTrue);
+
+    final creditNotes = await (db.select(db.creditNotes)..where((t) => t.isDeleted.equals(false))).get();
+    expect(creditNotes, isNotEmpty);
+
+    final cases = await (db.select(db.disciplineCases)..where((t) => t.isDeleted.equals(false))).get();
+    expect(cases, isNotEmpty);
+    expect(cases.any((c) => c.status != 'Clos'), isTrue);
+    final actions = await (db.select(db.disciplineActions)..where((t) => t.isDeleted.equals(false))).get();
+    expect(actions.where((a) => a.status == 'À faire'), isNotEmpty);
+    expect(actions.where((a) => a.status == 'Exécutée'), isNotEmpty);
+
+    final reservations = await (db.select(db.facilityReservations)..where((t) => t.isDeleted.equals(false))).get();
+    expect(reservations, isNotEmpty);
+    expect(reservations.every((r) => r.endDate.isAfter(r.startDate)), isTrue);
+    final maintenance = await (db.select(db.facilityMaintenance)..where((t) => t.isDeleted.equals(false))).get();
+    expect(maintenance, isNotEmpty);
+
+    // Permissions granulaires des nouveaux modules et affectation aux rôles.
+    final permissions = await db.select(db.permissions).get();
+    expect(permissions.any((p) => p.code == 'discipline.create'), isTrue);
+    expect(permissions.any((p) => p.code == 'discipline.validate'), isTrue);
+    expect(permissions.any((p) => p.code == 'fees.read'), isTrue);
+    expect(permissions.any((p) => p.code == 'fees.update'), isTrue);
+    final surveillant = await (db.select(db.roles)..where((r) => r.name.equals('Surveillant'))).getSingleOrNull();
+    expect(surveillant, isNotNull);
+    final surveillantPerms = await (db.select(db.rolePermissions)
+          ..where((rp) => rp.roleId.equals(surveillant!.id)))
+        .get();
+    final permCodes = {for (final p in permissions) p.id: p.code};
+    expect(surveillantPerms.any((rp) => permCodes[rp.permissionId] == 'discipline.create'), isTrue);
+  }, timeout: const Timeout(Duration(minutes: 3)));
+
+  test('bibliothèque, quitus et locaux exploitent les données de test', () async {    await SeedImporter(db).importAll();
 
     final library = LibraryRepository(db);
     final catalogue = await library.listCatalogue();
